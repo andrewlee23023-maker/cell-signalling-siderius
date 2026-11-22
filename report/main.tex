@@ -20,24 +20,24 @@
 \newcommand{\TEAM}[1]{\textcolor{red}{[TEAM: #1]}}
 
 % Title and abstract: drafted by Claude Code from the team's own section 1 and insights; team to review.
-\title{Covariate-adjusted rank coupling on real contacts recovers weak directed ligand--receptor signalling}
+\title{Learned contact statistics detect weak ligand--receptor coupling better, but do not orient it better}
 \author{BioHacking \\ Andrew Lee, University of Pennsylvania
 \\ Team ID: G2-16 \quad Task slug: cell-signalling}
 \begin{document}
 \maketitle
 \begin{abstract}
 We asked whether single-cell spatial expression carries a directional signature of ligand--receptor signalling
-that can be told apart from co-location, abundance and regional trends. Our initial idea was that the official
-contact-Spearman baseline misses weak effects, and that measuring the ligand--receptor relationship only on real
-(non-padded) contacts, with library offset and sender-neighbour fraction partialled out, would recover them.
-Parametric count models (negative-binomial deviance, a two-part slope test) scored below the rank baseline. A
-SIDERIUS-generated network built on a rank partial-correlation statistic, trained on train data plus generator
+that can be told apart from co-location, abundance and regional trends. Starting from the hypothesis that the
+official contact-Spearman baseline misses weak effects, we measured the ligand--receptor relationship only on real
+contacts with library offset and sender-neighbour fraction partialled out. Count models scored below the rank
+baseline; a SIDERIUS-generated network on a rank partial-correlation statistic, trained with generator
 realisations of the train tiles and averaged with a second contact-statistics model, reached validation
-\texttt{lr\_auprc} 0.607 against 0.560 for the baseline, with most of the gain on weak and medium effects. The most
-informative experiment was shuffling the receptor across each triple's contacts, which keeps every marginal and
-drops the model to the random level (0.120): the gain comes from the pairing. The main limitation is that the
-margin (+0.046, 7-tile 95\% interval $-$0.002 to +0.086) is as large as the inflation from choosing among variants
-on validation.
+\texttt{lr\_auprc} 0.607 against 0.560 (official scorer 0.606). The signal is spatial coupling: shuffling the receptor
+across contacts drops the model to random. The gain is largest for the weakest links (AP 0.21$\to$0.31), but the
+models do not orient links better: direction accuracy stays at the baseline's 0.82, and on the weakest links it
+falls (0.71$\to$0.62, unresolved). Learned models improve detecting coupling, not telling sender from receiver. The
+main limitation is that the overall margin (+0.046) is as large as the inflation from choosing among variants on
+validation.
 \end{abstract}
 
 \section{Scientific goal \& initial hypothesis}
@@ -76,7 +76,6 @@ Run ID & Why & Change & Result & Next decision \\
 R0 baseline & Does our pipeline match the official score? & Official contact-Spearman baseline, as documented & 0.5603341514 (exact reproduction) & Use 0.560 as the fixed reference \\
 R1 team statistics & Can a fixed statistic beat the baseline? & Two-part slope $t$ (M1); NB $\Delta$deviance; 43 fixed variants & 0.515; 0.402; best of 43: 0.539 & Drop parametric count models; keep rank statistics \\
 R2 iter1 & Can the agent loop, given our advice, beat it? & SIDERIUS, Claude Sonnet 5.5 + advice; 1 iteration & MLP 15.9k params, 0.5875; retrained 0.583$\pm$0.004 & Ablate before building further \\
-R3 framework limits & What will the framework actually run? & Smoke test, 2-iteration loops, custom-loss advice, Claude implementation & Classifier refused (fixed to regressor); custom loss refused; loops crash at hand-off; 3 of 4 Claude implement replies failed format check & Stay within 0/1 labels and single iterations; implement with OpenAI \\
 R4 ablation & Which component carries iter1? & (a) z-score alone; (b) skip removed; (c) as is & 0.563; 0.593$\pm$0.003; 0.583$\pm$0.004 & Drop the skip; keep the network \\
 R5 augmentation & Is training data the bottleneck? & (b) + contact subsampling; (b) + 60 generator realisations of train tiles & 0.591$\pm$0.003; 0.601$\pm$0.003 & Train on generator data; submit \\
 R6 controls & Is the gain coupling, not confounding? & R5 model: shuffle receptor / ligand; padding mask off; rows 2--3 zeroed & 0.120 / 0.113 (random 0.114); 0.143; 0.559 & Keep the padding mask and covariates; credit the gain to the pairing \\
@@ -170,23 +169,29 @@ Table~\ref{tab:comparison}). \emph{Limitation:} the network's margin (+0.02--0.0
 ``bigger is better'' cannot be claimed because the size comparison with loop2b is confounded with its different
 features; ending on rank statistics was a conclusion from the results, not part of the starting hypothesis.
 
-\paragraph{3. The measured improvement is as large as the selection inflation, so the controls carry the evidence,
-not the score.} \emph{Claim:} the leaderboard margin cannot separate a real method gain from selection noise; the
-ablations and controls can. \emph{Evidence:} final model vs baseline, 7-tile interval +0.046 [$-$0.002, +0.086];
-selection inflation when picking the best of 43 fixed variants on validation tiles: +0.044; the ensemble adds
-+0.003 over $m_1$ alone (+0.007 for R8) after choosing among about six combinations on validation; comparable methods'
-paired scores vary with SD about 0.018 from validation noise alone. \emph{Limitation:} only 7 independent tiles; the
-interval just includes zero; the controls are relative to a model chosen on validation, so they show which
-components matter, not how large the gain is.
+\paragraph{3. Learned models improve detecting coupling, not orienting it.}
+\emph{Claim:} the learned models find more true links, mostly weak ones, but are no better than the baseline at
+telling sender from receiver; we interpret this as the gain coming from contact-level co-variation, which is
+largely symmetric between sender and receiver, while direction comes from which cell type carries the ligand, which
+the baseline already captures. \emph{Evidence:} direction accuracy (share of true links with
+score(A$\to$B) $>$ score(B$\to$A)) is 0.827 for the baseline and 0.818 for the final model, $\Delta$ $-$0.009
+[$-$0.024, +0.003] (7-tile 95\% CI); by effect size 0.709$\to$0.618 ($\beta{=}0.5$, $n{=}55$), 0.907$\to$0.953
+($\beta{=}1$), 0.943$\to$0.962 ($\beta{=}2$); $m_2$ alone is worse, $-$0.043 [$-$0.083, $-$0.010]. The directional
+signal itself is spatial: 0.50 under either shuffle, and 0.46 for the task card's non-spatial expression product.
+\emph{Limitation:} per-$\beta$ direction rests on 43--55 links (sampling error about $\pm$0.06), so the drop on weak
+links is unresolved.
 
 \section{Limitations \& next experiment}
-The most consequential uncertainty is whether the gain is real: it equals the selection inflation (+0.046 vs
-+0.044), and the model, ensemble weights and variants were all chosen on validation. Next experiment: a held-out
-tile split of the training data, selecting every component and weight on some train tiles and reporting once on
-tiles never used for any choice; a real gain survives, selection inflation shrinks toward zero. Second, whether
-generator augmentation teaches biology or only the simulator: test on a held-out new tissue not produced by the
-task's simulator. Third, direction: score each triple against its swapped counterpart (B$\to$A vs A$\to$B) to test
-whether the model separates sender from receiver or only detects co-expression.
+The most consequential uncertainty is direction: the learned models detect weak links better but do not orient
+them better, and we cannot yet say whether the weak-link direction drop is real. Next experiment: a direction-aware
+model (scoring A$\to$B against its reverse B$\to$A jointly) evaluated on $\beta{=}0.5$ links pooled over more
+realisations; if direction on weak links rises above the baseline's 0.71, orientation was learnable and our models
+missed it; if not, weak links carry coupling but little directional information. Second, the overall margin equals
+the selection inflation (+0.046 vs +0.044 for the best of 43 variants), although the official scorer kept all four
+uploads in the same order as validation (0.606 $>$ 0.590 $>$ 0.577 $>$ 0.519); a held-out tile split, choosing every
+component on some train tiles and reporting once on unused ones, would separate a real gain from selection. Third,
+testing on a held-out new tissue not produced by the task's simulator would show whether generator augmentation
+teaches biology or only the simulator.
 
 \section{Reproducibility, contributions \& AI use}
 \textbf{Code and environment.} SIDERIUS v1.1.0 (official checkout \texttt{5ccb436f}) for all evaluation;
