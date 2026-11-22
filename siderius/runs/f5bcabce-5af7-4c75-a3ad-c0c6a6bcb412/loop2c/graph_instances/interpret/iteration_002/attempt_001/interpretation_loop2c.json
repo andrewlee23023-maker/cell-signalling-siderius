@@ -1,0 +1,657 @@
+{
+    "model_types": [
+        "masked_contact_coupling_net"
+    ],
+    "model_descriptions": {
+        "masked_contact_coupling_net": "A tiny permutation-invariant scorer. For each triple (one [5,1024] sample) it builds an explicit padding mask from row 4 and zeroes padded columns. It then residualises the receptor (row 1) and the neighbour ligand signal (row 0) on the covariates (row 2 library offset, row 3 sender fraction, plus an intercept) with a per-sample masked ridge least-squares fit. The fit is closed-form and uses only the sample's own contact cells, with no batch-relative statistics. Masked pooling over contact cells turns the residuals into a fixed vector of order-invariant coupling statistics: Pearson correlation, regression slope, t-like statistic, Fisher-z scaled by sqrt(n-3), masked Spearman-like rank correlation, sender-fraction-weighted correlation, residual standard deviations, and log(n_contact). A 2-layer MLP head maps these to one scalar score per triple. Pooling is a masked sum, so the score is invariant to column order and independent of padding. The model is about 3k parameters."
+    },
+    "total_experiments": 2,
+    "cold_start": false,
+    "per_model_best": {
+        "masked_contact_coupling_net": 0.5283197414789568
+    },
+    "per_model_best_valid": {
+        "masked_contact_coupling_net": 0.5283197414789568
+    },
+    "per_model_raw_best_health_validity": {
+        "masked_contact_coupling_net": "valid"
+    },
+    "per_model_worst": {
+        "masked_contact_coupling_net": 0.5230050400561299
+    },
+    "scientific_aggregation": {
+        "included": [
+            "masked_contact_coupling_net"
+        ],
+        "excluded": [],
+        "included_count": 1,
+        "excluded_count": 0,
+        "all_excluded": false,
+        "no_records": false,
+        "exclusion_reason_counts": {}
+    },
+    "best_denoising_score": 0.5283197414789568,
+    "best_valid_denoising_score": 0.5283197414789568,
+    "worst_denoising_score": 0.5230050400561299,
+    "best_config": {
+        "exp_id": "masked_contact_coupling_net_loop2c_001",
+        "run_name": "loop2c",
+        "model_type": "masked_contact_coupling_net",
+        "model_config": {
+            "segmentation_size": 1024,
+            "batch_size": 32,
+            "hidden_dim": 32,
+            "num_layers": 2,
+            "dropout": 0.1,
+            "ridge_lambda": 0.001,
+            "min_contacts": 3,
+            "eps": 1e-6,
+            "residualize": true,
+            "use_rank_stats": true,
+            "use_weighted_corr": true,
+            "use_log_n": true,
+            "model_type": "masked_contact_coupling_net"
+        },
+        "train_config": {
+            "lr": 0.003,
+            "epochs": 40,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.00001,
+            "device": "cuda"
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1"
+        },
+        "inference_batch": 64
+    },
+    "best_valid_config": {
+        "exp_id": "masked_contact_coupling_net_loop2c_001",
+        "run_name": "loop2c",
+        "model_type": "masked_contact_coupling_net",
+        "model_config": {
+            "segmentation_size": 1024,
+            "batch_size": 32,
+            "hidden_dim": 32,
+            "num_layers": 2,
+            "dropout": 0.1,
+            "ridge_lambda": 0.001,
+            "min_contacts": 3,
+            "eps": 1e-6,
+            "residualize": true,
+            "use_rank_stats": true,
+            "use_weighted_corr": true,
+            "use_log_n": true,
+            "model_type": "masked_contact_coupling_net"
+        },
+        "train_config": {
+            "lr": 0.003,
+            "epochs": 40,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.00001,
+            "device": "cuda"
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1"
+        },
+        "inference_batch": 64
+    },
+    "model_knowledge_cache": {
+        "masked_contact_coupling_net": {
+            "key_findings": [
+                "Best lr_auprc is 0.5283 (round 1, record loop2c_001, Formal, 1,495 params). That is far above the ~0.11 random level. The summary gives no numeric baseline (Spearman of R vs neighbour L), so the margin over the baseline can't be quantified.",
+                "Round 2 used a larger model (5,015 params) and scored 0.5230 (-1.0% relative to round 1). Its lr_auroc was 0.828 against 0.847 for the best record, and its direction_accuracy was 0.766 against 0.775. The 3.4x increase in capacity gave no gain, so the score is limited by the hand-built statistics, not by head size. A 0.005 gap from a single run is probably within seed and run noise.",
+                "The secondary metrics for the best record are healthy: lr_auroc 0.847 and direction_accuracy 0.775. Direction accuracy of about 0.78 shows the model separates A->B from B->A reasonably well, but with clear room for error.",
+                "Training was stable and non-degenerate. The best record's train loss fell from 0.0247 to 0.0222 and its val loss from 0.0241 to 0.0233, with a train/val gap of about +0.001 (comparable). Val loss was still decreasing slightly, with best epoch 37 of 40. The round 2 record's best val epoch was 13 of 30, followed by a small +0.00045 drift. Health gates passed and the run showed 10 distinct symbols with a dominant-symbol fraction of 0.10.",
+                "The model is very cheap: about 1.5k params, 22 MiB peak training memory, 321 s training time (of which 61 s is validation), and 5.7 s inference."
+            ],
+            "bottlenecks": [
+                "The information content of the fixed per-sample statistics (Pearson, slope, t, Fisher-z, rank correlation, weighted correlation, log n) is the ceiling. The MLP head only recombines them, so extra capacity brings no benefit (round 2: 0.523 vs 0.528).",
+                "The task design adds a confound: every non-injected receptor×sender×receiver combination carries an equally sized perturbation from an unobserved ligand. Per-triple correlation statistics therefore cannot fully separate real couplings. The model has no cross-triple context, such as comparing a receptor's behaviour across senders or the reverse-direction statistic for the same pair.",
+                "Only 60 training datasets and a roughly 7% positive rate give a noisy supervision signal. This makes small differences between configs hard to resolve.",
+                "Only 2 rounds, both Formal, with no Trial runs. The search was too thin to find out what limits the score."
+            ],
+            "best_config_analysis": "The best config was a compact one: hidden_dim 32, 2 layers, dropout 0.1, ridge_lambda 1e-3, min_contacts 3, with residualisation, rank stats, weighted correlation and log-n all on. It used AdamW at lr 3e-3 for 40 epochs with weight decay 1e-5 and smooth_l1 loss, on 60 training datasets. The main contributor is the architecture's structure: per-sample ridge residualisation on library offset and sender fraction, followed by permutation-invariant masked statistics. The hyperparameters likely mattered little. The summary doesn't give the round 2 config, so the exact difference between rounds can't be attributed. Its params rose to 5,015, and it ran for 30 epochs instead of 40, with a best val epoch of 13. The smaller model with 40 epochs scored slightly higher, but the difference is within plausible noise.",
+            "score_trend": "Essentially flat. The score was 0.5283 in round 1 and 0.5230 in round 2. It has plateaued around 0.52–0.53 and shows no improvement trajectory. With only two points, saturation of this architecture family is suggested but not proven. Gains would need new information, such as new features or cross-triple context, instead of more tuning.",
+            "per_file_analysis": "No per-sample evidence is available. The summary contains only aggregate scores, so there are no claims about per-dataset or per-tile behaviour. There are 2214 materialised validation sample rows over 21 datasets, and the summary doesn't break scores down by them.",
+            "data_sensitivity": "Data sensitivity could not be tested. Both rounds were Formal at portion 1.0 on the full 60 training datasets, and there were no Trial records (Trial=0, Formal=2). A Trial/Formal comparison is therefore unavailable and the trial-vs-formal gap is unknown. The 1.0% difference between rounds is not evidence about data volume, since both used the same scope. Equal Formal aggregates don't count as replication.",
+            "efficiency_assessment": "Efficiency is excellent. A model with 1,495 params reached 0.528, and one with 5,015 params reached 0.523, so the smaller one is at least as good. Training took 321 s for the small model against 453 s for the larger one. Validation took 61 s against 96 s. Inference took 5.7 s against 9.2 s. Memory is negligible at 22 MiB. The training times include process overhead and validation, so they are upper bounds on architecture cost. The simplest config is the cost-performance optimum. Extra capacity is wasteful.",
+            "strategy_assessment": "Exploration was minimal. There were two Formal rounds, with no screening or refinement phase and no Trial runs. The only evident change was model size, and that gave no gain. The operator-forced Formal portion of 1.0 constrained the data scope, which explains the lack of data increases. The agent did not test the factors most likely to matter: feature set ablations (rank, weighted, log-n), ridge lambda, loss type, seeds for noise estimation, or cross-triple and reverse-direction features. The screening→refinement→solidification progression was not followed. The result is a good, cheap model, but one whose headroom is unexplored.",
+            "_stats": {
+                "execution_evidence": [
+                    {
+                        "exp_id": "masked_contact_coupling_net_loop2c_001",
+                        "is_trial": false,
+                        "timing": {
+                            "train_time_s": 321.5,
+                            "validation_time_s": 60.7,
+                            "inference_time_s": 5.7,
+                            "scoring_time_s": 2.7
+                        },
+                        "training_budget": null,
+                        "parameter_dtype": "float32",
+                        "validation_samples": 2214,
+                        "phase_memory": {
+                            "training": {
+                                "allocator_peak_mib": 22,
+                                "reserved_peak_mib": 28,
+                                "measurement_completeness": "complete",
+                                "owning_process_pid": 626,
+                                "device_index": 0
+                            },
+                            "inference": {
+                                "allocator_peak_mib": 18,
+                                "reserved_peak_mib": 30,
+                                "measurement_completeness": "complete",
+                                "owning_process_pid": 1933,
+                                "device_index": 0
+                            }
+                        }
+                    },
+                    {
+                        "exp_id": "masked_contact_coupling_net_loop2c_002",
+                        "is_trial": false,
+                        "timing": {
+                            "train_time_s": 453.4,
+                            "validation_time_s": 95.9,
+                            "inference_time_s": 9.2,
+                            "scoring_time_s": 2.8
+                        },
+                        "training_budget": null,
+                        "parameter_dtype": "float32",
+                        "validation_samples": 2214,
+                        "phase_memory": {
+                            "training": {
+                                "allocator_peak_mib": 22,
+                                "reserved_peak_mib": 28,
+                                "measurement_completeness": "complete",
+                                "owning_process_pid": 2438,
+                                "device_index": 0
+                            },
+                            "inference": {
+                                "allocator_peak_mib": 18,
+                                "reserved_peak_mib": 30,
+                                "measurement_completeness": "complete",
+                                "owning_process_pid": 4237,
+                                "device_index": 0
+                            }
+                        }
+                    }
+                ],
+                "best_denoising_score": 0.5283197414789568,
+                "best_valid_denoising_score": 0.5283197414789568,
+                "best_raw_health_validity": "valid",
+                "worst_denoising_score": 0.5230050400561299,
+                "best_file_vector": null,
+                "best_score_table": null,
+                "best_model_params": 1495,
+                "completed_rounds": 2,
+                "best_config": {
+                    "exp_id": "masked_contact_coupling_net_loop2c_001",
+                    "run_name": "loop2c",
+                    "model_type": "masked_contact_coupling_net",
+                    "model_config": {
+                        "segmentation_size": 1024,
+                        "batch_size": 32,
+                        "hidden_dim": 32,
+                        "num_layers": 2,
+                        "dropout": 0.1,
+                        "ridge_lambda": 0.001,
+                        "min_contacts": 3,
+                        "eps": 1e-6,
+                        "residualize": true,
+                        "use_rank_stats": true,
+                        "use_weighted_corr": true,
+                        "use_log_n": true,
+                        "model_type": "masked_contact_coupling_net"
+                    },
+                    "train_config": {
+                        "lr": 0.003,
+                        "epochs": 40,
+                        "batch_size": 32,
+                        "optimizer_type": "adamw",
+                        "weight_decay": 0.00001,
+                        "device": "cuda"
+                    },
+                    "loss_config": {
+                        "loss_type": "smooth_l1"
+                    },
+                    "inference_batch": 64
+                },
+                "best_valid_config": {
+                    "exp_id": "masked_contact_coupling_net_loop2c_001",
+                    "run_name": "loop2c",
+                    "model_type": "masked_contact_coupling_net",
+                    "model_config": {
+                        "segmentation_size": 1024,
+                        "batch_size": 32,
+                        "hidden_dim": 32,
+                        "num_layers": 2,
+                        "dropout": 0.1,
+                        "ridge_lambda": 0.001,
+                        "min_contacts": 3,
+                        "eps": 1e-6,
+                        "residualize": true,
+                        "use_rank_stats": true,
+                        "use_weighted_corr": true,
+                        "use_log_n": true,
+                        "model_type": "masked_contact_coupling_net"
+                    },
+                    "train_config": {
+                        "lr": 0.003,
+                        "epochs": 40,
+                        "batch_size": 32,
+                        "optimizer_type": "adamw",
+                        "weight_decay": 0.00001,
+                        "device": "cuda"
+                    },
+                    "loss_config": {
+                        "loss_type": "smooth_l1"
+                    },
+                    "inference_batch": 64
+                },
+                "formal_score": 0.5230050400561299,
+                "scientific_authority": {
+                    "healthgate_mode": "blocking",
+                    "declared_result_authority": "scientific",
+                    "formal_validity": "valid",
+                    "blocking_reasons": [],
+                    "authoritative": true,
+                    "primary_basis": "blocking_scientific_formal_valid",
+                    "enters_incumbent_selection": true,
+                    "enters_scientific_aggregation": true
+                },
+                "run_name": "loop2c",
+                "formal_evidence": {
+                    "model_type": "masked_contact_coupling_net",
+                    "run_name": "loop2c",
+                    "exp_id": "masked_contact_coupling_net_loop2c_002",
+                    "status": "success",
+                    "denoising_score": 0.5230050400561299,
+                    "is_trial": false,
+                    "health_gate_enabled": true,
+                    "health_gate_results": [
+                        {
+                            "gate_name": "scores_rank_triples",
+                            "execution_status": "passed",
+                            "check_passed": true,
+                            "would_invalidate_under_production_policy": false,
+                            "resolved_action": "continue",
+                            "failure_reason": null,
+                            "threshold": {
+                                "metric": "distinct_symbols",
+                                "operator": ">=",
+                                "value": 5,
+                                "unit": "count"
+                            },
+                            "aggregation": {
+                                "files_requested": [],
+                                "files_completed": [],
+                                "files_passed": [],
+                                "files_failed": [],
+                                "aggregate_passed": true
+                            },
+                            "metrics": {
+                                "n_samples": 2214,
+                                "distinct_symbols": 10,
+                                "symbol_cardinality": 10,
+                                "occupancy": 1.0,
+                                "min_distinct_symbols": 5,
+                                "per_file": {},
+                                "aggregate_statistics": {
+                                    "count": 0
+                                }
+                            },
+                            "gate_runtime_seconds": 0.011804270001448458,
+                            "gate_role": "blocking",
+                            "configured_action": "invalidate_round",
+                            "healthgate_mode": "blocking",
+                            "result_authority": "scientific",
+                            "check_verdicts": {
+                                "categorical_distinct_symbols": "passed"
+                            },
+                            "display_label": "scores_rank_triples (enforcing)"
+                        },
+                        {
+                            "gate_name": "score_ties_concentration",
+                            "execution_status": "passed",
+                            "check_passed": true,
+                            "would_invalidate_under_production_policy": false,
+                            "resolved_action": "continue",
+                            "failure_reason": null,
+                            "threshold": {
+                                "metric": "dominant_fraction",
+                                "operator": "<=",
+                                "value": 0.3,
+                                "unit": "fraction"
+                            },
+                            "aggregation": {
+                                "files_requested": [],
+                                "files_completed": [],
+                                "files_passed": [],
+                                "files_failed": [],
+                                "aggregate_passed": true
+                            },
+                            "metrics": {
+                                "n_samples": 2214,
+                                "dominant_symbol": 0,
+                                "dominant_fraction": 0.10298102981029811,
+                                "symbol_cardinality": 10,
+                                "max_dominant_fraction": 0.3,
+                                "per_file": {},
+                                "aggregate_statistics": {
+                                    "count": 0
+                                }
+                            },
+                            "gate_runtime_seconds": 0.006966680000914494,
+                            "gate_role": "observational",
+                            "configured_action": "continue",
+                            "healthgate_mode": "blocking",
+                            "result_authority": "scientific",
+                            "check_verdicts": {
+                                "categorical_dominant_fraction": "passed"
+                            },
+                            "display_label": "score_ties_concentration (observational)"
+                        }
+                    ],
+                    "required_gate_ids": [
+                        "scores_rank_triples"
+                    ],
+                    "healthgate_mode": "blocking",
+                    "result_authority": "scientific",
+                    "health_config_sha256": "a3a968c2c43429bb60b84e3fb1c6ab066c9968025fb2b3c847881800fdc0d3b8"
+                },
+                "model_description": "A tiny permutation-invariant scorer. For each triple (one [5,1024] sample) it builds an explicit padding mask from row 4 and zeroes padded columns. It then residualises the receptor (row 1) and the neighbour ligand signal (row 0) on the covariates (row 2 library offset, row 3 sender fraction, plus an intercept) with a per-sample masked ridge least-squares fit. The fit is closed-form and uses only the sample's own contact cells, with no batch-relative statistics. Masked pooling over contact cells turns the residuals into a fixed vector of order-invariant coupling statistics: Pearson correlation, regression slope, t-like statistic, Fisher-z scaled by sqrt(n-3), masked Spearman-like rank correlation, sender-fraction-weighted correlation, residual standard deviations, and log(n_contact). A 2-layer MLP head maps these to one scalar score per triple. Pooling is a masked sum, so the score is invariant to column order and independent of padding. The model is about 3k parameters.",
+                "round_health_counts": {
+                    "valid": 2,
+                    "invalid": 0,
+                    "unknown": 0
+                },
+                "failure_counts": {
+                    "records_total": 2,
+                    "status_counts": {
+                        "success": 2
+                    },
+                    "diagnosis_state_counts": {
+                        "ok": 2
+                    },
+                    "validation_state_counts": {
+                        "present": 2
+                    },
+                    "metric_refusal_count": 0,
+                    "refusal_contract_ids": {},
+                    "gate_action_counts": {
+                        "continue": 2
+                    },
+                    "health_provenance_counts": {
+                        "gated": 2
+                    }
+                },
+                "collapse_fingerprints": [],
+                "secondary_metrics": [
+                    {
+                        "spec": {
+                            "id": "direction_accuracy",
+                            "direction": "higher",
+                            "aggregation": "mean_over_validation_datasets_of_share_of_injected_triples_scored_above_their_reverse",
+                            "transform": null,
+                            "transform_params": {},
+                            "references": [],
+                            "scoreability": {
+                                "contract_id": "deliverable_presence"
+                            }
+                        },
+                        "result": {
+                            "metric_id": "direction_accuracy",
+                            "direction": "higher",
+                            "scalar": 0.7752645502645502,
+                            "per_sample": null,
+                            "references_used": []
+                        },
+                        "refusal": null
+                    },
+                    {
+                        "spec": {
+                            "id": "lr_auroc",
+                            "direction": "higher",
+                            "aggregation": "mean_over_validation_datasets_of_roc_auc_over_eligible_directed_triples",
+                            "transform": null,
+                            "transform_params": {},
+                            "references": [],
+                            "scoreability": {
+                                "contract_id": "deliverable_presence"
+                            }
+                        },
+                        "result": {
+                            "metric_id": "lr_auroc",
+                            "direction": "higher",
+                            "scalar": 0.8472866838002582,
+                            "per_sample": null,
+                            "references_used": []
+                        },
+                        "refusal": null
+                    }
+                ]
+            }
+        }
+    },
+    "key_findings": [
+        "Best lr_auprc is 0.5283 (round 1, record loop2c_001, Formal, 1,495 params). That is far above the ~0.11 random level. The summary gives no numeric baseline (Spearman of R vs neighbour L), so the margin over the baseline can't be quantified.",
+        "Round 2 used a larger model (5,015 params) and scored 0.5230 (-1.0% relative to round 1). Its lr_auroc was 0.828 against 0.847 for the best record, and its direction_accuracy was 0.766 against 0.775. The 3.4x increase in capacity gave no gain, so the score is limited by the hand-built statistics, not by head size. A 0.005 gap from a single run is probably within seed and run noise.",
+        "The secondary metrics for the best record are healthy: lr_auroc 0.847 and direction_accuracy 0.775. Direction accuracy of about 0.78 shows the model separates A->B from B->A reasonably well, but with clear room for error.",
+        "Training was stable and non-degenerate. The best record's train loss fell from 0.0247 to 0.0222 and its val loss from 0.0241 to 0.0233, with a train/val gap of about +0.001 (comparable). Val loss was still decreasing slightly, with best epoch 37 of 40. The round 2 record's best val epoch was 13 of 30, followed by a small +0.00045 drift. Health gates passed and the run showed 10 distinct symbols with a dominant-symbol fraction of 0.10.",
+        "The model is very cheap: about 1.5k params, 22 MiB peak training memory, 321 s training time (of which 61 s is validation), and 5.7 s inference."
+    ],
+    "bottlenecks": [
+        "The information content of the fixed per-sample statistics (Pearson, slope, t, Fisher-z, rank correlation, weighted correlation, log n) is the ceiling. The MLP head only recombines them, so extra capacity brings no benefit (round 2: 0.523 vs 0.528).",
+        "The task design adds a confound: every non-injected receptor×sender×receiver combination carries an equally sized perturbation from an unobserved ligand. Per-triple correlation statistics therefore cannot fully separate real couplings. The model has no cross-triple context, such as comparing a receptor's behaviour across senders or the reverse-direction statistic for the same pair.",
+        "Only 60 training datasets and a roughly 7% positive rate give a noisy supervision signal. This makes small differences between configs hard to resolve.",
+        "Only 2 rounds, both Formal, with no Trial runs. The search was too thin to find out what limits the score."
+    ],
+    "take_home_message": "The masked_contact_coupling_net model shows: Essentially flat. The score was 0.5283 in round 1 and 0.5230 in round 2. It has plateaued around 0.52–0.53 and shows no improvement trajectory. With only two points, saturation of this architecture family is suggested but not proven. Gains would need new information, such as new features or cross-triple context, instead of more tuning.. The best config was a compact one: hidden_dim 32, 2 layers, dropout 0.1, ridge_lambda 1e-3, min_contacts 3, with residualisation, rank stats, weighted correlation and log-n all on. It used AdamW at lr 3e-3 for 40 epochs with weight decay 1e-5 and smooth_l1 loss, on 60 training datasets. The main contributor is the architecture's structure: per-sample ridge residualisation on library offset and sender fraction, followed by permutation-invariant masked statistics. The hyperparameters likely mattered little. The summary doesn't give the round 2 config, so the exact difference between rounds can't be attributed. Its params rose to 5,015, and it ran for 30 epochs instead of 40, with a best val epoch of 13. The smaller model with 40 epochs scored slightly higher, but the difference is within plausible noise.",
+    "per_model_score_tables": null,
+    "per_model_params": {
+        "masked_contact_coupling_net": 1495
+    },
+    "per_model_training_segments": null,
+    "runtime_vocab": [
+        {
+            "name": "score_masked_contact_coupling_net_vs_sota",
+            "kind": "discovery",
+            "description": "masked_contact_coupling_net scored 0.5283, within 5% of SOTA (0.5283). Competitive but not a clear improvement.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "masked_contact_coupling_net",
+            "seen_in_runs": [],
+            "aliases": [],
+            "origin": null
+        },
+        {
+            "name": "beta_weighted_loss",
+            "kind": "feature",
+            "description": "Per-sample training loss weight that increases for weak-effect (low beta) injected positives. Suggested by the human directive to address the low recall of beta=0.5 positives. No experiment has tested it yet.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "masked_contact_coupling_net",
+            "seen_in_runs": [
+                "masked_contact_coupling_net"
+            ],
+            "aliases": [],
+            "origin": null
+        },
+        {
+            "name": "masked_contact_pooling",
+            "kind": "feature",
+            "description": "Pooling of per-cell (ligand, receptor, covariate) features over contact cells with an explicit padding mask. Predictions do not depend on padding, and the pooling uses no batch-relative scoring.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "masked_contact_coupling_net",
+            "seen_in_runs": [
+                "masked_contact_coupling_net"
+            ],
+            "aliases": [],
+            "origin": null
+        },
+        {
+            "name": "weak_effect_recall",
+            "kind": "capability",
+            "description": "Ability to rank beta=0.5 injected triples highly. The Spearman baseline recovers only about 20% of them, against 74% for beta=2.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "masked_contact_coupling_net",
+            "seen_in_runs": [
+                "masked_contact_coupling_net"
+            ],
+            "aliases": [],
+            "origin": null
+        }
+    ],
+    "prediction_evaluation": {
+        "metric": "lr_auprc",
+        "metric_resolution": "bound_id",
+        "predicted_value": 0.3,
+        "actual_value": 0.5283197414789568,
+        "current_sota": null,
+        "delta_from_sota": null,
+        "outcome": "unevaluated",
+        "boldness": 0.0,
+        "information_gain": 0.0,
+        "notes": "Prediction not evaluated: no SOTA baseline was available (metric='lr_auprc', resolution='bound_id').",
+        "prediction_evaluation_semantics": "metric_order_signsafe_v2"
+    },
+    "new_discoveries": [
+        {
+            "name": "score_masked_contact_coupling_net_vs_sota",
+            "kind": "discovery",
+            "description": "masked_contact_coupling_net scored 0.5283, within 5% of SOTA (0.5283). Competitive but not a clear improvement.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "masked_contact_coupling_net",
+            "seen_in_runs": [],
+            "aliases": [],
+            "origin": null
+        }
+    ],
+    "vocab_changes": [],
+    "vocab_diversity_ratio": 1.0,
+    "cumulative_information_gain": 0.0,
+    "scientific_accuracy": null,
+    "prediction_outcomes_history": {
+        "confirmed": 0,
+        "partial": 0,
+        "refuted": 0
+    },
+    "vocab_link_confirmations": {},
+    "per_model_round_health_counts": {
+        "masked_contact_coupling_net": {
+            "valid": 2,
+            "invalid": 0,
+            "unknown": 0
+        }
+    },
+    "per_model_collapse_fingerprints": {},
+    "collapse_fingerprint_history": {},
+    "is_degraded": false,
+    "evolution_stats": {
+        "vocab_total": 4,
+        "vocab_canonical": 0,
+        "vocab_candidate": 4,
+        "promoted_this_iter": 0,
+        "is_degraded": false
+    },
+    "metric_identity": {
+        "metric_id": "lr_auprc",
+        "direction": "higher"
+    },
+    "prediction_evaluation_semantics": "metric_order_signsafe_v2",
+    "prediction_outcomes_by_semantics": {
+        "metric_order_signsafe_v2": {
+            "confirmed": 0,
+            "partial": 0,
+            "refuted": 0
+        }
+    },
+    "cumulative_information_gain_by_semantics": {},
+    "prediction_pool_sizes": {
+        "legacy_v1": 0,
+        "metric_order_signsafe_v2": 0
+    },
+    "per_model_secondary_metrics": {
+        "masked_contact_coupling_net": [
+            {
+                "spec": {
+                    "id": "direction_accuracy",
+                    "direction": "higher",
+                    "aggregation": "mean_over_validation_datasets_of_share_of_injected_triples_scored_above_their_reverse",
+                    "transform": null,
+                    "transform_params": {},
+                    "references": [],
+                    "scoreability": {
+                        "contract_id": "deliverable_presence"
+                    }
+                },
+                "result": {
+                    "metric_id": "direction_accuracy",
+                    "direction": "higher",
+                    "scalar": 0.7752645502645502,
+                    "per_sample": null,
+                    "references_used": []
+                },
+                "refusal": null
+            },
+            {
+                "spec": {
+                    "id": "lr_auroc",
+                    "direction": "higher",
+                    "aggregation": "mean_over_validation_datasets_of_roc_auc_over_eligible_directed_triples",
+                    "transform": null,
+                    "transform_params": {},
+                    "references": [],
+                    "scoreability": {
+                        "contract_id": "deliverable_presence"
+                    }
+                },
+                "result": {
+                    "metric_id": "lr_auroc",
+                    "direction": "higher",
+                    "scalar": 0.8472866838002582,
+                    "per_sample": null,
+                    "references_used": []
+                },
+                "refusal": null
+            }
+        ]
+    },
+    "per_model_failure_counts": {
+        "masked_contact_coupling_net": {
+            "records_total": 2,
+            "status_counts": {
+                "success": 2
+            },
+            "diagnosis_state_counts": {
+                "ok": 2
+            },
+            "validation_state_counts": {
+                "present": 2
+            },
+            "metric_refusal_count": 0,
+            "refusal_contract_ids": {},
+            "gate_action_counts": {
+                "continue": 2
+            },
+            "health_provenance_counts": {
+                "gated": 2
+            }
+        }
+    },
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

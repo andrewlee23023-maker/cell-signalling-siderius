@@ -1,0 +1,9 @@
+{
+  "_note": "Hackathon API budgets (USD) set by the team on 2026-11-21. The guard refuses new capability calls once a provider reaches stop_fraction of its budget, leaving headroom for calls already in flight. Providers without a budget are tracked but not capped. carried_over_usd is spend made before this project existed that the team chose to count against the budget.",
+  "budgets_usd": {"anthropic": 25.0, "openai": 30.0},
+  "stop_fraction": 0.9,
+  "carried_over_usd": {
+    "anthropic": {"usd": 1.0107, "source": "2026-11-20 Claude Sonnet 5.5 test runs: 26 calls, 346,263 in / 31,814 out tokens, ledgers under ~/siderius-project/cli-runs (priced by spend_guard at $2/$10 per MTok)"}
+  },
+  "ledger_roots": ["results"]
+}

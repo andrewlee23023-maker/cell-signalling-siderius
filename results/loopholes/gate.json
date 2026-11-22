@@ -1,0 +1,78 @@
+{
+  "rows": [
+    {
+      "eps": 0.0,
+      "lr_auprc": 0.1167327055330812,
+      "distinct_deciles": 4,
+      "blocking_pass": false,
+      "dominant_fraction": 0.4309,
+      "recording_pass": false
+    },
+    {
+      "eps": 1e-17,
+      "lr_auprc": 0.1176615103410819,
+      "distinct_deciles": 6,
+      "blocking_pass": true,
+      "dominant_fraction": 0.4128,
+      "recording_pass": false
+    },
+    {
+      "eps": 1e-16,
+      "lr_auprc": 0.1176615103410819,
+      "distinct_deciles": 6,
+      "blocking_pass": true,
+      "dominant_fraction": 0.4128,
+      "recording_pass": false
+    },
+    {
+      "eps": 1e-15,
+      "lr_auprc": 0.13052047700577646,
+      "distinct_deciles": 10,
+      "blocking_pass": true,
+      "dominant_fraction": 0.1405,
+      "recording_pass": true
+    },
+    {
+      "eps": 1e-12,
+      "lr_auprc": 0.14867917654705398,
+      "distinct_deciles": 10,
+      "blocking_pass": true,
+      "dominant_fraction": 0.103,
+      "recording_pass": true
+    },
+    {
+      "eps": 1e-09,
+      "lr_auprc": 0.14867917654705398,
+      "distinct_deciles": 10,
+      "blocking_pass": true,
+      "dominant_fraction": 0.103,
+      "recording_pass": true
+    },
+    {
+      "eps": 1e-06,
+      "lr_auprc": 0.14867917654705398,
+      "distinct_deciles": 10,
+      "blocking_pass": true,
+      "dominant_fraction": 0.103,
+      "recording_pass": true
+    },
+    {
+      "eps": 0.001,
+      "lr_auprc": 0.14867917654705398,
+      "distinct_deciles": 10,
+      "blocking_pass": true,
+      "dominant_fraction": 0.103,
+      "recording_pass": true
+    },
+    {
+      "eps": 0.1,
+      "lr_auprc": 0.14867917654705398,
+      "distinct_deciles": 10,
+      "blocking_pass": true,
+      "dominant_fraction": 0.103,
+      "recording_pass": true
+    }
+  ],
+  "smallest_passing_eps": 1e-17,
+  "mask_source": "assignment_best_mask.npy"
+}

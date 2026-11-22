@@ -1,0 +1,27 @@
+{
+  "null_shared_across_realisations_r": 0.04654849924753997,
+  "n_negative_pairs": 1927,
+  "probes": [
+    {
+      "probe": "baseline (contact Spearman)",
+      "lr_auprc": 0.5603,
+      "direction_accuracy": 0.8266,
+      "lr_auroc": 0.8871,
+      "note": "reference"
+    },
+    {
+      "probe": "E realisation-differenced",
+      "lr_auprc": 0.4376,
+      "direction_accuracy": 0.783,
+      "lr_auroc": 0.8417,
+      "note": "uses other realisations (batch info)"
+    },
+    {
+      "probe": "Q within-(R,B) z-score",
+      "lr_auprc": 0.2378,
+      "direction_accuracy": 0.6906,
+      "lr_auroc": 0.7449,
+      "note": "uses same-dataset triples (batch info)"
+    }
+  ]
+}

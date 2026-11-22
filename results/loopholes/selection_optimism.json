@@ -1,0 +1,78 @@
+{
+  "n_variants": 43,
+  "tiles": [
+    "t02_00",
+    "t02_01",
+    "t02_02",
+    "t02_03",
+    "t03_01",
+    "t04_00",
+    "t04_03"
+  ],
+  "by_N": {
+    "1": {
+      "optimism_mean": 0.0002417323054264285,
+      "optimism_sd": 0.0956168918465165,
+      "selected_on_sel_tiles": 0.4747193222739807,
+      "selected_on_holdout": 0.47447758996855444,
+      "baseline_sel_minus_holdout": -6.344131569286609e-19
+    },
+    "5": {
+      "optimism_mean": 0.022679263625271923,
+      "optimism_sd": 0.09994469691221981,
+      "selected_on_sel_tiles": 0.5318390983593646,
+      "selected_on_holdout": 0.5091598347340928,
+      "baseline_sel_minus_holdout": -6.344131569286609e-19
+    },
+    "10": {
+      "optimism_mean": 0.03596262304908525,
+      "optimism_sd": 0.09581409622123158,
+      "selected_on_sel_tiles": 0.5410004569075769,
+      "selected_on_holdout": 0.5050378338584917,
+      "baseline_sel_minus_holdout": -6.344131569286609e-19
+    },
+    "25": {
+      "optimism_mean": 0.043024081252094906,
+      "optimism_sd": 0.09266716378300355,
+      "selected_on_sel_tiles": 0.5472639488572547,
+      "selected_on_holdout": 0.5042398676051597,
+      "baseline_sel_minus_holdout": -6.344131569286609e-19
+    },
+    "43": {
+      "optimism_mean": 0.04374901510614243,
+      "optimism_sd": 0.0897429504507617,
+      "selected_on_sel_tiles": 0.550466495319035,
+      "selected_on_holdout": 0.5067174802128924,
+      "baseline_sel_minus_holdout": 0.0
+    }
+  },
+  "best_on_validation": {
+    "variant": "slope_t_cov|clip2",
+    "validation": 0.538909828176684,
+    "train": 0.5480386944906851,
+    "baseline_validation": 0.5603341513854212,
+    "baseline_train": 0.5287711719090227
+  },
+  "top5_on_validation": [
+    [
+      "slope_t_cov|clip2",
+      0.538909828176684
+    ],
+    [
+      "two_part_t_cov|rank",
+      0.5260083836624226
+    ],
+    [
+      "partial_cov|clip2",
+      0.5250754384061812
+    ],
+    [
+      "partial_nocov|clip2",
+      0.5250280462055038
+    ],
+    [
+      "slope_t_cov|raw",
+      0.5245829230332346
+    ]
+  ]
+}

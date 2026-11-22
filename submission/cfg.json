@@ -1,0 +1,1 @@
+{"model_type": "lr_coupling_mlp", "segmentation_size": 1024, "batch_size": 32, "hidden_dim": 48, "head_hidden_dim": 32, "n_bins": 6, "ridge_lambda": 0.001, "dropout": 0.2, "use_residualisation": true, "use_skip_zscore": false, "use_film": true}

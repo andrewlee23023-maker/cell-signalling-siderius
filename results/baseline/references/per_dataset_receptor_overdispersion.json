@@ -1,0 +1,170 @@
+{
+ "t02_00_r0": {
+  "direction_accuracy": 0.6666666666666666,
+  "injected": 3,
+  "lr_auprc": 0.1467391304347826,
+  "lr_auroc": 0.5387596899224806,
+  "prevalence": 0.06521739130434782,
+  "triples": 46
+ },
+ "t02_00_r1": {
+  "direction_accuracy": 0.8,
+  "injected": 5,
+  "lr_auprc": 0.12591127750141035,
+  "lr_auroc": 0.44146341463414634,
+  "prevalence": 0.10869565217391304,
+  "triples": 46
+ },
+ "t02_00_r2": {
+  "direction_accuracy": 0.125,
+  "injected": 8,
+  "lr_auprc": 0.12325899376288899,
+  "lr_auroc": 0.23519736842105263,
+  "prevalence": 0.17391304347826086,
+  "triples": 46
+ },
+ "t02_01_r0": {
+  "direction_accuracy": 0.75,
+  "injected": 8,
+  "lr_auprc": 0.18398689374824778,
+  "lr_auroc": 0.51875,
+  "prevalence": 0.08163265306122448,
+  "triples": 98
+ },
+ "t02_01_r1": {
+  "direction_accuracy": 0.2857142857142857,
+  "injected": 7,
+  "lr_auprc": 0.10394358004006371,
+  "lr_auroc": 0.5094191522762951,
+  "prevalence": 0.07142857142857142,
+  "triples": 98
+ },
+ "t02_01_r2": {
+  "direction_accuracy": 0.3333333333333333,
+  "injected": 3,
+  "lr_auprc": 0.10742971887550201,
+  "lr_auroc": 0.43333333333333335,
+  "prevalence": 0.030612244897959183,
+  "triples": 98
+ },
+ "t02_02_r0": {
+  "direction_accuracy": 0.4166666666666667,
+  "injected": 12,
+  "lr_auprc": 0.07098187507958402,
+  "lr_auroc": 0.41474358974358977,
+  "prevalence": 0.08450704225352113,
+  "triples": 142
+ },
+ "t02_02_r1": {
+  "direction_accuracy": 0.5,
+  "injected": 10,
+  "lr_auprc": 0.08337343439718002,
+  "lr_auroc": 0.5371212121212121,
+  "prevalence": 0.07042253521126761,
+  "triples": 142
+ },
+ "t02_02_r2": {
+  "direction_accuracy": 0.42857142857142855,
+  "injected": 14,
+  "lr_auprc": 0.10992258463627431,
+  "lr_auroc": 0.49302455357142855,
+  "prevalence": 0.09859154929577464,
+  "triples": 142
+ },
+ "t02_03_r0": {
+  "direction_accuracy": 0.2857142857142857,
+  "injected": 7,
+  "lr_auprc": 0.05455020168563376,
+  "lr_auroc": 0.4222503160556258,
+  "prevalence": 0.058333333333333334,
+  "triples": 120
+ },
+ "t02_03_r1": {
+  "direction_accuracy": 0.3333333333333333,
+  "injected": 6,
+  "lr_auprc": 0.08440825969895736,
+  "lr_auroc": 0.5328947368421053,
+  "prevalence": 0.05,
+  "triples": 120
+ },
+ "t02_03_r2": {
+  "direction_accuracy": 0.2,
+  "injected": 5,
+  "lr_auprc": 0.06027473648244695,
+  "lr_auroc": 0.6182608695652174,
+  "prevalence": 0.041666666666666664,
+  "triples": 120
+ },
+ "t03_01_r0": {
+  "direction_accuracy": 0.16666666666666666,
+  "injected": 6,
+  "lr_auprc": 0.08804108511178964,
+  "lr_auroc": 0.47181372549019607,
+  "prevalence": 0.08108108108108109,
+  "triples": 74
+ },
+ "t03_01_r1": {
+  "direction_accuracy": 0.8571428571428571,
+  "injected": 7,
+  "lr_auprc": 0.16261188686000716,
+  "lr_auroc": 0.6439232409381663,
+  "prevalence": 0.0945945945945946,
+  "triples": 74
+ },
+ "t03_01_r2": {
+  "direction_accuracy": 1.0,
+  "injected": 4,
+  "lr_auprc": 0.1019736114612775,
+  "lr_auroc": 0.7,
+  "prevalence": 0.05405405405405406,
+  "triples": 74
+ },
+ "t04_00_r0": {
+  "direction_accuracy": 0.4444444444444444,
+  "injected": 9,
+  "lr_auprc": 0.06576237530293869,
+  "lr_auroc": 0.4851569126378287,
+  "prevalence": 0.06428571428571428,
+  "triples": 140
+ },
+ "t04_00_r1": {
+  "direction_accuracy": 0.375,
+  "injected": 8,
+  "lr_auprc": 0.048561066484910216,
+  "lr_auroc": 0.3953598484848485,
+  "prevalence": 0.05714285714285714,
+  "triples": 140
+ },
+ "t04_00_r2": {
+  "direction_accuracy": 0.5714285714285714,
+  "injected": 7,
+  "lr_auprc": 0.0641276888387174,
+  "lr_auroc": 0.6020408163265306,
+  "prevalence": 0.05,
+  "triples": 140
+ },
+ "t04_03_r0": {
+  "direction_accuracy": 0.7777777777777778,
+  "injected": 9,
+  "lr_auprc": 0.12748348249945432,
+  "lr_auroc": 0.6024464831804281,
+  "prevalence": 0.07627118644067797,
+  "triples": 118
+ },
+ "t04_03_r1": {
+  "direction_accuracy": 0.6,
+  "injected": 10,
+  "lr_auprc": 0.12106908926625748,
+  "lr_auroc": 0.5875,
+  "prevalence": 0.0847457627118644,
+  "triples": 118
+ },
+ "t04_03_r2": {
+  "direction_accuracy": 0.3333333333333333,
+  "injected": 3,
+  "lr_auprc": 0.03555965604158375,
+  "lr_auroc": 0.41739130434782606,
+  "prevalence": 0.025423728813559324,
+  "triples": 118
+ }
+}

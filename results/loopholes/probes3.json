@@ -1,0 +1,41 @@
+{
+  "V": {
+    "definition": "same (R,A,B), other ligand",
+    "triples_with_siblings": 390,
+    "of_total": 2214,
+    "sibling_score_corr": 0.09823918266702798,
+    "groups_with_one_positive": 21,
+    "positive_is_top_sibling": 17
+  },
+  "W": {
+    "definition": "same (L,A,B), other receptor",
+    "triples_with_siblings": 1056,
+    "of_total": 2214,
+    "sibling_score_corr": 0.15581936624187806,
+    "groups_with_one_positive": 68,
+    "positive_is_top_sibling": 63
+  },
+  "probes": [
+    {
+      "probe": "baseline (contact Spearman)",
+      "lr_auprc": 0.5603,
+      "direction_accuracy": 0.8266,
+      "lr_auroc": 0.8871,
+      "note": "reference"
+    },
+    {
+      "probe": "V competition (same (R,A,B), other ligand)",
+      "lr_auprc": 0.5383,
+      "direction_accuracy": 0.8215,
+      "lr_auroc": 0.876,
+      "note": "uses same-dataset triples (batch info)"
+    },
+    {
+      "probe": "W competition (same (L,A,B), other receptor)",
+      "lr_auprc": 0.4424,
+      "direction_accuracy": 0.7871,
+      "lr_auroc": 0.8452,
+      "note": "uses same-dataset triples (batch info)"
+    }
+  ]
+}

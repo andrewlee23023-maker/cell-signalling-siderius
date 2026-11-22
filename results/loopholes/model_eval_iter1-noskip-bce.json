@@ -1,0 +1,50 @@
+{
+  "submission": "/home/andre/work/cell-signalling/submissions/iter1-noskip-bce",
+  "rows": [
+    {
+      "seed": 20261121,
+      "lr_auprc": 0.5892803139082289,
+      "ci95": [
+        0.5003303644009204,
+        0.6721709629681466
+      ],
+      "delta_vs_baseline": 0.028946162522807763,
+      "delta_ci95": [
+        -0.019709991346602073,
+        0.07183060276219147
+      ],
+      "datasets_better": 14,
+      "work_dir": "/tmp/seed20261121-_a41m6t6"
+    },
+    {
+      "seed": 1,
+      "lr_auprc": 0.5867395788658915,
+      "ci95": [
+        0.49994356435202975,
+        0.6682028215038548
+      ],
+      "delta_vs_baseline": 0.026405427480470294,
+      "delta_ci95": [
+        -0.021621029549403488,
+        0.0696019779924153
+      ],
+      "datasets_better": 13,
+      "work_dir": "/tmp/seed1-ix4tnfe1"
+    },
+    {
+      "seed": 2,
+      "lr_auprc": 0.5723846351418675,
+      "ci95": [
+        0.47006352314358324,
+        0.6598447934873886
+      ],
+      "delta_vs_baseline": 0.0120504837564463,
+      "delta_ci95": [
+        -0.04183594840117398,
+        0.057847904810063716
+      ],
+      "datasets_better": 13,
+      "work_dir": "/tmp/seed2-5vm5itkb"
+    }
+  ]
+}

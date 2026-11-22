@@ -1,0 +1,201 @@
+{
+  "injected_per_dataset": [
+    3,
+    5,
+    8,
+    8,
+    7,
+    3,
+    12,
+    10,
+    14,
+    7,
+    6,
+    5,
+    6,
+    7,
+    4,
+    9,
+    8,
+    7,
+    9,
+    10,
+    3
+  ],
+  "triples_per_dataset": [
+    46,
+    46,
+    46,
+    98,
+    98,
+    98,
+    142,
+    142,
+    142,
+    120,
+    120,
+    120,
+    74,
+    74,
+    74,
+    140,
+    140,
+    140,
+    118,
+    118,
+    118
+  ],
+  "count_constant": false,
+  "count_vs_expected_0.065n": [
+    0.01,
+    2.01,
+    5.01,
+    1.63,
+    0.63,
+    -3.37,
+    2.77,
+    0.77,
+    4.77,
+    -0.8,
+    -1.8,
+    -2.8,
+    1.19,
+    2.19,
+    -0.81,
+    -0.1,
+    -1.1,
+    -2.1,
+    1.33,
+    2.33,
+    -4.67
+  ],
+  "variants": {
+    "L": {
+      "lr_auprc": 0.5529123107369852,
+      "direction_accuracy": 0.8265873015873014,
+      "lr_auroc": 0.8797156534918028,
+      "selected": 1127,
+      "precision": 0.12067435669920142,
+      "group_acc_L": [
+        63,
+        68
+      ],
+      "group_acc_R": [
+        6,
+        21
+      ],
+      "health": {
+        "distinct_deciles": 10,
+        "blocking_pass": true,
+        "dominant_fraction": 0.103,
+        "recording_pass": true
+      }
+    },
+    "L + k_hat": {
+      "lr_auprc": 0.5565685093261282,
+      "direction_accuracy": 0.8265873015873014,
+      "lr_auroc": 0.8868386317554899,
+      "selected": 144,
+      "precision": 0.4722222222222222,
+      "group_acc_L": [
+        37,
+        68
+      ],
+      "group_acc_R": [
+        5,
+        21
+      ],
+      "health": {
+        "distinct_deciles": 10,
+        "blocking_pass": true,
+        "dominant_fraction": 0.103,
+        "recording_pass": true
+      }
+    },
+    "R": {
+      "lr_auprc": 0.5614019262048212,
+      "direction_accuracy": 0.8265873015873014,
+      "lr_auroc": 0.8872753282120629,
+      "selected": 1260,
+      "precision": 0.1126984126984127,
+      "group_acc_L": [
+        25,
+        68
+      ],
+      "group_acc_R": [
+        16,
+        21
+      ],
+      "health": {
+        "distinct_deciles": 10,
+        "blocking_pass": true,
+        "dominant_fraction": 0.103,
+        "recording_pass": true
+      }
+    },
+    "R + k_hat": {
+      "lr_auprc": 0.5603341513854212,
+      "direction_accuracy": 0.8265873015873014,
+      "lr_auroc": 0.887084724563214,
+      "selected": 144,
+      "precision": 0.4722222222222222,
+      "group_acc_L": [
+        33,
+        68
+      ],
+      "group_acc_R": [
+        5,
+        21
+      ],
+      "health": {
+        "distinct_deciles": 10,
+        "blocking_pass": true,
+        "dominant_fraction": 0.103,
+        "recording_pass": true
+      }
+    },
+    "joint": {
+      "lr_auprc": 0.5502494212191327,
+      "direction_accuracy": 0.8265873015873014,
+      "lr_auroc": 0.8778032251018969,
+      "selected": 1055,
+      "precision": 0.12606635071090047,
+      "group_acc_L": [
+        62,
+        68
+      ],
+      "group_acc_R": [
+        13,
+        21
+      ],
+      "health": {
+        "distinct_deciles": 10,
+        "blocking_pass": true,
+        "dominant_fraction": 0.103,
+        "recording_pass": true
+      }
+    },
+    "joint + k_hat": {
+      "lr_auprc": 0.5559017346797618,
+      "direction_accuracy": 0.8265873015873014,
+      "lr_auroc": 0.8867363351977692,
+      "selected": 144,
+      "precision": 0.4652777777777778,
+      "group_acc_L": [
+        36,
+        68
+      ],
+      "group_acc_R": [
+        4,
+        21
+      ],
+      "health": {
+        "distinct_deciles": 10,
+        "blocking_pass": true,
+        "dominant_fraction": 0.103,
+        "recording_pass": true
+      }
+    }
+  },
+  "best_variant": "R"
+}

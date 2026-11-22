@@ -1,0 +1,35 @@
+{
+  "code_read": {
+    "positives_from_full_truth": true,
+    "missing_filled_below_min": true,
+    "ap_called_on_full_vector": true
+  },
+  "drop_lowest_10pct": 0.5603341513854212,
+  "drop_lowest_25pct": 0.5600533628540827,
+  "drop_lowest_50pct": 0.5575117710497713,
+  "L13_positives_per_dataset": {
+    "t02_00_r0": 3,
+    "t02_00_r1": 5,
+    "t02_00_r2": 8,
+    "t02_01_r0": 8,
+    "t02_01_r1": 7,
+    "t02_01_r2": 3,
+    "t02_02_r0": 12,
+    "t02_02_r1": 10,
+    "t02_02_r2": 14,
+    "t02_03_r0": 7,
+    "t02_03_r1": 6,
+    "t02_03_r2": 5,
+    "t03_01_r0": 6,
+    "t03_01_r1": 7,
+    "t03_01_r2": 4,
+    "t04_00_r0": 9,
+    "t04_00_r1": 8,
+    "t04_00_r2": 7,
+    "t04_03_r0": 9,
+    "t04_03_r1": 10,
+    "t04_03_r2": 3
+  },
+  "L13_zero_or_all_positive_datasets": [],
+  "L13_code": "NaN-and-skip"
+}

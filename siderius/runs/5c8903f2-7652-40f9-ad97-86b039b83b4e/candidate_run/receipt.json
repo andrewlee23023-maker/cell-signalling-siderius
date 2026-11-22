@@ -1,0 +1,214 @@
+{
+  "run_id": "46236b5552184e25ad025036678be9f1",
+  "run_name": "oaifull",
+  "workspace": "/home/andre/work/cell-signalling/project/results/runs/5c8903f2-7652-40f9-ad97-86b039b83b4e/workspace",
+  "declaration_digest": "1c869ec99ed2297f6e554f0bde1979d8f610c0c3fc0645ad5b19a5e4a6b62ae7",
+  "status": "failed",
+  "node_ids": [
+    "interpret",
+    "propose",
+    "implement",
+    "validate",
+    "train"
+  ],
+  "selected_constructor_routes": [
+    {
+      "name": "interpret.main",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "openai",
+        "model_id": "gpt-5.6-luna",
+        "max_retries": 1,
+        "reasoning_effort": "medium"
+      },
+      "transport": {
+        "provider": "openai",
+        "model_id": "gpt-5.6-luna",
+        "base_url": null,
+        "reasoning_effort": "medium",
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "propose.comparison",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "openai",
+        "model_id": "gpt-6-astra",
+        "reasoning_effort": "medium",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "openai",
+        "model_id": "gpt-6-astra",
+        "base_url": null,
+        "reasoning_effort": "medium",
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": "propose.reasoning",
+      "issue": null
+    },
+    {
+      "name": "propose.reasoning",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "openai",
+        "model_id": "gpt-6-astra",
+        "reasoning_effort": "medium",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "openai",
+        "model_id": "gpt-6-astra",
+        "base_url": null,
+        "reasoning_effort": "medium",
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "propose.proposing",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "openai",
+        "model_id": "gpt-6-astra",
+        "reasoning_effort": "medium",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "openai",
+        "model_id": "gpt-6-astra",
+        "base_url": null,
+        "reasoning_effort": "medium",
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": "propose.reasoning",
+      "issue": null
+    },
+    {
+      "name": "implement.main",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "openai",
+        "model_id": "gpt-5.6-luna",
+        "max_retries": 1,
+        "reasoning_effort": "medium"
+      },
+      "transport": {
+        "provider": "openai",
+        "model_id": "gpt-5.6-luna",
+        "base_url": null,
+        "reasoning_effort": "medium",
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "validate.main",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "openai",
+        "model_id": "gpt-6-astra",
+        "max_retries": 1,
+        "reasoning_effort": "medium"
+      },
+      "transport": {
+        "provider": "openai",
+        "model_id": "gpt-6-astra",
+        "base_url": null,
+        "reasoning_effort": "medium",
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "train.planner",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "openai",
+        "model_id": "gpt-5.6-luna",
+        "reflect_provider": "openai",
+        "reflect_model_id": "gpt-5.6-luna",
+        "max_retries": 1,
+        "reasoning_effort": "medium",
+        "reflect_reasoning_effort": "medium",
+        "reflect_retry_policy": {
+          "max_retries": 1
+        }
+      },
+      "transport": {
+        "provider": "openai",
+        "model_id": "gpt-5.6-luna",
+        "base_url": null,
+        "reasoning_effort": "medium",
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "train.reflector",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "openai",
+        "model_id": "gpt-5.6-luna",
+        "reflect_provider": "openai",
+        "reflect_model_id": "gpt-5.6-luna",
+        "max_retries": 1,
+        "reasoning_effort": "medium",
+        "reflect_reasoning_effort": "medium",
+        "reflect_retry_policy": {
+          "max_retries": 1
+        }
+      },
+      "transport": {
+        "provider": "openai",
+        "model_id": "gpt-5.6-luna",
+        "base_url": null,
+        "reasoning_effort": "medium",
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": "train.planner",
+      "issue": null
+    }
+  ],
+  "ledger_path": "/home/andre/work/cell-signalling/project/results/runs/5c8903f2-7652-40f9-ad97-86b039b83b4e/workspace/token_usage.jsonl",
+  "log_path": "/home/andre/work/cell-signalling/project/results/runs/5c8903f2-7652-40f9-ad97-86b039b83b4e/workspace/candidate_run/worker.log",
+  "candidate_id": null,
+  "composition_fingerprint": null,
+  "proposal_storage": null,
+  "implementation_storage": null,
+  "native_output_paths": [],
+  "validation_passed": false,
+  "error": null,
+  "loop_trace": {
+    "attempted_iterations": 1
+  },
+  "run_seed": 4010443238871635,
+  "run_seed_source": "generated",
+  "$siderius_encoding": {
+    "version": "siderius.nonfinite/v1",
+    "floats": []
+  }
+}

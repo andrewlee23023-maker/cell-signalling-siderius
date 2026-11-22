@@ -1,0 +1,50 @@
+{
+  "submission": "/home/andre/work/cell-signalling/submissions/iter1-mlp",
+  "rows": [
+    {
+      "seed": 20261121,
+      "lr_auprc": 0.588392057114999,
+      "ci95": [
+        0.49961631327302314,
+        0.6695989356757925
+      ],
+      "delta_vs_baseline": 0.028057905729577764,
+      "delta_ci95": [
+        -0.016915424834048252,
+        0.0705061507802511
+      ],
+      "datasets_better": 13,
+      "work_dir": "/tmp/seed20261121-e4okevb_"
+    },
+    {
+      "seed": 1,
+      "lr_auprc": 0.57945028045963,
+      "ci95": [
+        0.4903011019468394,
+        0.662695353345613
+      ],
+      "delta_vs_baseline": 0.01911612907420866,
+      "delta_ci95": [
+        -0.02162549265856374,
+        0.0580547168346395
+      ],
+      "datasets_better": 12,
+      "work_dir": "/tmp/seed1-qb4mmk7t"
+    },
+    {
+      "seed": 2,
+      "lr_auprc": 0.5817112394856894,
+      "ci95": [
+        0.4900814078947304,
+        0.6649769672057051
+      ],
+      "delta_vs_baseline": 0.021377088100267932,
+      "delta_ci95": [
+        -0.02036715338597102,
+        0.06090804623259951
+      ],
+      "datasets_better": 13,
+      "work_dir": "/tmp/seed2-ki_epscb"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+[seed] run_seed=4010443238871635 source=generated
+Traceback (most recent call last):
+  File "/home/andre/SIDERIUS-wsl/src/tools/candidate_worker/unit_child.py", line 176, in run_invocation_file
+    output=encode_transport(output).decode(),
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/tools/candidate_worker/unit_transport.py", line 127, in encode_transport
+    decoded = decode_transport(type(value), payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/tools/candidate_worker/unit_transport.py", line 77, in decode_transport
+    value = kind.model_validate_json(document)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/core/record_encoding.py", line 153, in model_validate_json
+    return super().model_validate_json(json_data, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/.venv/lib/python3.12/site-packages/pydantic/main.py", line 766, in model_validate_json
+    return cls.__pydantic_validator__.validate_json(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/agent/schemas/proposal.py", line 1461, in _validate_baseline_segmentation_size
+    profile = resolve_dataset_profile()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/execute_tools/dataset_config.py", line 936, in resolve_dataset_profile
+    raise DatasetProfileBindingError(
+execute_tools.dataset_config.DatasetProfileBindingError: no dataset profile is bound; compose a task or pass its resolved DatasetProfile explicitly
+Proposing new architecture based on interpretation of [] ...
+   Pipeline mode: explore | stages: ['comparison', 'causal_reasoning']
+   Candidates: [] (0 models, 0 with source code); non-candidates: []
+   Stage 'comparison': calling LLM... [PROMPT_SIZE] 7495 chars
+   Stage 'comparison': done.
+   Stage 'causal_reasoning': calling LLM... [PROMPT_SIZE] 11661 chars
+   Stage 'causal_reasoning': done.
+   Stage 'proposing': calling LLM (structural 1/3)...
+Proposed model (pipeline): 'masked_rank_skip_probe'
+Proposal saved -> /home/andre/work/cell-signalling/project/results/runs/5c8903f2-7652-40f9-ad97-86b039b83b4e/workspace/oaifull/graph_instances/propose/iteration_001/attempt_001/proposal_oaifull.json

@@ -1,0 +1,12 @@
+{
+  "tied_groups": 0,
+  "mean_tied_fraction": 0.0,
+  "positives_in_ties": 0,
+  "grouped_official": 0.5603341513854212,
+  "best_case": 0.5603341513854212,
+  "worst_case": 0.5603341513854212,
+  "random_mean": 0.5603341513854211,
+  "random_sd": 1.1102230246251565e-16,
+  "contact_count_high_first": 0.5603341513854212,
+  "contact_count_low_first": 0.5603341513854212
+}

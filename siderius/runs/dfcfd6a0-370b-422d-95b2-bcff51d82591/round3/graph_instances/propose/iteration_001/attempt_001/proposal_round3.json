@@ -1,0 +1,112 @@
+{
+    "candidate_id": "cand_4283fdc234bf4e799ec9c1e580da5e9c",
+    "model_name": "lr_coupling_mlp_noskip",
+    "output_type": "regressor",
+    "model_description": "A permutation-invariant, mask-aware per-triple scorer. The [B,5,1024] contact-cell tensor is first reduced, with no learned parameters, to a fixed vector of within-triple dependence statistics: masked Pearson and Spearman correlation of receptor R with neighbour-ligand L, the same correlations after residualising R on log library size and neighbour fraction, the OLS slope of R on L, the high-L versus low-L tercile difference in mean R, and marginal summaries (n contacts, mean and std of L and R, mean neighbour fraction). Each statistic is a symmetric function of the columns, so column order has no effect. A small 2-hidden-layer MLP (no skip connection) maps this vector to one scalar score per triple. It is the lr_coupling_mlp-style design from the human directive with the skip removed.",
+    "mathematical_definition": "Input x in R^{B x 5 x N}; rows are L, R, lib, nfrac, mask m. Stage 1 (parameter-free, masked): n = sum m. Masked means and stds of L, R, lib, nfrac. Pearson r_LR = masked-cov(L,R)/(sd_L*sd_R+eps). Spearman rho_LR = Pearson of masked ranks (padded entries pushed to the end by sorting with +inf and rank-normalised by n). Residualise R and L on [1, lib, nfrac] by masked least squares (closed-form normal equations with ridge eps) giving R~ and L~; partial Pearson and partial Spearman of (L~,R~). Slope = cov(L,R)/(var_L+eps). Tercile contrast = mean R over cells with L-rank above 2/3 minus mean R over cells with L-rank below 1/3, divided by sd_R. Add log(1+n), mean L, sd L, mean R, sd R, mean nfrac, and Fisher-z transforms scaled by sqrt(n-3) of the Pearson and Spearman correlations. Concatenate to feature vector f (fixed small size), apply fixed-statistics-free LayerNorm (learned affine only). Stage 2: h1 = GELU(W1 f + b1); dropout; h2 = GELU(W2 h1 + b2); dropout; s = W3 h2 + b3 (no skip connection from f or any correlation feature to s). Output s as [B,1]. Everything is a symmetric reduction over columns and every reduction is multiplied by the mask. Triples with n<4 yield zeroed correlation features.",
+    "motivation": "Implements the memo's proposed_change: 'Reuse the iter1 lr_coupling_mlp design with the skip connection removed, as the single architectural change relative to iter1', with the loss change handled as a separate run-constraint conflict (see notes). Per the causal_hypothesis, the Spearman baseline ranks by one correlation and cannot separate injected couplings from equally sized unobserved-ligand perturbations. A learned combination of confound-adjusted dependence statistics (partial correlation on library size and neighbour fraction, slope, tercile contrast, a sqrt(n)-scaled evidence term) can learn that separation, and removing the skip forces the MLP to combine them rather than copy one raw correlation. output_type is regressor because the run only permits that; the score is a continuous scalar ranked within dataset.",
+    "expert_advice": {
+        "focus_areas": [
+            "Learning rate (1e-3 to 3e-4) and epoch count (30-60), with a fixed epoch budget",
+            "Dropout (0-0.2) and hidden width (32-128) given only 60 training datasets",
+            "Which statistics help: ablate the partial-correlation block and the sqrt(n)-scaled terms, one at a time"
+        ],
+        "constraints": [
+            "VRAM: the model is tiny (~6k parameters, activations of a few MB per batch); stay far below 80% of the 6.37 GB cap. Batch size up to a few thousand triples is feasible.",
+            "Must use the mask in every reduction; output exactly [B,1] and finite for all inputs, including triples with 0 or 1 contact cells.",
+            "No NB/t-statistic count-model features, no alignment-free features, no inputs from other samples or triples."
+        ],
+        "known_failures": [
+            "Without the skip connection the MLP may underuse the raw correlation and fall below the Spearman baseline with only 60 training datasets.",
+            "The loss mismatch may matter: smooth-L1 on 0/1 labels treats them as numbers and may under-emphasise the ~7% positives.",
+            "The iter1 source was not supplied, so this reimplementation may not match iter1 and could confound the one-change-at-a-time comparison."
+        ],
+        "suggested_directions": [
+            "First run: baseline_config as given (40 epochs, cosine lr, last completed epoch).",
+            "Compare against the raw Spearman baseline on validation to see whether the MLP adds anything.",
+            "Next, change one thing only: either width, dropout, or removal of one feature block.",
+            "Take it back to the focal_cw question once the run constraint on output_type allows a classifier head."
+        ],
+        "rationale": "The input is a per-triple set of up to 1024 exchangeable cells, so the signal lives in dependence statistics. Parameter-free statistics plus a very small MLP suit 60 training datasets and keep the model permutation-invariant by construction.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "hidden_dim": 64,
+            "num_hidden_layers": 2,
+            "dropout": 0.1,
+            "use_skip_connection": false,
+            "use_partial_correlation": true,
+            "use_rank_features": true,
+            "min_contacts": 4,
+            "eps": 1e-6
+        },
+        "train_config": {
+            "lr": 0.001,
+            "epochs": 40,
+            "batch_size": 64,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.0001,
+            "device": "cuda",
+            "checkpoint_selection": "last_completed_epoch",
+            "lr_schedule": {
+                "kind": "cosine",
+                "horizon_epochs": 40,
+                "min_lr": 0.00001
+            }
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1",
+            "beta": 1.0,
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "lr_coupling_mlp (without skip connection)",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive 1 names the iter1 lr_coupling_mlp without the skip connection as the base model to build on, changing one thing at a time."
+        },
+        {
+            "component": "focal_cw built-in class-weighted focal loss",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive 2 requires focal_cw instead of smooth-L1 because a ranking metric is not rewarded by fitting labels as numbers. No experimental score exists yet for it."
+        },
+        {
+            "component": "fixed-epoch training, last_completed_epoch checkpoint",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive 3 requires a fixed epoch count and checkpoint_selection=last_completed_epoch, so validation is used only for the final comparison."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc",
+        "current_value": null,
+        "predicted_value": 0.2,
+        "threshold_for_refutation": 0.12,
+        "rationale": "Random ranking is ~0.11 and prevalence ~0.07. A learned combination of directional contact-correlation features trained with a rank-friendly focal loss should clearly beat random and plausibly beat the Spearman baseline. A value of 0.12 or less would mean no gain over chance and would refute the hypothesis."
+    },
+    "proposed_vocab_links": [],
+    "proposed_vocab_candidates": [],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "CONFLICT: human directive 2 asks for focal_cw, but the run constraint allows only output_type='regressor', and the output/loss rule permits only smooth_l1 for a regressor (focal_cw needs a classifier; custom losses are refused). The binding run constraint wins, so loss_type is smooth_l1 and the focal_cw request was not applied. The memo's focal_cw component is therefore not implemented. The task text also says classification, but the run constraint takes precedence for output_type.",
+        "DEVIATION: the memo says to reuse model_name='lr_coupling_mlp' (Branch B). No custom models are registered, so Branch B is forbidden. A new Branch C model, lr_coupling_mlp_noskip, is proposed and model_config.model_name is left unset. Its wiring is a reimplementation, not iter1's code.",
+        "DEVIATION: the memo describes dataset-level per-triple features including the reverse B->A correlation. The forward contract gives each sample only its own [5,1024] A->B contact tensor, so the reverse-direction correlation is not available. The features are computed inside forward from that tensor only. The directionality contrast is not implemented.",
+        "The memo's 'Spearman/Pearson correlation with contact-weighted neighbour-L signal' is implemented on row 0 (mean L over A neighbours) with row 3 as a covariate. This is a within-triple operation and uses no cross-sample inputs.",
+        "Training settings (40 epochs, AdamW lr 1e-3, cosine, last_completed_epoch) follow the memo and human directive 3. The skip connection is removed (use_skip_connection=false) per directive 1."
+    ],
+    "parameter_count_estimate": 6000,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

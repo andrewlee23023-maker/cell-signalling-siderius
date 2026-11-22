@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "candidate_id": "cand_a8f171e743cc4434b71bee8f8c153e3c",
+  "realized_total_parameter_count": 8162,
+  "realized_trainable_parameter_count": 8162,
+  "model_type": "lr_coupling_mlp",
+  "plugin_registered": true,
+  "tests_passed": true,
+  "description_valid": true,
+  "config_fields_valid": true,
+  "forbidden_patterns_check_passed": true,
+  "instantiation_passed": true,
+  "gradient_check_passed": true,
+  "output_type_valid": true,
+  "llm_review_passed": true,
+  "inheritance_check_passed": true,
+  "inheritance_check_notes": [
+    "beta_weighted_loss (upweight weak-effect positives): SKIPPED (no pattern in vocab seed)",
+    "rows 0/1 as ligand-receptor pair, rows 2/3 as covariates: SKIPPED (no pattern in vocab seed)",
+    "explicit padding mask for pooling: SKIPPED (no pattern in vocab seed)"
+  ],
+  "unverified_inherited_components": [],
+  "probe_seed": {
+    "run_seed": 3802466666561124,
+    "at": {
+      "iteration": 1,
+      "node_id": "validate",
+      "branch": null,
+      "round": null,
+      "attempt": 1,
+      "epoch": null
+    }
+  },
+  "test_output": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /home/andre/SIDERIUS-wsl/.venv/bin/python\ncachedir: .pytest_cache\nrootdir: /home/andre/work/cell-signalling/project/results/runs/8575efd3-4afe-4dfc-8745-d200fabb3f78/workspace\nplugins: anyio-4.12.1\ncollecting ... collected 3 items\n\niter1/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_lr_coupling_mlp.py::test_forward_shape PASSED [ 33%]\niter1/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_lr_coupling_mlp.py::test_forward_gradient PASSED [ 66%]\niter1/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_lr_coupling_mlp.py::test_config_instantiation PASSED [100%]\n\n============================== 3 passed in 1.16s ===============================\n",
+  "llm_review_spec_alignment": false,
+  "llm_review_trainability_concerns": [],
+  "llm_review_implementation_issues": [],
+  "llm_review_notes": "The model implementation is robust and follows the requested architectural logic. While the Film implementation deviates from the spec (the spec describes a gate driven by [mean c1, mean c2, log n] to output gamma/beta, whereas the implementation uses a linear projection to 4*H then splits, effectively providing a different parameterization), it remains a valid, trainable neural network architecture. Residualisation logic is correctly implemented using masked normal equations, and skip connections for the baseline statistic are properly handled.",
+  "spec_deviation_notes": "NOTE: This implementation passes trainability checks but deviates from the proposed mathematical spec. The tuner is optimizing an approximation of the intended architecture. Deviations: The model implementation is robust and follows the requested architectural logic. While the Film implementation deviates from the spec (the spec describes a gate driven by [mean c1, mean c2, log n] to output gamma/beta, whereas the implementation uses a linear projection to 4*H then splits, effectively providing a different parameterization), it remains a valid, trainable neural network architecture. Residualisation logic is correctly implemented using masked normal equations, and skip connections for the baseline statistic are properly handled.",
+  "inheritance_deviation_notes": null,
+  "error_message": null,
+  "$siderius_encoding": {
+    "version": "siderius.nonfinite/v1",
+    "floats": []
+  }
+}

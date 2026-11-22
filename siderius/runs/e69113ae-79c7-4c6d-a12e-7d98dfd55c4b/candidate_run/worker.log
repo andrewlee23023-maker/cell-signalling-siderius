@@ -1,0 +1,31 @@
+[seed] run_seed=1969032229602597 source=generated
+Proposing new architecture based on interpretation of [] ...
+   Pipeline mode: explore | stages: ['comparison', 'causal_reasoning']
+   Candidates: [] (0 models, 0 with source code); non-candidates: []
+   Stage 'comparison': calling LLM... [PROMPT_SIZE] 6997 chars
+   Stage 'comparison': done.
+   Stage 'causal_reasoning': calling LLM... [PROMPT_SIZE] 10219 chars
+   Stage 'causal_reasoning': done.
+   Stage 'causal_reasoning': causal-owned field validation failed (attempt 1/3) — retrying with focused error feedback.
+   Stage 'proposing': calling LLM (structural 1/3)...
+Proposed model (pipeline): 'lr_coupling_mlp_noskip'
+Proposal saved -> /home/andre/work/cell-signalling/project/results/runs/e69113ae-79c7-4c6d-a12e-7d98dfd55c4b/workspace/round2/graph_instances/propose/iteration_001/attempt_001/proposal_round2.json
+Traceback (most recent call last):
+  File "/home/andre/SIDERIUS-wsl/src/tools/candidate_worker/unit_child.py", line 173, in run_invocation_file
+    output, record = execute_unit(invocation, composition, budget)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/tools/candidate_worker/unit_child.py", line 102, in execute_unit
+    return phases.run_implementation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/tools/candidate_worker/phases.py", line 125, in run_implementation
+    implemented = implementor.run(implementation)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/nodes/ml_model_implementor/ml_model_implementor.py", line 2042, in run
+    loss_provenance = self._generate_loss(inp)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/nodes/ml_model_implementor/ml_model_implementor.py", line 1889, in _generate_loss
+    expected_snapshot = _expected_custom_loss_snapshot(inp)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andre/SIDERIUS-wsl/src/nodes/ml_model_implementor/ml_model_implementor.py", line 1154, in _expected_custom_loss_snapshot
+    raise ValueError("composed custom-loss use requires a complete task contract")
+ValueError: composed custom-loss use requires a complete task contract

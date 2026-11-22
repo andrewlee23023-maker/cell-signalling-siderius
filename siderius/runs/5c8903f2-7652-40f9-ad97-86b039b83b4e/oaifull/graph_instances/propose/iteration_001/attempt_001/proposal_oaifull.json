@@ -1,0 +1,190 @@
+{
+    "candidate_id": "cand_746aed54ed324dc787785e056e8435e1",
+    "model_name": "masked_rank_skip_probe",
+    "output_type": "regressor",
+    "model_description": "A minimal, permutation-invariant diagnostic model computes masked rank partial correlation between neighbour ligand and receiver receptor expression, conditioning on both nuisance covariates. It converts the correlation into a stabilized Fisher z-score and combines a direct association skip with a small learned correction using only association-derived features. The trained output is a bounded continuous score. Separate forward modes expose score-only, learned-only, and skip-plus-learned paths. This is explicitly a newly specified diagnostic, not recovered iter1: the exact requested ablation remains blocked because iter1 source and configuration were not supplied. Its implementation does not establish authorization or support for independently seeded runs, grouped model selection, or the requested reporting protocol.",
+    "mathematical_definition": "Let M be the validity mask from the designated mask row, and let I contain only valid contact columns. Gather valid columns before any ranking, normalization, statistic, or pooling operation; padded values never enter these computations. For each expression and nuisance variable, compute average ranks over I, assigning equal values their shared midrank. Center each ranked vector and normalize it by its centered Euclidean norm, setting constant vectors to zero. Write the normalized expression vectors as l and r, and concatenate normalized nuisance vectors into C. Compute the residual projector using the Moore-Penrose pseudoinverse with a configured relative singular-value tolerance: e_l=l-C(C^+l), e_r=r-C(C^+r). Let q be the numerical rank of C. Compute rho=(e_l^T e_r)/(||e_l|| ||e_r||), with numerical clipping. If the valid sample count is below its configured minimum, either residual norm is below tolerance, or there are insufficient residual degrees of freedom, set both association features to zero. Otherwise form the Fisher association score z=sqrt(max(|I|-q-3,0))*atanh(rho), clipped symmetrically for numerical stability. This is a Fisher transform, not a t-statistic. The fixed learned feature vector is f=[rho,z]. No expression mean, nuisance marginal, nuisance coefficient, or raw contact count enters the learned head. The correction is h(f)=w_out^T tanh(W_in f+b_in)+b_out. The default output is sigmoid(z+h(f)); the learned-only mode outputs sigmoid(h(f)); the evaluation-only score mode returns z directly and instantiates no learned head. The trained modes have identical parameter shapes and features. Initialize the output-layer weights and bias to zero, so the default model initially ranks solely by z. Emit one finite float32 scalar per input example. Midrank assignment, residualization, and aggregation are symmetric in valid columns, providing column-order invariance. The three_way_iter1_ablation_and_direct_association_skip component is represented only by these diagnostic forward modes, not by a claim of recovered iter1. rank_partial_correlation_and_nuisance_conditioning and explicit_padding_mask are implemented directly. For focal_cw_and_fixed_model_capacity, the head is fixed across trained modes, but focal_cw is unavailable under the locked output representation and capacity relative to missing iter1 cannot be certified. tile_grouped_selection_and_uncertainty_protocol remains an external execution and reporting requirement, not part of forward computation.",
+    "motivation": "The memo's proposed_change is: \"Run the human-requested ablation before designing a new architecture. This is conditional on obtaining iter1's source, configuration, and padding convention: none was supplied, so an exact 'unchanged iter1' experiment is currently blocked. Do not invent a replacement and label it iter1. Implement three forward-path variants of the recovered model: (a) output its rank-partial-correlation z-score directly, with no learned weights; (b) remove only the direct z-score-to-output skip, retaining the learned branch and its original inputs; (c) retain the original computation unchanged. Keep the feature set and parameter shapes fixed; do not increase parameter count. Audit that nuisance rows x[:, 2:4, :] enter only conditioning/residualization, and that an explicit padding mask excludes padded cells before ranking, statistics, and pooling. If iter1 violates these requirements, disclose that incompatibility rather than silently changing the unchanged control. Train (b) and (c) with identical native training settings and built-in focal_cw, using three matched seeds through separately supported runs—not a jointly trained ensemble. Variant (a) is evaluation-only; identical optimization is inapplicable because it has no learned weights. Select hyperparameters and epochs using a tile-grouped TRAIN holdout, never final validation; preserve the operator-owned full formal training and evaluation scopes. Report three-seed mean ± SD and paired uncertainty from resampling the seven validation tiles, keeping their three realizations together; differences below 0.02 remain unresolved. Independent-run orchestration and grouped checkpoint-selection support must be verified before claiming this protocol executed. Preflight the recovered architecture and streamed, masked statistics for a baseline peak at most 5.09 GB, below the 6.37 GB effective cap; its memory fit cannot be certified without the missing implementation.\" The memo's causal_hypothesis is: \"human:human_advice motivates testing whether nuisance contamination or dependence on learned weights limits association_signal_preservation; this is not an observed cold-start bottleneck. Its rank_partial_correlation and explicit_padding_mask should isolate conditional association, while direct_association_skip may preserve evidence the learned-only branch attenuates. The three ablations distinguish these mechanisms without adding parameters; no existing model's failure has yet been established.\" The specified diagnostic isolates those association mechanisms while avoiding learned expression-level or nuisance shortcuts. It does not resolve the missing-model prerequisite or constitute the requested exact ablation. The regressor representation is required by the run boundary rather than preferred for this binary task. A sigmoid continuous score supplies the required scalar ranking output, and built-in smooth_l1 is the only permitted non-custom loss compatible with that representation. This necessarily departs from the requested class-weighted focal objective and may impair rare-positive learning.",
+    "expert_advice": {
+        "focus_areas": [
+            "Recover and audit iter1 before interpreting any diagnostic as the requested ablation.",
+            "First verify tied-rank handling, constant-variable handling, singular nuisance designs, finite outputs, permutation invariance, and invariance to padded values.",
+            "Keep the two association features fixed. Match every training setting between learned-only and skip-plus-learned runs.",
+            "Tune numerical tolerances and minimum contact count only on a tile-grouped TRAIN selection scope; do not tune against final validation."
+        ],
+        "constraints": [
+            "Baseline peak VRAM must remain at or below 5.09 GB, with an absolute effective cap of 6.37 GB. The proposed small head and per-example rank processing should fit comfortably, but actual execution must measure peak allocation.",
+            "Use sorting-based midranks and small nuisance-design decompositions; do not allocate all-pairs contact-cell comparison tensors.",
+            "Rows 2 and 3 may enter only conditioning and residual degrees-of-freedom accounting, never direct learned signalling features.",
+            "Preserve execution.formal_train_portion=1.0, execution.formal_portion=1.0, execution.formal_eval_portion=1.0, and execution.force_formal_round=true.",
+            "No custom losses, independent-member training inside the plugin, or unsupported checkpoint callbacks."
+        ],
+        "known_failures": [
+            "Missing iter1 prevents an exact unchanged control and prevents verification that parameter count has not increased.",
+            "Sparse expression, tied ranks, or few contacts can produce noisy or degenerate conditional association estimates.",
+            "Linear partialling in rank space does not guarantee independence from nonlinear nuisance effects.",
+            "Nuisance residualization can remove genuine association when injected signal aligns with nuisance structure.",
+            "The direct Fisher score can overstate evidence because neighbouring receiver cells need not be independent.",
+            "Grouped selection and independently seeded run orchestration have not been established as available execution paths.",
+            "Forced smooth_l1 on rare binary targets can favor near-constant predictions; it is not a replacement with demonstrated equivalence to focal_cw."
+        ],
+        "suggested_directions": [
+            "Obtain iter1 source, original feature definitions, parameter count, and training configuration; then implement the requested exact three-way ablation rather than substituting this diagnostic.",
+            "For this diagnostic, first test permutation and padding invariance on synthetic inputs, including empty masks, constant ligand, constant receptor, and collinear nuisance columns.",
+            "If separately authorized and supported, run the two trained diagnostic modes with three matched seeds and identical native settings. Evaluate the parameter-free score mode separately without constructing an optimizer.",
+            "Use a separately supported tile-grouped TRAIN selection procedure before freezing epochs and hyperparameters for full-scope formal training. Do not silently carve a holdout out of the locked formal scope.",
+            "Report per-seed dataset-averaged lr_auprc and its mean ± sample SD. For paired differences, bootstrap seven tiles with all three realizations retained per sampled tile; differences below 0.02 remain unresolved."
+        ],
+        "rationale": "The available evidence is human guidance rather than experimental comparisons. Correct masking and nuisance conditioning can be specified now, but exact architecture inheritance, capacity matching, and the requested ablation cannot. A very small fixed-feature head limits additional mechanisms while making the direct association path explicit. Resource and execution checks remain separate from scientific validation.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "input_channels": 5,
+            "segmentation_size": 1024,
+            "association_feature_count": 2,
+            "hidden_width": 8,
+            "forward_mode": 2,
+            "mask_threshold": 0.5,
+            "minimum_contacts": 8,
+            "pseudoinverse_rtol": 1e-6,
+            "residual_norm_epsilon": 1e-8,
+            "correlation_clip": 0.999,
+            "fisher_score_clip": 8.0,
+            "rank_nuisance_covariates": true,
+            "zero_initialize_output_layer": true
+        },
+        "train_config": {
+            "lr": 0.0001,
+            "epochs": 10,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.00001,
+            "device": "cuda",
+            "lr_schedule": null,
+            "target_standardization": "none"
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1",
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "three_way_iter1_ablation_and_direct_association_skip",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Explicitly requests score-only, skip-removed, and unchanged variants before a new architecture; implementation and contribution remain unverified."
+        },
+        {
+            "component": "rank_partial_correlation_and_nuisance_conditioning",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Prefers rank association and requires conditioning on rows 2 and 3. Reported inferiority of other statistics is human-provided evidence, not a supplied experimental result."
+        },
+        {
+            "component": "explicit_padding_mask",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Requires every statistic and pooling operation to exclude padded cells."
+        },
+        {
+            "component": "focal_cw_and_fixed_model_capacity",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Requires the built-in class-weighted focal loss, no parameter-count increase, and fixed features."
+        },
+        {
+            "component": "tile_grouped_selection_and_uncertainty_protocol",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Requires TRAIN-only tile-grouped selection, three-seed reporting, seven-tile bootstrap uncertainty, and an unresolved band below 0.02 lr_auprc."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc",
+        "current_value": null,
+        "predicted_value": 0.2,
+        "threshold_for_refutation": 0.14,
+        "rationale": "Conditional on recovering a compliant iter1, predict a three-seed mean lr_auprc of 0.20 for the unchanged variant across the 21 final validation datasets. A mean at or below 0.14 refutes this absolute forecast. This is a prospective estimate based on the injected conditional association, not an observed baseline or claimed improvement. The mechanistic subprediction is that removing the skip lowers mean lr_auprc by at least 0.02; smaller differences remain unresolved and tile-bootstrap uncertainty must accompany the comparison."
+    },
+    "proposed_vocab_links": [
+        {
+            "feature": "rank_partial_correlation",
+            "capability": "nuisance_conditioned_association",
+            "evidence": "Suggested by human:human_advice (strong_prior), which prefers rank-based association and requires conditioning on nuisance rows x[:, 2:4, :]. Hypothesis: rank_partial_correlation can isolate ligand–receptor association conditional on these covariates. No candidate source code, file_vectors, or project measurements were supplied. The contributor's reported underperformance of other statistics is external guidance, not an available experimental comparison.",
+            "status": "proposed"
+        },
+        {
+            "feature": "explicit_padding_mask",
+            "capability": "padding_invariance",
+            "evidence": "Suggested by human:human_advice (strong_prior), which requires every statistic and pooling operation to exclude padded cells. Hypothesis: explicit_padding_mask prevents padding-dependent association estimates and pooled representations. No implementation or ablation results are available to verify this link.",
+            "status": "proposed"
+        },
+        {
+            "feature": "direct_association_skip",
+            "capability": "association_signal_preservation",
+            "evidence": "Suggested by the ablation request in human:human_advice (strong_prior): compare the partial-correlation z-score alone, iter1 without its direct z-score skip, and unchanged iter1. Hypothesis: direct_association_skip preserves useful association evidence independently of learned weights. Neither iter1 source code nor scores were supplied, so the feature's implementation and contribution remain unverified.",
+            "status": "proposed"
+        }
+    ],
+    "proposed_vocab_candidates": [
+        {
+            "name": "rank_partial_correlation",
+            "kind": "feature",
+            "description": "Rank-based conditional association between neighbour ligand signal and receiver receptor expression after accounting for nuisance covariates. Suggested by human guidance; not observed in supplied code."
+        },
+        {
+            "name": "nuisance_conditioned_association",
+            "kind": "capability",
+            "description": "Measure ligand–receptor association conditional on nuisance covariates without treating those covariates as direct signalling evidence."
+        },
+        {
+            "name": "explicit_padding_mask",
+            "kind": "feature",
+            "description": "An explicit validity mask excluding padded cells from association statistics, normalization, and all pooling operations. Suggested by human guidance; the padding representation is not supplied."
+        },
+        {
+            "name": "padding_invariance",
+            "kind": "capability",
+            "description": "Keep predictions and intermediate statistics unchanged when only the amount of padding changes."
+        },
+        {
+            "name": "direct_association_skip",
+            "kind": "feature",
+            "description": "A direct path carrying an association score to the output alongside a learned path. Referenced by the contributor's iter1 ablation request; actual wiring is unavailable."
+        },
+        {
+            "name": "association_signal_preservation",
+            "kind": "capability",
+            "description": "Retain explicit association evidence without depending entirely on a learned representation."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "output_type is locked at \"regressor\"; the request to use classifier-compatible focal_cw was not applied — change lock first to apply. With custom losses unavailable, the compatible built-in objective is smooth_l1, despite the human request not to use it on 0/1 labels. This proposal does not claim to satisfy the requested loss protocol.",
+        "The memo requires ablation before new architecture, but iter1 source and configuration are absent and the available custom-model registry is empty. To supply the concrete architecture required by this stage, this proposal specifies a clearly labeled new diagnostic. It is not unchanged iter1, does not recover its original learned inputs, and cannot substitute for the exact requested ablation.",
+        "The present forward contract supplies the padding convention through row 4, resolving that detail for this diagnostic only. It does not establish how missing iter1 handled padding.",
+        "The inherited no-parameter-increase requirement cannot be verified against unavailable iter1. The proposed head has 33 trainable parameters: 16 input weights, 8 hidden biases, 8 output weights, and 1 output bias. The two trained diagnostic modes preserve exactly these parameters and features; no claim of capacity matching to iter1 is made.",
+        "The score-only mode returns the clipped Fisher z-score without learned weights and is evaluation-only. The default trainable configuration is forward_mode=2; forward_mode=1 removes its skip. Native training of forward_mode=0 is not proposed because a parameter-free module provides no optimizer parameters.",
+        "Rank residualization, clipping, the two-feature head, and sigmoid output are new diagnostic specifications, not verified inherited implementation details. The sigmoid provides continuous targets-compatible outputs but can numerically compress high scores; ranking ties must be checked.",
+        "The memo's focal_cw_and_fixed_model_capacity component is only partially retained: fixed diagnostic capacity is implemented, the original capacity remains unknown, and focal_cw is excluded by the locked output contract.",
+        "Tile-grouped selection, three independently seeded runs, and tile bootstrap reporting cannot be implemented by forward computation. Their execution support is unverified. No grouped holdout is silently introduced into the operator-owned full formal training scope, and best_validation_loss checkpointing is not requested without an established selection scope.",
+        "The baseline epoch count is a provisional configuration, not a TRAIN-selected optimum. Native default last-completed-epoch export applies; this does not implement the memo's requested model-selection experiment.",
+        "The memo's numerical prediction remains conditional on recovering compliant iter1 and is not asserted for this new diagnostic under a different loss. No prior measured performance, improvement, or executed ablation is claimed.",
+        "The memory estimate is based on small masked input tensors, sorting-based ranks, small nuisance decompositions, and a 33-parameter head. It is not a measured peak; preflight must confirm the 5.09 GB baseline target and 6.37 GB cap."
+    ],
+    "parameter_count_estimate": 33,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

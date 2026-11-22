@@ -1,0 +1,652 @@
+{
+    "model_types": [
+        "lr_pair_scorer"
+    ],
+    "model_descriptions": {
+        "lr_pair_scorer": "A tiny, permutation-invariant, mask-exact scorer for one (L,R,A->B) triple. For each triple it computes a fixed (non-learned) bank of masked statistics over its contact cells. These include tie-averaged rank transforms of the ligand row (row 0) and receptor row (row 1), a plain masked Spearman correlation, and a covariate-adjusted partial Spearman. The partial version residualises both ranked rows on [1, row2 library offset, row3 sender fraction] by closed-form masked ridge least squares. It then converts that correlation to a sqrt(n-3)*atanh(r) z-statistic, so the large contact-cell counts of weak-effect triples add evidence. Further features are a row3-weighted correlation, a top-vs-bottom ligand-tercile receptor contrast, nuisance diagnostics (correlations of R and L with rows 2 and 3), and log n. A 2-hidden-layer MLP (width 32) maps the standardised features to a score. A learned scalar skip from the partial-Spearman z-statistic means the model starts as a covariate-adjusted Spearman ranker. The output is an unbounded scalar per triple, trained with smooth_l1 against the 0/1 target (the run is regression-typed)."
+    },
+    "total_experiments": 2,
+    "cold_start": false,
+    "per_model_best": {
+        "lr_pair_scorer": 0.5643070958072749
+    },
+    "per_model_best_valid": {
+        "lr_pair_scorer": 0.5643070958072749
+    },
+    "per_model_raw_best_health_validity": {
+        "lr_pair_scorer": "valid"
+    },
+    "per_model_worst": {
+        "lr_pair_scorer": 0.560386051551221
+    },
+    "scientific_aggregation": {
+        "included": [
+            "lr_pair_scorer"
+        ],
+        "excluded": [],
+        "included_count": 1,
+        "excluded_count": 0,
+        "all_excluded": false,
+        "no_records": false,
+        "exclusion_reason_counts": {}
+    },
+    "best_denoising_score": 0.5643070958072749,
+    "best_valid_denoising_score": 0.5643070958072749,
+    "worst_denoising_score": 0.560386051551221,
+    "best_config": {
+        "exp_id": "lr_pair_scorer_loop2b_002",
+        "run_name": "loop2b",
+        "model_type": "lr_pair_scorer",
+        "model_config": {
+            "model_type": "lr_pair_scorer",
+            "segmentation_size": 1024,
+            "batch_size": 32,
+            "hidden_dim": 64,
+            "num_layers": 2,
+            "ridge": 0.001,
+            "use_covariates": true,
+            "rank_chunk": 128,
+            "feature_clip": 8.0,
+            "dropout": 0.0,
+            "learn_skip": true,
+            "min_contacts": 4
+        },
+        "train_config": {
+            "lr": 0.002,
+            "epochs": 25,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.00001,
+            "device": "cuda",
+            "checkpoint_selection": "best_validation_loss",
+            "lr_schedule": {
+                "kind": "cosine",
+                "horizon_epochs": 25,
+                "min_lr": 0.00001
+            }
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1"
+        },
+        "inference_batch": 64
+    },
+    "best_valid_config": {
+        "exp_id": "lr_pair_scorer_loop2b_002",
+        "run_name": "loop2b",
+        "model_type": "lr_pair_scorer",
+        "model_config": {
+            "model_type": "lr_pair_scorer",
+            "segmentation_size": 1024,
+            "batch_size": 32,
+            "hidden_dim": 64,
+            "num_layers": 2,
+            "ridge": 0.001,
+            "use_covariates": true,
+            "rank_chunk": 128,
+            "feature_clip": 8.0,
+            "dropout": 0.0,
+            "learn_skip": true,
+            "min_contacts": 4
+        },
+        "train_config": {
+            "lr": 0.002,
+            "epochs": 25,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.00001,
+            "device": "cuda",
+            "checkpoint_selection": "best_validation_loss",
+            "lr_schedule": {
+                "kind": "cosine",
+                "horizon_epochs": 25,
+                "min_lr": 0.00001
+            }
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1"
+        },
+        "inference_batch": 64
+    },
+    "model_knowledge_cache": {
+        "lr_pair_scorer": {
+            "key_findings": [
+                "Best lr_auprc is 0.5643 (record lr_pair_scorer_loop2b_002, Formal, 5,122 params). That is about 5x the ~0.11 random level. It is the only Formal score at that value, so it is not independent replication.",
+                "Round 1 scored 0.5604 with 1,538 params. Round 2 scored 0.5643 with 5,122 params. The gain is +0.0039 (+0.7%), within plausible seed noise. With one seed per round, the extra capacity (hidden_dim 64, 3.3x params) is not shown to help.",
+                "Secondary metrics are strong and consistent with the primary score. lr_auroc is 0.868 and direction_accuracy is 0.788. In round 1, AUROC was 0.866 and direction_accuracy about 0.80. Direction accuracy was slightly lower in round 2 even though AUPRC rose. So the round-2 change did not improve direction.",
+                "The performance mostly comes from the fixed statistic bank, not from learning. These features are masked rank transforms, covariate-adjusted partial Spearman z-statistic, and a learned skip. The model starts as a covariate-adjusted Spearman ranker. The small MLP adds little beyond that. This design explains the high score relative to the plain-Spearman baseline, but the run has no baseline score to quantify the margin.",
+                "Training is stable and healthy. Train loss fell 0.0341→0.0206 and val loss fell 0.0234→0.0216 over 25 epochs. Best epoch was 20 and the last-epoch val loss was only +4.3e-5 above best. The train/val gap was +0.00095, which is comparable, so there was no overfitting. The loss was still creeping down at the end, so the model is close to converged under this schedule.",
+                "Health gates passed in both rounds (continue=2). There were no failures."
+            ],
+            "bottlenecks": [
+                "The scorer's ceiling is set by the hand-designed, fixed feature bank. Partial Spearman on contact cells carries most of the signal, and the MLP has little room to add to it.",
+                "The confound that the task builds in is probably the main limit. Every other receptor × sender × receiver combination gets an equally sized perturbation from an unobserved ligand, so contact-cell correlation cannot fully separate injected from decoy triples. This is a hypothesis, not tested here.",
+                "Capacity is not the bottleneck. Moving from 1.5k to 5.1k params changed the score by 0.004.",
+                "The smooth_l1 regression loss on a 0/1 target at about 7% prevalence is not a ranking loss. It does not optimise AP directly. Validation loss was used for checkpoint selection, not lr_auprc. Neither point was tested in this run.",
+                "Only 2 rounds, each with a single seed and no ablations. Noise cannot be separated from signal, and the contribution of each feature is not known."
+            ],
+            "best_config_analysis": "The best config used hidden_dim 64, 2 layers, ridge 1e-3, covariates on, learned skip, feature_clip 8, min_contacts 4, dropout 0, AdamW at lr 2e-3 with weight decay 1e-5, cosine schedule over 25 epochs, and smooth_l1. Most of the benefit likely comes from design choices that were present in both rounds: the covariate-adjusted partial Spearman z-statistic, the sqrt(n-3) weighting, and the skip initialisation. The round-2 change (wider MLP) only added +0.004, which is not distinguishable from noise. The cosine schedule and best-validation-loss checkpointing gave stable convergence, with best epoch 20 of 25. Which hyperparameter mattered most cannot be established, because no one-at-a-time ablation was run.",
+            "score_trend": "The trend is flat to marginally up: 0.5604 → 0.5643. There are only two points, so the model looks plateaued at about 0.56. A larger run is unlikely to give big gains from capacity alone. Any further gains would have to come from new features or a different loss.",
+            "per_file_analysis": "No per-sample evidence is available. The summary has only aggregate scores, with no per-dataset or per-tile score table. 2,214 validation rows were materialised, but no per-dataset results were given. So nothing can be said about variation across the 21 validation datasets, the 7 tiles, or beta levels.",
+            "data_sensitivity": "Data sensitivity cannot be measured. Both rounds were Formal, with operator-fixed full training and evaluation portions (formal_train_portion 1.0, formal_eval_portion 1.0) over 60 training datasets. No Trial records exist (Trial=0, Formal=2), so no Trial/Formal comparison or trial-vs-formal gap is available. The small train/val gap (+0.00095) suggests low variance, so more data is unlikely to matter much for such a small model.",
+            "efficiency_assessment": "The model is very cheap. It has 5,122 params in the best config, against 1,538 in round 1. Training took 161.4 s including 35.0 s of validation. Inference took 5.5 s, scoring 1.9 s, and peak GPU memory was 83 MiB in training and 140 MiB at inference. The 1.5k-param round-1 model reaches 0.5604, 99.3% of the best score, so the simpler config is the better cost-performance choice unless the +0.004 gain is shown to be real. The training time of round 1 is not given.",
+            "strategy_assessment": "The exploration was thin. The run had 2 rounds, both Formal, because the operator forced formal rounds. It did not follow a screening→refinement→solidification sequence. There were no Trial rounds, no seed repeats, no ablations of features or loss, and no comparison to the Spearman baseline. The agent changed capacity alone and reported a gain that it itself judged to be possibly noise. A better strategy would be to test untried levers, such as a ranking or BCE loss, feature ablations, and several seeds, and to report the margin over the baseline.",
+            "_stats": {
+                "execution_evidence": [
+                    {
+                        "exp_id": "lr_pair_scorer_loop2b_002",
+                        "is_trial": false,
+                        "timing": {
+                            "train_time_s": 161.4,
+                            "validation_time_s": 35.0,
+                            "inference_time_s": 5.5,
+                            "scoring_time_s": 1.9
+                        },
+                        "training_budget": null,
+                        "parameter_dtype": "float32",
+                        "validation_samples": 2214,
+                        "phase_memory": {
+                            "training": {
+                                "allocator_peak_mib": 83,
+                                "reserved_peak_mib": 108,
+                                "measurement_completeness": "complete",
+                                "owning_process_pid": 1742,
+                                "device_index": 0
+                            },
+                            "inference": {
+                                "allocator_peak_mib": 140,
+                                "reserved_peak_mib": 158,
+                                "measurement_completeness": "complete",
+                                "owning_process_pid": 2513,
+                                "device_index": 0
+                            }
+                        }
+                    }
+                ],
+                "best_denoising_score": 0.5643070958072749,
+                "best_valid_denoising_score": 0.5643070958072749,
+                "best_raw_health_validity": "valid",
+                "worst_denoising_score": 0.560386051551221,
+                "best_file_vector": null,
+                "best_score_table": null,
+                "best_model_params": 5122,
+                "completed_rounds": 2,
+                "best_config": {
+                    "exp_id": "lr_pair_scorer_loop2b_002",
+                    "run_name": "loop2b",
+                    "model_type": "lr_pair_scorer",
+                    "model_config": {
+                        "model_type": "lr_pair_scorer",
+                        "segmentation_size": 1024,
+                        "batch_size": 32,
+                        "hidden_dim": 64,
+                        "num_layers": 2,
+                        "ridge": 0.001,
+                        "use_covariates": true,
+                        "rank_chunk": 128,
+                        "feature_clip": 8.0,
+                        "dropout": 0.0,
+                        "learn_skip": true,
+                        "min_contacts": 4
+                    },
+                    "train_config": {
+                        "lr": 0.002,
+                        "epochs": 25,
+                        "batch_size": 32,
+                        "optimizer_type": "adamw",
+                        "weight_decay": 0.00001,
+                        "device": "cuda",
+                        "checkpoint_selection": "best_validation_loss",
+                        "lr_schedule": {
+                            "kind": "cosine",
+                            "horizon_epochs": 25,
+                            "min_lr": 0.00001
+                        }
+                    },
+                    "loss_config": {
+                        "loss_type": "smooth_l1"
+                    },
+                    "inference_batch": 64
+                },
+                "best_valid_config": {
+                    "exp_id": "lr_pair_scorer_loop2b_002",
+                    "run_name": "loop2b",
+                    "model_type": "lr_pair_scorer",
+                    "model_config": {
+                        "model_type": "lr_pair_scorer",
+                        "segmentation_size": 1024,
+                        "batch_size": 32,
+                        "hidden_dim": 64,
+                        "num_layers": 2,
+                        "ridge": 0.001,
+                        "use_covariates": true,
+                        "rank_chunk": 128,
+                        "feature_clip": 8.0,
+                        "dropout": 0.0,
+                        "learn_skip": true,
+                        "min_contacts": 4
+                    },
+                    "train_config": {
+                        "lr": 0.002,
+                        "epochs": 25,
+                        "batch_size": 32,
+                        "optimizer_type": "adamw",
+                        "weight_decay": 0.00001,
+                        "device": "cuda",
+                        "checkpoint_selection": "best_validation_loss",
+                        "lr_schedule": {
+                            "kind": "cosine",
+                            "horizon_epochs": 25,
+                            "min_lr": 0.00001
+                        }
+                    },
+                    "loss_config": {
+                        "loss_type": "smooth_l1"
+                    },
+                    "inference_batch": 64
+                },
+                "formal_score": 0.5643070958072749,
+                "scientific_authority": {
+                    "healthgate_mode": "blocking",
+                    "declared_result_authority": "scientific",
+                    "formal_validity": "valid",
+                    "blocking_reasons": [],
+                    "authoritative": true,
+                    "primary_basis": "blocking_scientific_formal_valid",
+                    "enters_incumbent_selection": true,
+                    "enters_scientific_aggregation": true
+                },
+                "run_name": "loop2b",
+                "formal_evidence": {
+                    "model_type": "lr_pair_scorer",
+                    "run_name": "loop2b",
+                    "exp_id": "lr_pair_scorer_loop2b_002",
+                    "status": "success",
+                    "denoising_score": 0.5643070958072749,
+                    "is_trial": false,
+                    "health_gate_enabled": true,
+                    "health_gate_results": [
+                        {
+                            "gate_name": "scores_rank_triples",
+                            "execution_status": "passed",
+                            "check_passed": true,
+                            "would_invalidate_under_production_policy": false,
+                            "resolved_action": "continue",
+                            "failure_reason": null,
+                            "threshold": {
+                                "metric": "distinct_symbols",
+                                "operator": ">=",
+                                "value": 5,
+                                "unit": "count"
+                            },
+                            "aggregation": {
+                                "files_requested": [],
+                                "files_completed": [],
+                                "files_passed": [],
+                                "files_failed": [],
+                                "aggregate_passed": true
+                            },
+                            "metrics": {
+                                "n_samples": 2214,
+                                "distinct_symbols": 10,
+                                "symbol_cardinality": 10,
+                                "occupancy": 1.0,
+                                "min_distinct_symbols": 5,
+                                "per_file": {},
+                                "aggregate_statistics": {
+                                    "count": 0
+                                }
+                            },
+                            "gate_runtime_seconds": 0.005090517999633448,
+                            "gate_role": "blocking",
+                            "configured_action": "invalidate_round",
+                            "healthgate_mode": "blocking",
+                            "result_authority": "scientific",
+                            "check_verdicts": {
+                                "categorical_distinct_symbols": "passed"
+                            },
+                            "display_label": "scores_rank_triples (enforcing)"
+                        },
+                        {
+                            "gate_name": "score_ties_concentration",
+                            "execution_status": "passed",
+                            "check_passed": true,
+                            "would_invalidate_under_production_policy": false,
+                            "resolved_action": "continue",
+                            "failure_reason": null,
+                            "threshold": {
+                                "metric": "dominant_fraction",
+                                "operator": "<=",
+                                "value": 0.3,
+                                "unit": "fraction"
+                            },
+                            "aggregation": {
+                                "files_requested": [],
+                                "files_completed": [],
+                                "files_passed": [],
+                                "files_failed": [],
+                                "aggregate_passed": true
+                            },
+                            "metrics": {
+                                "n_samples": 2214,
+                                "dominant_symbol": 0,
+                                "dominant_fraction": 0.10298102981029811,
+                                "symbol_cardinality": 10,
+                                "max_dominant_fraction": 0.3,
+                                "per_file": {},
+                                "aggregate_statistics": {
+                                    "count": 0
+                                }
+                            },
+                            "gate_runtime_seconds": 0.004299891999835381,
+                            "gate_role": "observational",
+                            "configured_action": "continue",
+                            "healthgate_mode": "blocking",
+                            "result_authority": "scientific",
+                            "check_verdicts": {
+                                "categorical_dominant_fraction": "passed"
+                            },
+                            "display_label": "score_ties_concentration (observational)"
+                        }
+                    ],
+                    "required_gate_ids": [
+                        "scores_rank_triples"
+                    ],
+                    "healthgate_mode": "blocking",
+                    "result_authority": "scientific",
+                    "health_config_sha256": "a3a968c2c43429bb60b84e3fb1c6ab066c9968025fb2b3c847881800fdc0d3b8"
+                },
+                "model_description": "A tiny, permutation-invariant, mask-exact scorer for one (L,R,A->B) triple. For each triple it computes a fixed (non-learned) bank of masked statistics over its contact cells. These include tie-averaged rank transforms of the ligand row (row 0) and receptor row (row 1), a plain masked Spearman correlation, and a covariate-adjusted partial Spearman. The partial version residualises both ranked rows on [1, row2 library offset, row3 sender fraction] by closed-form masked ridge least squares. It then converts that correlation to a sqrt(n-3)*atanh(r) z-statistic, so the large contact-cell counts of weak-effect triples add evidence. Further features are a row3-weighted correlation, a top-vs-bottom ligand-tercile receptor contrast, nuisance diagnostics (correlations of R and L with rows 2 and 3), and log n. A 2-hidden-layer MLP (width 32) maps the standardised features to a score. A learned scalar skip from the partial-Spearman z-statistic means the model starts as a covariate-adjusted Spearman ranker. The output is an unbounded scalar per triple, trained with smooth_l1 against the 0/1 target (the run is regression-typed).",
+                "round_health_counts": {
+                    "valid": 2,
+                    "invalid": 0,
+                    "unknown": 0
+                },
+                "failure_counts": {
+                    "records_total": 2,
+                    "status_counts": {
+                        "success": 2
+                    },
+                    "diagnosis_state_counts": {
+                        "ok": 2
+                    },
+                    "validation_state_counts": {
+                        "present": 2
+                    },
+                    "metric_refusal_count": 0,
+                    "refusal_contract_ids": {},
+                    "gate_action_counts": {
+                        "continue": 2
+                    },
+                    "health_provenance_counts": {
+                        "gated": 2
+                    }
+                },
+                "collapse_fingerprints": [],
+                "secondary_metrics": [
+                    {
+                        "spec": {
+                            "id": "direction_accuracy",
+                            "direction": "higher",
+                            "aggregation": "mean_over_validation_datasets_of_share_of_injected_triples_scored_above_their_reverse",
+                            "transform": null,
+                            "transform_params": {},
+                            "references": [],
+                            "scoreability": {
+                                "contract_id": "deliverable_presence"
+                            }
+                        },
+                        "result": {
+                            "metric_id": "direction_accuracy",
+                            "direction": "higher",
+                            "scalar": 0.7884920634920635,
+                            "per_sample": null,
+                            "references_used": []
+                        },
+                        "refusal": null
+                    },
+                    {
+                        "spec": {
+                            "id": "lr_auroc",
+                            "direction": "higher",
+                            "aggregation": "mean_over_validation_datasets_of_roc_auc_over_eligible_directed_triples",
+                            "transform": null,
+                            "transform_params": {},
+                            "references": [],
+                            "scoreability": {
+                                "contract_id": "deliverable_presence"
+                            }
+                        },
+                        "result": {
+                            "metric_id": "lr_auroc",
+                            "direction": "higher",
+                            "scalar": 0.8675992624653394,
+                            "per_sample": null,
+                            "references_used": []
+                        },
+                        "refusal": null
+                    }
+                ]
+            }
+        }
+    },
+    "key_findings": [
+        "Best lr_auprc is 0.5643 (record lr_pair_scorer_loop2b_002, Formal, 5,122 params). That is about 5x the ~0.11 random level. It is the only Formal score at that value, so it is not independent replication.",
+        "Round 1 scored 0.5604 with 1,538 params. Round 2 scored 0.5643 with 5,122 params. The gain is +0.0039 (+0.7%), within plausible seed noise. With one seed per round, the extra capacity (hidden_dim 64, 3.3x params) is not shown to help.",
+        "Secondary metrics are strong and consistent with the primary score. lr_auroc is 0.868 and direction_accuracy is 0.788. In round 1, AUROC was 0.866 and direction_accuracy about 0.80. Direction accuracy was slightly lower in round 2 even though AUPRC rose. So the round-2 change did not improve direction.",
+        "The performance mostly comes from the fixed statistic bank, not from learning. These features are masked rank transforms, covariate-adjusted partial Spearman z-statistic, and a learned skip. The model starts as a covariate-adjusted Spearman ranker. The small MLP adds little beyond that. This design explains the high score relative to the plain-Spearman baseline, but the run has no baseline score to quantify the margin.",
+        "Training is stable and healthy. Train loss fell 0.0341→0.0206 and val loss fell 0.0234→0.0216 over 25 epochs. Best epoch was 20 and the last-epoch val loss was only +4.3e-5 above best. The train/val gap was +0.00095, which is comparable, so there was no overfitting. The loss was still creeping down at the end, so the model is close to converged under this schedule.",
+        "Health gates passed in both rounds (continue=2). There were no failures."
+    ],
+    "bottlenecks": [
+        "The scorer's ceiling is set by the hand-designed, fixed feature bank. Partial Spearman on contact cells carries most of the signal, and the MLP has little room to add to it.",
+        "The confound that the task builds in is probably the main limit. Every other receptor × sender × receiver combination gets an equally sized perturbation from an unobserved ligand, so contact-cell correlation cannot fully separate injected from decoy triples. This is a hypothesis, not tested here.",
+        "Capacity is not the bottleneck. Moving from 1.5k to 5.1k params changed the score by 0.004.",
+        "The smooth_l1 regression loss on a 0/1 target at about 7% prevalence is not a ranking loss. It does not optimise AP directly. Validation loss was used for checkpoint selection, not lr_auprc. Neither point was tested in this run.",
+        "Only 2 rounds, each with a single seed and no ablations. Noise cannot be separated from signal, and the contribution of each feature is not known."
+    ],
+    "take_home_message": "The lr_pair_scorer model shows: The trend is flat to marginally up: 0.5604 → 0.5643. There are only two points, so the model looks plateaued at about 0.56. A larger run is unlikely to give big gains from capacity alone. Any further gains would have to come from new features or a different loss.. The best config used hidden_dim 64, 2 layers, ridge 1e-3, covariates on, learned skip, feature_clip 8, min_contacts 4, dropout 0, AdamW at lr 2e-3 with weight decay 1e-5, cosine schedule over 25 epochs, and smooth_l1. Most of the benefit likely comes from design choices that were present in both rounds: the covariate-adjusted partial Spearman z-statistic, the sqrt(n-3) weighting, and the skip initialisation. The round-2 change (wider MLP) only added +0.004, which is not distinguishable from noise. The cosine schedule and best-validation-loss checkpointing gave stable convergence, with best epoch 20 of 25. Which hyperparameter mattered most cannot be established, because no one-at-a-time ablation was run.",
+    "per_model_score_tables": null,
+    "per_model_params": {
+        "lr_pair_scorer": 5122
+    },
+    "per_model_training_segments": null,
+    "runtime_vocab": [
+        {
+            "name": "score_lr_pair_scorer_vs_sota",
+            "kind": "discovery",
+            "description": "lr_pair_scorer scored 0.5643, within 5% of SOTA (0.5643). Competitive but not a clear improvement.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "lr_pair_scorer",
+            "seen_in_runs": [],
+            "aliases": [],
+            "origin": null
+        },
+        {
+            "name": "beta_weighted_loss",
+            "kind": "feature",
+            "description": "Per-positive training-loss weight that increases as the injected effect size beta decreases. This upweights the weak-effect (beta=0.5) positives that the Spearman baseline misses. Requires beta labels at training time only.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "lr_pair_scorer",
+            "seen_in_runs": [
+                "lr_pair_scorer"
+            ],
+            "aliases": [],
+            "origin": null
+        },
+        {
+            "name": "covariate_adjusted_pair_scoring",
+            "kind": "feature",
+            "description": "Score each (L, R, A->B) triple from the ligand row and receptor row relationship. Library offset and sender-neighbour fraction enter as covariates. No batch-relative normalization is used.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "lr_pair_scorer",
+            "seen_in_runs": [
+                "lr_pair_scorer"
+            ],
+            "aliases": [],
+            "origin": null
+        },
+        {
+            "name": "masked_padding_pooling",
+            "kind": "feature",
+            "description": "Mask-aware pooling over a variable number of contact cells or triples, so padded entries are excluded from every aggregate and from the loss.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "lr_pair_scorer",
+            "seen_in_runs": [
+                "lr_pair_scorer"
+            ],
+            "aliases": [],
+            "origin": null
+        }
+    ],
+    "prediction_evaluation": {
+        "metric": "lr_auprc",
+        "metric_resolution": "bound_id",
+        "predicted_value": 0.3,
+        "actual_value": 0.5643070958072749,
+        "current_sota": null,
+        "delta_from_sota": null,
+        "outcome": "unevaluated",
+        "boldness": 0.0,
+        "information_gain": 0.0,
+        "notes": "Prediction not evaluated: no SOTA baseline was available (metric='lr_auprc', resolution='bound_id').",
+        "prediction_evaluation_semantics": "metric_order_signsafe_v2"
+    },
+    "new_discoveries": [
+        {
+            "name": "score_lr_pair_scorer_vs_sota",
+            "kind": "discovery",
+            "description": "lr_pair_scorer scored 0.5643, within 5% of SOTA (0.5643). Competitive but not a clear improvement.",
+            "related_to": [],
+            "tier": "candidate",
+            "pattern": null,
+            "proposed_by_run": "lr_pair_scorer",
+            "seen_in_runs": [],
+            "aliases": [],
+            "origin": null
+        }
+    ],
+    "vocab_changes": [],
+    "vocab_diversity_ratio": 1.0,
+    "cumulative_information_gain": 0.0,
+    "scientific_accuracy": null,
+    "prediction_outcomes_history": {
+        "confirmed": 0,
+        "partial": 0,
+        "refuted": 0
+    },
+    "vocab_link_confirmations": {},
+    "per_model_round_health_counts": {
+        "lr_pair_scorer": {
+            "valid": 2,
+            "invalid": 0,
+            "unknown": 0
+        }
+    },
+    "per_model_collapse_fingerprints": {},
+    "collapse_fingerprint_history": {},
+    "is_degraded": false,
+    "evolution_stats": {
+        "vocab_total": 4,
+        "vocab_canonical": 0,
+        "vocab_candidate": 4,
+        "promoted_this_iter": 0,
+        "is_degraded": false
+    },
+    "metric_identity": {
+        "metric_id": "lr_auprc",
+        "direction": "higher"
+    },
+    "prediction_evaluation_semantics": "metric_order_signsafe_v2",
+    "prediction_outcomes_by_semantics": {
+        "metric_order_signsafe_v2": {
+            "confirmed": 0,
+            "partial": 0,
+            "refuted": 0
+        }
+    },
+    "cumulative_information_gain_by_semantics": {},
+    "prediction_pool_sizes": {
+        "legacy_v1": 0,
+        "metric_order_signsafe_v2": 0
+    },
+    "per_model_secondary_metrics": {
+        "lr_pair_scorer": [
+            {
+                "spec": {
+                    "id": "direction_accuracy",
+                    "direction": "higher",
+                    "aggregation": "mean_over_validation_datasets_of_share_of_injected_triples_scored_above_their_reverse",
+                    "transform": null,
+                    "transform_params": {},
+                    "references": [],
+                    "scoreability": {
+                        "contract_id": "deliverable_presence"
+                    }
+                },
+                "result": {
+                    "metric_id": "direction_accuracy",
+                    "direction": "higher",
+                    "scalar": 0.7884920634920635,
+                    "per_sample": null,
+                    "references_used": []
+                },
+                "refusal": null
+            },
+            {
+                "spec": {
+                    "id": "lr_auroc",
+                    "direction": "higher",
+                    "aggregation": "mean_over_validation_datasets_of_roc_auc_over_eligible_directed_triples",
+                    "transform": null,
+                    "transform_params": {},
+                    "references": [],
+                    "scoreability": {
+                        "contract_id": "deliverable_presence"
+                    }
+                },
+                "result": {
+                    "metric_id": "lr_auroc",
+                    "direction": "higher",
+                    "scalar": 0.8675992624653394,
+                    "per_sample": null,
+                    "references_used": []
+                },
+                "refusal": null
+            }
+        ]
+    },
+    "per_model_failure_counts": {
+        "lr_pair_scorer": {
+            "records_total": 2,
+            "status_counts": {
+                "success": 2
+            },
+            "diagnosis_state_counts": {
+                "ok": 2
+            },
+            "validation_state_counts": {
+                "present": 2
+            },
+            "metric_refusal_count": 0,
+            "refusal_contract_ids": {},
+            "gate_action_counts": {
+                "continue": 2
+            },
+            "health_provenance_counts": {
+                "gated": 2
+            }
+        }
+    },
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

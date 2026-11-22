@@ -1,0 +1,204 @@
+{
+  "run_id": "80c784ec1eb44a3885e462259e71df1c",
+  "run_name": "smoke",
+  "workspace": "/home/andre/work/cell-signalling/project/results/runs/8e93bb8e-5a7d-4789-b8fc-437a18d08f1c/workspace",
+  "declaration_digest": "aca4ff377ae512e7b30dc1f00e4262add26c0b514a429a7ac5ce21c116bcf21e",
+  "status": "failed",
+  "node_ids": [
+    "interpret",
+    "propose",
+    "implement",
+    "validate",
+    "train"
+  ],
+  "selected_constructor_routes": [
+    {
+      "name": "interpret.main",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "propose.comparison",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": "propose.reasoning",
+      "issue": null
+    },
+    {
+      "name": "propose.reasoning",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "propose.proposing",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": "propose.reasoning",
+      "issue": null
+    },
+    {
+      "name": "implement.main",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "validate.main",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "train.planner",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "reflect_provider": "gemini",
+        "reflect_model_id": "gemini-3.1-flash-lite-preview",
+        "max_retries": 1,
+        "reflect_retry_policy": {
+          "max_retries": 1
+        }
+      },
+      "transport": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "train.reflector",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "reflect_provider": "gemini",
+        "reflect_model_id": "gemini-3.1-flash-lite-preview",
+        "max_retries": 1,
+        "reflect_retry_policy": {
+          "max_retries": 1
+        }
+      },
+      "transport": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": "train.planner",
+      "issue": null
+    }
+  ],
+  "ledger_path": "/home/andre/work/cell-signalling/project/results/runs/8e93bb8e-5a7d-4789-b8fc-437a18d08f1c/workspace/token_usage.jsonl",
+  "log_path": "/home/andre/work/cell-signalling/project/results/runs/8e93bb8e-5a7d-4789-b8fc-437a18d08f1c/workspace/candidate_run/worker.log",
+  "candidate_id": null,
+  "composition_fingerprint": null,
+  "proposal_storage": null,
+  "implementation_storage": null,
+  "native_output_paths": [],
+  "validation_passed": false,
+  "error": null,
+  "loop_trace": {
+    "attempted_iterations": 1
+  },
+  "run_seed": 5468784245926708,
+  "run_seed_source": "generated",
+  "$siderius_encoding": {
+    "version": "siderius.nonfinite/v1",
+    "floats": []
+  }
+}

@@ -1,0 +1,128 @@
+{
+    "candidate_id": "cand_7fdd508c733d4e839ecc3bee885a2fac",
+    "model_name": "masked_rank_partial_z_skip_head",
+    "output_type": "regressor",
+    "model_description": "A tiny, order-invariant, padding-masked scorer. For each triple it takes the non-padded contact cells (row 4 mask), average-rank-transforms the neighbour ligand signal L (row 0) and receptor R (row 1) over those cells only, rank-transforms the nuisance covariates (rows 2-3) and residualises both ranked variables on [1, c2, c3] with a masked closed-form least-squares step. The result is a rank partial Spearman correlation r and a Fisher z-score. A very small MLP head sees six fixed rank-based summary features (z, r, log effective n, masked mean of the residual product, masked max of the residual product, and the contrast of R-residual between the top and bottom thirds of L-residual) and outputs a logit offset. The final logit is head(features) + w*z, where w is a fixed-initialised (1.0) scalar skip. Covariates are never fed to the head as evidence. A single integer config field selects the three ablation variants: 0 = z alone with no learned weights, 1 = head only (skip removed), 2 = head + skip (full model). The output is a continuous finite [B,1] logit.",
+    "mathematical_definition": "Input x in R^{B x 5 x N}. m = x[:,4,:] > 0.5 (explicit mask); n = sum m. Stage 1 (masked ranking): for each v in {L=x[:,0], R=x[:,1], c2=x[:,2], c3=x[:,3]}, compute average ranks over masked entries only (padded entries get +inf sort key and are zeroed afterwards), rescale to (0,1) by (rank-0.5)/n, centre over masked entries. Stage 2 (partialling): design matrix C=[1,c2~,c3~] with masked rows; solve the masked normal equations (C^T M C + eps I) beta = C^T M v~ for v in {L~, R~}; residuals eL, eR = v~ - C beta, set to zero on padding. Stage 3 (statistic): r = sum(m eL eR)/sqrt(sum(m eL^2) sum(m eR^2)+eps); z = atanh(clamp(r,-0.999,0.999)) * sqrt(max(n-6,1)). Stage 4 (features): f = [z, r, log(n), masked_mean(eL*eR_standardised), masked_max(eL*eR_standardised), mean(eR | eL in top third) - mean(eR | eL in bottom third)] all over masked cells only, and scaled by fixed constants. Stage 5 (head): s = W2 gelu(W1 f + b1) + b2 (variant 1,2). Output logit = s + w*z (variant 2), s (variant 1), z (variant 0, no trainable weights; fixed identity). All pooling is permutation invariant over columns. Output shape [B,1].",
+    "motivation": "Implements the memo's proposed_change: 'Cold-start first experiment: a small generated model whose core is a parameter-free, padding-masked rank partial-correlation z-score ... A tiny learned head ... The direct z-score skip is added to that logit', and tests the causal_hypothesis that 'masking padding and rank-partialling the covariates (human:human_advice) gives a cleaner association score than raw Spearman' and that 'a skip-connected head trained with pos-weighted BCE can then recalibrate across datasets without losing that signal'. Output_type is regressor because the run only allows regressor: the model emits a single continuous logit per triple; ranking within a dataset is all that matters. The loss is a custom pos-weighted BCE on that logit because the human directive forbids SmoothL1 on 0/1 labels.",
+    "expert_advice": {
+        "focus_areas": [
+            "Run the three ablation variants (variant 0/1/2) with 3 seeds each and report mean ± SD of lr_auprc",
+            "Hidden width of the head only if the feature set stays fixed; do not raise parameter count",
+            "Epochs / lr chosen on a tile-grouped split of TRAIN only",
+            "Check tie handling in the ranks (many zero-count ligand/receptor values)"
+        ],
+        "constraints": [
+            "Peak VRAM must stay far below the 6.37 GB effective cap; target under 1 GB at baseline (model has ~100 parameters, per-batch tensors are B x 5 x 1024)",
+            "Do not increase parameter count over the iter1 head; keep feature set fixed when varying width",
+            "All statistics and pooling over non-padded cells only; rows 2-3 used only for partialling out",
+            "Do not use negative-binomial or t-statistic association scores",
+            "Validation is for final comparison only; differences under 0.02 lr_auprc are unresolved; bootstrap over the 7 tiles"
+        ],
+        "known_failures": [
+            "Learned head overfits the 60 training datasets and does not beat variant 0 by more than 0.02",
+            "Rank partialling can remove real signal if covariates correlate with neighbour L, lowering performance below plain Spearman",
+            "Wide tile-level bootstrap intervals with only 7 validation tiles",
+            "Dataset IDs likely unavailable to the native trainer, so pairwise same-dataset ranking loss falls back to pos-weighted BCE"
+        ],
+        "suggested_directions": [
+            "First run variant 0 (no training needed) to get the anchor lr_auprc, then variant 1 and 2 with 3 seeds",
+            "lr 1e-3, 20 epochs, batch_size 64 triples, AdamW; choose epochs by tile-grouped CV on train",
+            "Verify the model is permutation invariant to column order and unchanged when extra padding columns are added",
+            "If same-dataset pairing becomes available, swap to a pairwise ranking loss in a later iteration"
+        ],
+        "rationale": "The statistic is the baseline-like signal made robust to nuisance covariates and padding; a very small head with a skip keeps the prior intact while allowing recalibration, and the ablation isolates whether learning helps at all given the human directive.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "variant": 2,
+            "hidden_width": 8,
+            "n_features": 6,
+            "skip_init": 1.0,
+            "ridge_eps": 1e-6,
+            "tie_average_ranks": true,
+            "top_bottom_fraction": 0.333,
+            "feature_scale_z": 0.1
+        },
+        "train_config": {
+            "lr": 0.001,
+            "epochs": 20,
+            "batch_size": 64,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.00001,
+            "device": "cuda"
+        },
+        "loss_config": {
+            "loss_type": "custom",
+            "loss_name": "pos_weighted_bce_logits",
+            "pos_weight": 13.3,
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "masked_partial_rank_correlation_zscore, pos_weighted_bce_loss, padding_masked_pooling, direct_zscore_skip, three-variant ablation protocol, tile-grouped selection",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "The human directive specifies the ablation, loss, covariate handling, padding mask, rank statistics, fixed model size and tile-grouped selection."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc (validation, mean over 21 datasets, 3-seed mean)",
+        "current_value": null,
+        "predicted_value": 0.2,
+        "threshold_for_refutation": 0.14,
+        "rationale": "There is no observed baseline. Random is about 0.11 and the Spearman baseline is above that. I expect variant (c) to reach about 0.20, with variant (a) within 0.02 of it. If (c) is below 0.14, near random, the masked partial-rank statistic does not capture the injected coupling, and the hypothesis is refuted."
+    },
+    "proposed_vocab_links": [],
+    "proposed_vocab_candidates": [
+        {
+            "name": "masked_partial_rank_correlation_zscore",
+            "kind": "feature",
+            "description": "Parameter-free Spearman/rank partial correlation of receptor R with neighbour ligand L signal over contact cells (non-padded only), partialling out nuisance covariate rows 2-3. Serves as the ablation anchor (variant a) and the baseline to beat."
+        },
+        {
+            "name": "direct_zscore_skip",
+            "kind": "feature",
+            "description": "Skip connection adding the raw partial-correlation z-score directly to the learned head's logit; tested via ablation (variant b removes it)."
+        },
+        {
+            "name": "pos_weighted_bce_loss",
+            "kind": "feature",
+            "description": "BCEWithLogitsLoss with pos_weight = n_negative/n_positive from the train split (optionally same-dataset pairwise ranking loss) replacing SmoothL1 on 0/1 labels."
+        },
+        {
+            "name": "padding_masked_pooling",
+            "kind": "feature",
+            "description": "Explicit mask built from padding applied before every statistic and mean/max pooling so padded cells do not contribute."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "Run constraint requires output_type=regressor, whose only built-in loss is smooth_l1; the human directive (strong_prior) forbids SmoothL1 on 0/1 labels, so a Branch C custom loss (pos-weighted BCE on the logit) is used. The custom-loss registry snapshot is reported missing; if the custom loss cannot be registered, the only permitted built-in is smooth_l1, which contradicts the human directive — flagging this conflict.",
+        "Same-dataset pairwise ranking loss (preferred by human if dataset IDs available) is not implemented because the native trainer is not known to expose dataset IDs; fallback to pos-weighted BCE as the memo allows.",
+        "pos_weight = n_negative/n_positive must come from the train split; 13.3 is only a placeholder from prevalence ~0.07; the loss should compute it from the training targets when available.",
+        "Variant 0 has no trainable weights; the implementor should keep a frozen/unused dummy parameter so the optimizer is valid; output equals z exactly.",
+        "The three-seed ablation, tile-grouped selection and tile-level bootstrap are evaluation protocol items executed by the pipeline across variants (variant field), not model internals; a single proposal runs one variant per run.",
+        "The memo's 'no more parameters than iter1 head' cannot be checked as no iter1 exists in history; the head is kept at ~100 parameters."
+    ],
+    "parameter_count_estimate": 100,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": {
+        "loss_name": "pos_weighted_bce_logits",
+        "description": "Binary cross-entropy on logits with a positive-class weight equal to n_negative/n_positive computed on the training split, replacing SmoothL1 on 0/1 labels as directed by the human. It handles the ~7% positive prevalence and gives a calibrated logit whose within-dataset ranking is evaluated by AUPRC.",
+        "mathematical_definition": "L = mean_i [ -( pos_weight * y_i * log sigmoid(s_i) + (1 - y_i) * log(1 - sigmoid(s_i)) ) ], computed stably via torch.nn.functional.binary_cross_entropy_with_logits(s, y, pos_weight=torch.tensor(pos_weight)). s is the [B,1] model output, y the [B,1] 0/1 target. pos_weight = n_negative/n_positive over the training targets (config value used as fallback).",
+        "config_fields": {
+            "pos_weight": 13.3,
+            "reduction": "mean"
+        },
+        "contract_snapshot": null
+    },
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

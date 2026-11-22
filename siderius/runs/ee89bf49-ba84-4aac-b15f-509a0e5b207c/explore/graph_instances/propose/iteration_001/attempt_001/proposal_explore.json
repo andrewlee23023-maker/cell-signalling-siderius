@@ -1,0 +1,118 @@
+{
+    "candidate_id": "cand_c3f349a4e345444794b9e882136768b7",
+    "model_name": "masked_rank_coupling_set_scorer",
+    "output_type": "regressor",
+    "model_description": "A permutation-invariant set model over the 1024 contact-cell columns of one (L, R, A->B) triple. Stage 1 (no learned weights) computes masked, tie-aware average ranks of L-neighbour signal and receptor R over the real contact cells. From these it derives a block of coupling statistics: Spearman(R, L), a partial Spearman after regressing out B-cell log library size and neighbour fraction (n_A/6), stratified Spearman within low and high neighbour-fraction halves, the R-on-L slope in rank space, and quantile-binned mean R rank per L-rank bin minus the overall mean (a dose-response curve). It also computes log contact count, L nonzero fraction, and the mean and std of L and R. Stage 2 is a small DeepSets branch: a shared per-cell MLP on (rank L, rank R, library size, neighbour fraction, raw L, raw R), masked mean and max pooled. Stage 3 concatenates the statistics block and the pooled embedding and feeds them to a 2-hidden-layer MLP head that outputs one score. The partial correlation and stratification act as the contact-restricted baseline Spearman with the confounders removed. Every operation uses the mask and is symmetric in columns.",
+    "mathematical_definition": "Input x in R^{B x 5 x N}; L=x[:,0], R=x[:,1], lib=x[:,2], f=x[:,3], m=x[:,4]. n=sum_j m_j. Masked average rank: rk(v)_i = [sum_j m_j 1(v_j<v_i) + 0.5*(sum_j m_j 1(v_j==v_i) - 1)] / max(n-1,1), computed by pairwise comparison, then zeroed where m=0 and centred and scaled to unit variance over masked cells. (1) Spearman rho = masked mean of rk(L)*rk(R). (2) Partial rho: residualise rk(L) and rk(R) on [1, z(lib), z(f)] by closed-form masked least squares (ridge-stabilised 3x3 solve), then take the masked correlation of the residuals. (3) Stratified rho_lo, rho_hi: masked correlations within cells with f below or at/above the masked median of f. (4) Slope: masked cov(rk(L), rk(R)) / var(rk(L)). (5) Dose-response: Q quantile bins of rk(L) (bin edges at i/Q); per-bin masked mean of rk(R), giving Q values, each shrunk by n_bin/(n_bin+k0). (6) Summary: log(1+n), masked mean and std of L and R, fraction L>0, the Spearman of R with lib, and the Fisher-z of rho scaled by sqrt(max(n-3,0)) (a significance-like statistic). (7) DeepSets: h_j = phi([rk(L)_j, rk(R)_j, lib_j, f_j, L_j, R_j]) with phi a 2-layer MLP with GELU. Pooled g = [sum_j m_j h_j / n, max_j (h_j masked with -inf then clamped to 0 when n=0)]. Final score s = head([stats, g]), head being Linear-GELU-Dropout-Linear-GELU-Linear to a scalar. Output shape [B,1]. If n<3 all statistics are set to 0 (still finite). Trained as a regressor on the 0/1 target.",
+    "motivation": "Proposed_change: 'a small, hand-structured, lightly learned scorer built on the baseline mechanism' with a 'null-controlled directional contrast'. Causal_hypothesis: the baseline Spearman(R, neighbour L) over contact cells is confounded, since every other receptor x sender x receiver combination gets an equally sized perturbation from an unobserved ligand, so raw correlation cannot separate injected couplings from decoys. The forward contract gives the model one triple at a time, with no access to the reverse triple or the decoy distribution. The cross-triple contrast therefore cannot be formed inside forward(). What can be controlled inside a triple are the confounders that make R depend on contact structure without depending on L: library size and number of A neighbours. The partial and stratified rank correlations remove them. The dose-response and DeepSets branches let the head learn the beta-dependent shape of the coupling, which a single correlation cannot. The output is a continuous score ranked within datasets, so a regressor head with smooth_l1 satisfies the run's output_type constraint and the [B,1] contract.",
+    "expert_advice": {
+        "focus_areas": [
+            "Compare the learned head against the raw Spearman feature alone (a zero-training ablation) to check that learning adds value.",
+            "Number of dose-response bins and the shrinkage constant.",
+            "Dropout and weight decay: only 60 training datasets with few positives each, so overfitting is the main risk.",
+            "Whether the DeepSets branch helps or hurts relative to the statistics-only head."
+        ],
+        "constraints": [
+            "Peak VRAM must stay below 80% of the 6.37 GB effective cap (about 5 GB). The pairwise rank tensors are B x 1024 x 1024; at batch_size 32 that is about 130 MB per tensor, so keep batch_size <= 128.",
+            "Model output must be exactly [B,1], finite, using the mask and invariant to column order.",
+            "Use only built-in smooth_l1; no custom loss is available. Do not claim class weighting, since smooth_l1 has no weighting option."
+        ],
+        "known_failures": [
+            "Decoy perturbations from unobserved ligands may be as correlated with the neighbour signal as true injections, so the within-triple statistics do not beat plain Spearman.",
+            "With about 7% positives and 60 training datasets the head may overfit and generalise poorly to the 7 unseen tiles with different cell-type mix.",
+            "Rare type pairs give few contact cells and unstable correlations; the log-count feature and shrinkage only partly mitigate this.",
+            "Regression on a 0/1 target with 7% positives can collapse to predicting a constant low value; watch the score variance."
+        ],
+        "suggested_directions": [
+            "First run: baseline_config as given (30 epochs, cosine lr schedule from 1e-3). Record validation lr_auprc and compare with the plain Spearman baseline.",
+            "Ablate by setting use_deepsets=false (statistics-only head).",
+            "If the model collapses to a constant, raise lr or reduce weight decay. Try a larger smooth_l1 beta if the loss config permits it.",
+            "Sweep dose-response bins in {3,5,8}, hidden_dim in {32,64,128}."
+        ],
+        "rationale": "The task forces a per-triple forward contract, so structure comes from rank-based, confounder-adjusted coupling statistics that approximate the memo's contrast idea, with a very small learned head to limit overfitting.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "hidden_dim": 64,
+            "cell_hidden_dim": 32,
+            "num_bins": 5,
+            "head_layers": 2,
+            "dropout": 0.1,
+            "shrink_k0": 10.0,
+            "ridge_eps": 0.001,
+            "use_deepsets": true,
+            "use_partial_corr": true
+        },
+        "train_config": {
+            "lr": 0.001,
+            "epochs": 30,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.0001,
+            "device": "cuda",
+            "lr_schedule": {
+                "kind": "cosine",
+                "horizon_epochs": 30,
+                "min_lr": 0.00001
+            }
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1",
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "contact_weighted_neighbor_ligand_signal (Spearman of R with neighbour L over contact cells)",
+            "source_type": "experiment",
+            "source_id": "task_baseline_spearman",
+            "from_run": null,
+            "contribution_evidence": "The task-specified baseline score to beat; it supplies the forward-coupling statistic that the new features and MLP build on. No measured lr_auprc is available for it."
+        },
+        {
+            "component": "null_controlled_directional_contrast",
+            "source_type": "experiment",
+            "source_id": "stage1_proposed_vocab_candidate",
+            "from_run": null,
+            "contribution_evidence": "Stage 1 proposed this vocab candidate to target the decoy and unobserved-ligand confounders. It is untested, with no measured score, and serves as the hypothesis for this experiment."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc",
+        "current_value": null,
+        "predicted_value": 0.3,
+        "threshold_for_refutation": 0.15,
+        "rationale": "No observed baseline exists. Random is ~0.11; the task baseline presumably sits modestly above random. With ~6.5% injection probability and a decoy-normalised contrast, I expect a clear lift to ~0.30 mean AUPRC on validation. A score at or below 0.15 (barely above random 0.11) would refute that the contrast/decoy features add usable signal."
+    },
+    "proposed_vocab_links": [],
+    "proposed_vocab_candidates": [
+        {
+            "name": "contact_weighted_neighbor_ligand_signal",
+            "kind": "feature",
+            "description": "For each (sender type A, receiver type B) pair, compute a per-cell neighbour-averaged ligand L signal from A-type cells within a contact radius, then correlate it with receptor R in B cells that touch A. This is the baseline mechanism and the natural starting block for a learned scorer."
+        },
+        {
+            "name": "null_controlled_directional_contrast",
+            "kind": "feature",
+            "description": "Score each triple (L, R, A->B) by subtracting the reverse-direction (B->A) coupling and the coupling of R with the signal of other ligands or sender types. This targets the decoy perturbations and the unobserved-ligand confounder described in the task."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "Deviation 1: the memo's decoy z-score, reverse-direction Spearman and 'forward minus reverse' features need other triples of the same dataset, or the reverse B->A triple. The forward contract feeds one triple [B,5,1024] at a time, so these cross-triple features cannot be computed in forward(). They are replaced by within-triple confounder controls (partial and stratified rank correlation on library size and neighbour fraction). The null_controlled_directional_contrast component is therefore only approximated, and the reverse-direction contrast is not implemented.",
+        "Deviation 2: the memo's CPU KD-tree feature precomputation, contact radius (~30 um / k=8) and rank-normalised-within-dataset features are not used. The contract fixes contacts at the 6 nearest neighbours and supplies precomputed rows.",
+        "Deviation 3: the memo's BCE with positive weight ~10 is replaced by built-in smooth_l1 on the 0/1 target, because the run constrains output_type to regressor and custom losses are unavailable. Rare positives are therefore not reweighted.",
+        "Deviation 4: the MLP head is 64 hidden units (memo: 32) with an added DeepSets branch, to let the head read the dose-response shape. This is an addition, not a removal.",
+        "Inherited component task_baseline_spearman is kept as the masked tie-aware Spearman(R, L) over contact cells. Inherited component stage1_proposed_vocab_candidate (null_controlled_directional_contrast) is kept only in the approximated form described in Deviation 1.",
+        "The memo's fallback to the unlearned z-score cannot be run for the same reason as Deviation 1. The fallback becomes the raw partial Spearman statistic, which the head can approximate."
+    ],
+    "parameter_count_estimate": 25000,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

@@ -1,0 +1,121 @@
+{
+    "candidate_id": "cand_209b0871fa424dc896637a3fd4d04770",
+    "model_name": "lr_contact_contrast_gbm_head",
+    "output_type": "regressor",
+    "model_description": "A permutation-invariant per-triple scorer. For each triple the forward pass computes, over the masked contact cells, a set of closed-form dependence statistics between receptor R and the neighbour-ligand signal L. These are the Spearman and Pearson correlations, the partial correlation after regressing out log library size and neighbour fraction, the OLS slope and t-statistic, a high-L versus low-L tercile contrast of R, and a split by neighbour-count. They are concatenated with summary moments and a small DeepSets (masked-mean-pooled per-cell MLP) embedding, then passed to a 2-layer MLP head that emits one score per triple. The model is tiny and order-invariant, and the mask is used in every reduction. The model_name is kept from the memo although the head is an MLP, not a GBM.",
+    "mathematical_definition": "Input x in R^{B x 5 x N}; rows are L, R, lib, nfrac, mask. All reductions are masked by m, with n = sum(m) clamped to at least 3.\n(1) Masked standardisation of L, R, lib and nfrac per sample: z = (v - mean_m)/(std_m + eps).\n(2) Ranks: set padded entries to +inf, take argsort twice, map to mid-ranks (ties by average, or by tiny deterministic jitter-free tie handling via the sum of comparisons), normalise to [0,1], then standardise. This gives rank_L and rank_R. Ranks are computed under no_grad, since inputs are not learned.\n(3) Raw statistics: r_pearson = mean_m(zL*zR); r_spearman = mean_m(rank_L*rank_R) after standardisation, which is the baseline contact_neighbour_ligand_spearman_baseline; t = r*sqrt(n-2)/sqrt(1-r^2+eps).\n(4) Partial dependence (in-triple confound contrast): build the covariate matrix C = [1, z_lib, z_nfrac, z_lib*z_nfrac] masked. Solve the ridge least-squares residuals e_R and e_L, once on raw values and once on ranks, using a small (4x4) batched solve with ridge lambda_ridge. Compute r_partial = corr_m(e_L, e_R), the partial Spearman, the OLS slope of e_R on e_L, and its t-statistic. The differences r_spearman - r_partial and r_partial - r_pearson are included as explicit contrast features, because the receptor-only and confound signal sits in the part explained by covariates.\n(5) Tercile contrast: delta = mean_m(zR | rank_L in top third) - mean_m(zR | rank_L in bottom third), divided by its standard error. Nfrac split: partial correlation computed separately on cells with nfrac above and below the masked median, plus their difference, which measures dose-response against the number of A neighbours.\n(6) Moments: log n, mean/std of L and R, fraction of L==min and R==min (zero-inflation), mean nfrac. Statistics are shrunk by a factor n/(n+n0) (config shrink_n0) and the bounded features passed through a signed log1p/clamp.\n(7) DeepSets branch (optional flag): per-cell phi([zL,zR,z_lib,nfrac,zL*zR,e_L*e_R]) with a 2-layer MLP, then masked mean pool, giving a d_set embedding.\n(8) Head: LayerNorm(concat[features, embedding]) -> Linear -> GELU -> Dropout -> Linear -> GELU -> Dropout -> Linear(1). The output is [B,1], finite (clamped to +-20), and used as the ranking score. The target is 0/1, trained with smooth_l1 on the raw output.",
+    "motivation": "Implements the memo's proposed_change ('Design a generated model (model_type lr_contact_contrast_gbm_head) that first computes ... per-triple features ... contact-restricted Spearman ... partial Spearman ... then train a small MLP scorer') under the forward contract. It also targets the causal_hypothesis that receptor-only and non-spatial scores are at random because every receptor x sender x receiver combination gets an equal unobserved-ligand perturbation, so only dependence on the specific sender's ligand identifies a coupling, and 'contrasting A->B against B->A, other senders and non-contact cells should cancel the confound'. The per-triple input cannot carry cross-triple contrasts, so these are approximated by in-triple contrasts: a covariate-adjusted versus raw dependence, an L-quantile contrast and a neighbour-count dose-response. A supervised head learns how to weigh them across beta in {0.5,1,2}. The output is a regressor, as the run requires. The score is a continuous value trained with smooth_l1 on 0/1 targets, and only ranking matters.",
+    "expert_advice": {
+        "focus_areas": [
+            "Ablate the feature groups: raw Spearman only, plus partial, plus tercile contrast, plus DeepSets branch, to see which carries lr_auprc over the baseline.",
+            "Tune shrink_n0 and lambda_ridge, since rare sender-receiver pairs have few contact cells and give noisy statistics.",
+            "Tune dropout, weight_decay and epochs, because overfitting across the 10 training tiles is the main risk.",
+            "Check that the head's score is monotone in raw Spearman at initialisation, e.g. via a skip connection from r_spearman, so it never starts below the baseline."
+        ],
+        "constraints": [
+            "Peak VRAM must stay far below the 6.37 GB effective cap (target at most 5 GB). The model has under 20k parameters and batch tensors of B x 5 x 1024, so a batch_size of a few hundred is safe.",
+            "Order invariance: no positional encodings or convolutions along the column axis; every reduction must be masked.",
+            "Output exactly [B,1] float32, finite; padded columns must never influence the output (verify by permuting columns and changing padded values)."
+        ],
+        "known_failures": [
+            "Overfitting to the 10 training tiles; validation tiles have different cell-type mix and contact structure, so validation lr_auprc may fall near the baseline.",
+            "Contact definition is fixed by the dataset (6 nearest neighbours), so radius_um/k_neighbors cannot be varied and cannot be tuned to the simulator's interaction range.",
+            "Rare pairs with few contact cells give very noisy statistics and dominate the false positives, so shrinkage may be needed.",
+            "Cross-triple contrasts (reverse direction B->A, other senders, non-contact cells) are unavailable in the per-triple forward, so the confound is only partly cancelled."
+        ],
+        "suggested_directions": [
+            "First run: baseline_config as given. Compare validation lr_auprc against the plain Spearman baseline (taken as the single feature).",
+            "Second: remove the DeepSets branch (use_deepset=false) to test whether hand-built statistics suffice.",
+            "Third: add a residual connection from r_spearman and r_partial to the output, then sweep dropout in {0.0,0.1,0.3}.",
+            "If smooth_l1 on 0/1 targets under-weights positives, request a different loss in a later iteration; a ranking loss would suit the metric better but is outside the regressor/smooth_l1 contract here."
+        ],
+        "rationale": "Under 20k parameters with strong hand-built statistics fits the small training pool (60 datasets, a few hundred to thousands of triples each). The in-triple contrast features follow the memo's confound-cancelling logic as far as the single-triple input allows.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "n_hidden": 2,
+            "hidden_dim": 64,
+            "dropout": 0.1,
+            "use_deepset": true,
+            "d_phi": 32,
+            "d_set": 32,
+            "shrink_n0": 20.0,
+            "lambda_ridge": 0.001,
+            "use_skip_spearman": true,
+            "eps": 1e-6,
+            "logit_clip": 20.0
+        },
+        "train_config": {
+            "lr": 0.001,
+            "epochs": 30,
+            "batch_size": 64,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.0001,
+            "device": "cuda",
+            "lr_schedule": {
+                "kind": "cosine",
+                "horizon_epochs": 30,
+                "min_lr": 0.00001
+            }
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1",
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "contact_neighbour_ligand_spearman_baseline",
+            "source_type": "experiment",
+            "source_id": "contact_neighbour_ligand_spearman_baseline",
+            "from_run": null,
+            "contribution_evidence": "Task-stated baseline score to beat; used as the primary feature (Stage 1 proposed vocab candidate, not a measured experiment)."
+        },
+        {
+            "component": "direction_asymmetry_contrast",
+            "source_type": "experiment",
+            "source_id": "direction_asymmetry_contrast",
+            "from_run": null,
+            "contribution_evidence": "Stage 1 proposed vocab candidate for cancelling the unobserved-ligand confound; untested hypothesis."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc",
+        "current_value": null,
+        "predicted_value": 0.3,
+        "threshold_for_refutation": 0.2,
+        "rationale": "No observed baseline exists (cold start). Random is ~0.11. The contrast features plus supervised combination should clearly exceed random and a plain Spearman baseline. 0.30 is an absolute guess. A result at or below 0.20 would indicate that the contrasts add little over the baseline signal or that the learned head overfits across tiles."
+    },
+    "proposed_vocab_links": [],
+    "proposed_vocab_candidates": [
+        {
+            "name": "contact_neighbour_ligand_spearman_baseline",
+            "kind": "feature",
+            "description": "Per-triple score: Spearman correlation of receptor R in receiver-type B cells with the neighbour-aggregated ligand L signal from type-A cells over contact cells. This is the task baseline and a natural starting feature for learned scorers."
+        },
+        {
+            "name": "direction_asymmetry_contrast",
+            "kind": "feature",
+            "description": "Score each triple (L,R,A->B) relative to the reverse (L,R,B->A) and relative to other sender types for the same receptor, to cancel unobserved-ligand perturbations that make receptor-only signals non-identifying."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "Deviation 1: the memo's features (2) reverse-direction B->A, (3) other-sender replacement, (4) non-contact B cells and (6) z-scoring across eligible triples sharing the same receptor and receiver need cross-triple or whole-dataset access. The forward contract gives only one triple's [5,1024] contact columns, so these cannot be computed in forward. They are replaced by in-triple contrasts (raw vs covariate-adjusted dependence, L-tercile contrast, neighbour-count dose-response). The direction_asymmetry_contrast inherited component is therefore only approximated, not implemented as specified.",
+        "Deviation 2: the memo's 'radius_um' and 'k_neighbors' scalar configs are dropped, because the contact graph is fixed upstream (6 nearest neighbours) and not visible to the model.",
+        "Deviation 3: the memo specifies a BCE loss, but this run declares output_type 'regressor', which only allows smooth_l1. The loss is therefore smooth_l1 on the 0/1 targets. No class weighting is available with this builtin, so this may reduce AUPRC relative to BCE.",
+        "Deviation 4: the memo's checkpoint_selection=best_validation_loss is not set, because no training-validation scope is declared. The last epoch is exported. The cosine lr_schedule is kept.",
+        "The memo states 'non-learned featurization step' and 'GBM' in the model_type name; the implementation computes the statistics inside forward (differentiable-free where ranks are used) and uses an MLP head, with no GBM.",
+        "The memo's model_name keeps 'gbm' only as a routing name. The task statement says 'classification' while the run constraint requires output_type 'regressor'. The run constraint was followed, with a [B,1] score output.",
+        "The memo's falsifiable prediction (lr_auprc 0.30, refutation at 0.20) has no measured baseline behind it. It is an absolute guess, not evidence."
+    ],
+    "parameter_count_estimate": 15000,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "candidate_id": "cand_3154ab8395e644378a7b891c27243674",
+  "realized_total_parameter_count": 385,
+  "realized_trainable_parameter_count": 385,
+  "model_type": "masked_rank_pcorr_skip_head",
+  "plugin_registered": true,
+  "tests_passed": true,
+  "description_valid": true,
+  "config_fields_valid": true,
+  "forbidden_patterns_check_passed": true,
+  "instantiation_passed": true,
+  "gradient_check_passed": true,
+  "output_type_valid": true,
+  "llm_review_passed": true,
+  "inheritance_check_passed": true,
+  "inheritance_check_notes": [
+    "masked_rank_partial_correlation_zscore, direct_zscore_skip, padding_masked_pooling, focal_cw_loss, tile_grouped_selection, three-arm ablation protocol: SKIPPED (no pattern in vocab seed)"
+  ],
+  "unverified_inherited_components": [],
+  "probe_seed": {
+    "run_seed": 7765739868345541,
+    "at": {
+      "iteration": 1,
+      "node_id": "validate",
+      "branch": null,
+      "round": null,
+      "attempt": 1,
+      "epoch": null
+    }
+  },
+  "test_output": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /home/andre/SIDERIUS-wsl/.venv/bin/python\ncachedir: .pytest_cache\nrootdir: /home/andre/work/cell-signalling/project/results/runs/4c4eec64-1541-42f7-8613-79fc348a2c6e/workspace\nplugins: anyio-4.12.1\ncollecting ... collected 3 items\n\naugdata/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_masked_rank_pcorr_skip_head.py::test_forward_shape PASSED [ 33%]\naugdata/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_masked_rank_pcorr_skip_head.py::test_forward_gradient PASSED [ 66%]\naugdata/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_masked_rank_pcorr_skip_head.py::test_config_instantiation PASSED [100%]\n\n============================== 3 passed in 2.23s ===============================\n",
+  "llm_review_spec_alignment": false,
+  "llm_review_trainability_concerns": [],
+  "llm_review_implementation_issues": [],
+  "llm_review_notes": "The implementation correctly constructs the rank-correlation logic and handles masking correctly. It diverges slightly from the specification in the definition of the partial correlation (rank vs centered rank math details) and the exact feature vector construction (e.g., n_eff handling). However, the model is fully differentiable, structurally sound, and complies with the required input/output contracts, ensuring trainability.",
+  "spec_deviation_notes": "NOTE: This implementation passes trainability checks but deviates from the proposed mathematical spec. The tuner is optimizing an approximation of the intended architecture. Deviations: The implementation correctly constructs the rank-correlation logic and handles masking correctly. It diverges slightly from the specification in the definition of the partial correlation (rank vs centered rank math details) and the exact feature vector construction (e.g., n_eff handling). However, the model is fully differentiable, structurally sound, and complies with the required input/output contracts, ensuring trainability.",
+  "inheritance_deviation_notes": null,
+  "error_message": null,
+  "$siderius_encoding": {
+    "version": "siderius.nonfinite/v1",
+    "floats": []
+  }
+}

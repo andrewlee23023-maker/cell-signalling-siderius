@@ -1,0 +1,12 @@
+{
+  "expression_product": {
+    "direction_accuracy": 0.458692365835223,
+    "lr_auprc": 0.09785858948492056,
+    "lr_auroc": 0.4743414978166241
+  },
+  "receptor_overdispersion": {
+    "direction_accuracy": 0.4881330309901739,
+    "lr_auprc": 0.09857002991475754,
+    "lr_auroc": 0.504802407994872
+  }
+}

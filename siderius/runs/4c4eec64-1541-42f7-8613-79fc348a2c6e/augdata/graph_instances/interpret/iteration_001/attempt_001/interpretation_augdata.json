@@ -1,0 +1,57 @@
+{
+  "model_types": [],
+  "model_descriptions": {},
+  "total_experiments": 0,
+  "cold_start": true,
+  "per_model_best": {},
+  "per_model_best_valid": {},
+  "per_model_raw_best_health_validity": {},
+  "per_model_worst": {},
+  "scientific_aggregation": null,
+  "best_denoising_score": null,
+  "best_valid_denoising_score": null,
+  "worst_denoising_score": null,
+  "best_config": null,
+  "best_valid_config": null,
+  "model_knowledge_cache": {},
+  "key_findings": [
+    "Cold start: no prior experimental runs or score history exist yet."
+  ],
+  "bottlenecks": [],
+  "take_home_message": "This is a cold start — there is no prior experimental evidence. Propose the first experiment from the task description, the available model/loss registries (as options, not results), advice, and resource constraints. Do not claim improvement over prior runs; none exist.",
+  "per_model_score_tables": null,
+  "per_model_params": null,
+  "per_model_training_segments": null,
+  "runtime_vocab": [],
+  "prediction_evaluation": null,
+  "new_discoveries": [],
+  "vocab_changes": [],
+  "vocab_diversity_ratio": null,
+  "cumulative_information_gain": 0.0,
+  "scientific_accuracy": null,
+  "prediction_outcomes_history": {
+    "confirmed": 0,
+    "partial": 0,
+    "refuted": 0
+  },
+  "vocab_link_confirmations": {},
+  "per_model_round_health_counts": {},
+  "per_model_collapse_fingerprints": {},
+  "collapse_fingerprint_history": {},
+  "is_degraded": false,
+  "evolution_stats": {},
+  "metric_identity": {
+    "metric_id": "lr_auprc",
+    "direction": "higher"
+  },
+  "prediction_evaluation_semantics": "legacy_v1",
+  "prediction_outcomes_by_semantics": {},
+  "cumulative_information_gain_by_semantics": {},
+  "prediction_pool_sizes": {},
+  "per_model_secondary_metrics": {},
+  "per_model_failure_counts": {},
+  "$siderius_encoding": {
+    "version": "siderius.nonfinite/v1",
+    "floats": []
+  }
+}

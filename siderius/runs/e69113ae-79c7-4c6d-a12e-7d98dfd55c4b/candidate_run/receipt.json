@@ -1,0 +1,213 @@
+{
+  "run_id": "35f27cd2c62f489e936e321beb769d33",
+  "run_name": "round2",
+  "workspace": "/home/andre/work/cell-signalling/project/results/runs/e69113ae-79c7-4c6d-a12e-7d98dfd55c4b/workspace",
+  "declaration_digest": "28955b906ca5ce216fb0f2104a1385f0048f391f5846a666eba265ef5b35d793",
+  "status": "failed",
+  "node_ids": [
+    "interpret",
+    "propose",
+    "implement",
+    "validate",
+    "train"
+  ],
+  "selected_constructor_routes": [
+    {
+      "name": "interpret.main",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "max_retries": 1,
+        "max_output_tokens": 16384
+      },
+      "transport": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "base_url": "https://api.anthropic.com",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "propose.comparison",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "max_output_tokens": 16384,
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "base_url": "https://api.anthropic.com",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": "propose.reasoning",
+      "issue": null
+    },
+    {
+      "name": "propose.reasoning",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "max_output_tokens": 16384,
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "base_url": "https://api.anthropic.com",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "propose.proposing",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "max_output_tokens": 16384,
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "base_url": "https://api.anthropic.com",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": "propose.reasoning",
+      "issue": null
+    },
+    {
+      "name": "implement.main",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "max_retries": 1,
+        "max_output_tokens": 16384
+      },
+      "transport": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "base_url": "https://api.anthropic.com",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "validate.main",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "max_retries": 1
+      },
+      "transport": {
+        "provider": "gemini",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "train.planner",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "reflect_provider": "anthropic",
+        "reflect_model_id": "claude-sonnet-5-5",
+        "max_retries": 1,
+        "reflect_retry_policy": {
+          "max_retries": 1
+        },
+        "max_output_tokens": 16384,
+        "reflect_max_output_tokens": 16384
+      },
+      "transport": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "base_url": "https://api.anthropic.com",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": null,
+      "issue": null
+    },
+    {
+      "name": "train.reflector",
+      "applicability": "conditional",
+      "bridge_arguments": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "reflect_provider": "anthropic",
+        "reflect_model_id": "claude-sonnet-5-5",
+        "max_retries": 1,
+        "reflect_retry_policy": {
+          "max_retries": 1
+        },
+        "max_output_tokens": 16384,
+        "reflect_max_output_tokens": 16384
+      },
+      "transport": {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-5-5",
+        "base_url": "https://api.anthropic.com",
+        "reasoning_effort": null,
+        "max_retries": 1,
+        "request_timeout": 600.0,
+        "timeout_retries": 3
+      },
+      "shares_client_with": "train.planner",
+      "issue": null
+    }
+  ],
+  "ledger_path": "/home/andre/work/cell-signalling/project/results/runs/e69113ae-79c7-4c6d-a12e-7d98dfd55c4b/workspace/token_usage.jsonl",
+  "log_path": "/home/andre/work/cell-signalling/project/results/runs/e69113ae-79c7-4c6d-a12e-7d98dfd55c4b/workspace/candidate_run/worker.log",
+  "candidate_id": null,
+  "composition_fingerprint": null,
+  "proposal_storage": null,
+  "implementation_storage": null,
+  "native_output_paths": [],
+  "validation_passed": false,
+  "error": null,
+  "loop_trace": {
+    "attempted_iterations": 1
+  },
+  "run_seed": 1969032229602597,
+  "run_seed_source": "generated",
+  "$siderius_encoding": {
+    "version": "siderius.nonfinite/v1",
+    "floats": []
+  }
+}

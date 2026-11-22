@@ -1,0 +1,109 @@
+{
+    "candidate_id": "cand_733936e925db4abbbd05b04d8c9adb12",
+    "model_name": "spatial_gat_triplet_net",
+    "output_type": "classifier",
+    "model_description": "A spatial triplet architecture that leverages Graph Attention Networks to aggregate neighbor information, combined with a permutation-invariant MLP to evaluate directed ligand-receptor interactions. By processing sender ligand signals and receiver receptor expression within a masked spatial neighborhood, the network learns to differentiate injected causal couplings from background noise, surpassing the baseline Spearman correlation.",
+    "mathematical_definition": "Let S be the set of neighboring A-type cells for a target B-type cell. Input features are represented as a tensor X = [X_ligand, X_receptor, X_libsize, X_neighbor_density, X_mask]. The model computes: (1) Local aggregation: H = GAT(X_ligand, adj, mask), where adj is the spatial proximity matrix. (2) Set encoding: Z = MLP_phi(concat(H, X_receptor, X_libsize, X_neighbor_density)). (3) Global pooling: Y = sum(Z * mask) / sum(mask). (4) Final score: Score = MLP_psi(Y). The permutation invariance is maintained by the symmetric aggregation step (sum pooling over masked neighbors).",
+    "motivation": "This architecture implements the proposed_change of using GAT-based neighborhood aggregation to address the causal_hypothesis that injected LR couplings require structural specificity to be disentangled from background expression noise. The permutation-invariant MLP ensures the set of neighbor cells is processed consistently.",
+    "expert_advice": {
+        "focus_areas": [
+            "Attention head dropout to prevent overfitting on training tiles",
+            "GAT layer depth (start with 2)",
+            "Learning rate warmup to stabilize early gradients"
+        ],
+        "constraints": [
+            "Target VRAM usage < 3.0 GB to stay comfortably below the 6.37 GB effective cap"
+        ],
+        "known_failures": [
+            "Overfitting to the 60 training tiles if attention heads become too sparse",
+            "Potential difficulty in scaling to high-density cross-talk without regularization"
+        ],
+        "suggested_directions": [
+            "Initial experiment: Test GAT hidden dim 64 vs 128",
+            "Trial strategy: Use a small subset of tiles to evaluate convergence speed before full-scale training"
+        ],
+        "rationale": "GATs are specifically suited for the spatial nature of this task, and the suggested dimensions balance the need for model capacity with strict VRAM constraints.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "gat_hidden_dim": 64,
+            "mlp_hidden_dim": 128,
+            "num_layers": 3,
+            "dropout_rate": 0.2
+        },
+        "train_config": {
+            "lr": 0.001,
+            "epochs": 20,
+            "batch_size": 256,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.0001,
+            "device": "cuda"
+        },
+        "loss_config": {
+            "loss_type": "focal",
+            "alpha": 0.25,
+            "gamma": 2.0,
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "graph_attention_network",
+            "source_type": "experiment",
+            "source_id": "graph_attention_network",
+            "from_run": null,
+            "contribution_evidence": "Proposed in Stage 1 comparisons as a method to capture local interaction dynamics."
+        },
+        {
+            "component": "permutation_invariant_mlp",
+            "source_type": "experiment",
+            "source_id": "permutation_invariant_mlp",
+            "from_run": null,
+            "contribution_evidence": "Essential for processing sets of neighbor cells without bias to ordering."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc",
+        "current_value": null,
+        "predicted_value": 0.25,
+        "threshold_for_refutation": 0.11,
+        "rationale": "Given the random ranking baseline is 0.11 and the task includes structured injected couplings, a successful GAT-based attention mechanism should significantly outperform the null hypothesis by capturing specific directed signal-receptor dependencies."
+    },
+    "proposed_vocab_links": [
+        {
+            "feature": "graph_attention_network",
+            "capability": "spatial_neighborhood_aggregation",
+            "evidence": "In the context of ligand-receptor interactions on spatial cell graphs, GATs are hypothesized to better capture local interaction dynamics than baseline correlation metrics by learning importance weights for specific neighboring cells.",
+            "status": "proposed"
+        },
+        {
+            "feature": "permutation_invariant_mlp",
+            "capability": "set_processing",
+            "evidence": "Since the task involves identifying directed couplings among sets of neighbors, permutation-invariant layers are essential to ensure the ligand signal representation remains consistent regardless of neighbor cell ordering.",
+            "status": "proposed"
+        }
+    ],
+    "proposed_vocab_candidates": [
+        {
+            "name": "spatial_triplet_attention",
+            "kind": "feature",
+            "description": "Attention mechanism specifically operating on triplets (Sender-Receiver-Ligand/Receptor) to capture directional spatial influence."
+        },
+        {
+            "name": "spatial_null_model_regularization",
+            "kind": "feature",
+            "description": "Loss term that penalizes deviations from expected random spatial association to distinguish injected couplings from background correlation."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [],
+    "parameter_count_estimate": 150000,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

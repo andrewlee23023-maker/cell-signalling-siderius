@@ -1,0 +1,90 @@
+{
+    "final_loss": 0.022188834088500326,
+    "loss_history": [
+        0.05847133574963596,
+        0.02407372787271237,
+        0.022594881434203455,
+        0.02236008933448001,
+        0.02220919005028431,
+        0.02222058684576058,
+        0.02218655336587012,
+        0.022209953021546696,
+        0.02219111310042651,
+        0.022188834088500326
+    ],
+    "model_params": 385,
+    "training_history": {
+        "cadence": "per_epoch",
+        "objective_kind": "smooth_l1",
+        "objective_config_fingerprint": "94cf31137a8087fe1b29646e102a5e13e0d425a574a235d0a03b4f654a1aea0e",
+        "objective_reduction": "mean",
+        "epoch_statistic": "sample_count_weighted_mean_of_batch_criterion",
+        "comparability": "established",
+        "comparability_reason": null,
+        "epochs_planned": 10,
+        "epochs_completed": 10,
+        "train_objective": [
+            0.05847133574963596,
+            0.02407372787271237,
+            0.022594881434203455,
+            0.02236008933448001,
+            0.02220919005028431,
+            0.02222058684576058,
+            0.02218655336587012,
+            0.022209953021546696,
+            0.02219111310042651,
+            0.022188834088500326
+        ],
+        "validation_objective": [
+            0.02622182933780236,
+            0.023039847496281147,
+            0.02216793225393332,
+            0.02194746314314915,
+            0.02188631293028189,
+            0.02187628388849054,
+            0.021907107120458888,
+            0.02193399356525011,
+            0.02184213744518503,
+            0.02188240146464664
+        ],
+        "validation_requested_samples": 2214,
+        "validation_samples": 2214,
+        "validation_requested_samples_before_limit": null,
+        "validation_seconds": [
+            4.103175095999177,
+            3.763334538998606,
+            19.712692684999638,
+            28.819068393000634,
+            17.164395769999828,
+            2.328060291001748,
+            2.559632608998072,
+            2.5409218669992697,
+            2.516954437000095,
+            2.5364267760014627
+        ],
+        "observations": {}
+    },
+    "selected_checkpoint": {
+        "policy": "best_validation_loss",
+        "epoch": 9,
+        "validation_loss": 0.02184213744518503
+    },
+    "seed_context": {
+        "run_seed": 7765739868345541,
+        "at": {
+            "iteration": 1,
+            "node_id": "train",
+            "branch": null,
+            "round": 1,
+            "attempt": 1,
+            "epoch": null
+        }
+    },
+    "seed_derivation": "siderius-seed/v1",
+    "seed_source": "supplied",
+    "process_seeds": {
+        "torch": 3297203867745535150,
+        "numpy": 813435706,
+        "python": 3217816350926585983
+    }
+}

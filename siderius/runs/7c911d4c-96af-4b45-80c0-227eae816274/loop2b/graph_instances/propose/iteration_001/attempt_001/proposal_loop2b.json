@@ -1,0 +1,149 @@
+{
+    "candidate_id": "cand_148a8bdc97c240ed95132d25816bdb98",
+    "model_name": "lr_pair_scorer",
+    "output_type": "regressor",
+    "model_description": "A tiny, permutation-invariant, mask-exact scorer for one (L,R,A->B) triple. For each triple it computes a fixed (non-learned) bank of masked statistics over its contact cells. These include tie-averaged rank transforms of the ligand row (row 0) and receptor row (row 1), a plain masked Spearman correlation, and a covariate-adjusted partial Spearman. The partial version residualises both ranked rows on [1, row2 library offset, row3 sender fraction] by closed-form masked ridge least squares. It then converts that correlation to a sqrt(n-3)*atanh(r) z-statistic, so the large contact-cell counts of weak-effect triples add evidence. Further features are a row3-weighted correlation, a top-vs-bottom ligand-tercile receptor contrast, nuisance diagnostics (correlations of R and L with rows 2 and 3), and log n. A 2-hidden-layer MLP (width 32) maps the standardised features to a score. A learned scalar skip from the partial-Spearman z-statistic means the model starts as a covariate-adjusted Spearman ranker. The output is an unbounded scalar per triple, trained with smooth_l1 against the 0/1 target (the run is regression-typed).",
+    "mathematical_definition": "Input x in R^{B x 5 x N}. Let m = x[:,4,:] > 0.5 (boolean mask), n = sum m, L = x[:,0,:], R = x[:,1,:], c2 = x[:,2,:], c3 = x[:,3,:]. Stage 1 (masked ranks): for each valid cell i, rank_i(v) = sum_j m_j [ 1(v_j < v_i) + 0.5*1(v_j = v_i) ], computed by chunked pairwise comparison with padded j excluded through m_j. Ranks are mapped to u = (rank - (n-1)/2) / n and zeroed at padded positions. rL = u(L), rR = u(R). Stage 2 (covariate residualisation): design matrix Z = [1, c2, c3], with Z masked and c2, c3 centred by masked mean. Solve beta = (Z^T M Z + ridge*I)^-1 Z^T M y for y in {rL, rR}, residual e_y = M*(y - Z beta). The 3x3 solve is closed form, and n is clamped to at least 4 for the zero-contact edge case. Stage 3 (pooled statistics, each a masked mean/variance with eps): r_plain = masked Pearson(rL, rR); r_part = masked Pearson(e_L, e_R); z_part = sqrt(max(n-3,1)) * atanh(clip(r_part, -0.999, 0.999)); z_plain likewise; r_w = Pearson(rL, rR) with weights c3*m; tercile contrast = masked mean of rR over cells with rL in the top third minus the bottom third (by rank); nuisance diagnostics corr(rR,c2), corr(rR,c3), corr(rL,c3), corr(rL,c2); log n; masked mean and std of c3. Each statistic is passed through a fixed monotone squashing or scale (z/ sqrt-scale, clip to feature_clip), with no batch statistics and no cross-triple operations. Stage 4: s = w_skip * z_part_scaled + MLP(f), with MLP = Linear(F,H)-GELU-Linear(H,H)-GELU-Linear(H,1) and w_skip a learnable scalar initialised to 1. The output is s of shape [B,1]. Every aggregate multiplies by m, so padding values cannot affect s. The model is invariant to the order of the columns because it uses only sums and ranks.",
+    "motivation": "Implements the memo's proposed_change: \"Design a small new model (model_type 'lr_pair_scorer') that scores each eligible (L,R,A->B) triple from its 4-row input\" with a masked Spearman-like core, residualisation on rows 2 and 3, masked pooled statistics, and a tiny MLP with a skip from the residualised correlation. It targets the causal_hypothesis: the Spearman baseline finds 74% of 53 beta=2 positives but only 20% of 55 beta=0.5 positives, and plain correlation is confounded by smooth spatial fields and library size. Covariate residualisation removes the nuisance dependence. The sqrt(n) z-statistic puts triples with different numbers of contact cells on a common footing. The learned head can reweight the evidence to separate weak true couplings from the unobserved-ligand decoys. A regressor output with smooth_l1 follows the run's output_type constraint. Rows 0 and 1 are kept as the ligand-receptor pair, rows 2 and 3 are covariates only, padding is masked everywhere, and there is no batch-relative scoring. The model is tiny (a few thousand parameters), so VRAM stays far below the cap.",
+    "expert_advice": {
+        "focus_areas": [
+            "Check masked correctness first: appending extra padded columns, or permuting columns, must leave the score unchanged to within float tolerance.",
+            "Ablate the skip (w_skip frozen at 1, MLP off) to confirm the model reproduces a covariate-adjusted Spearman ranking before judging the MLP.",
+            "Compare use_covariates true/false to test whether residualising on row3 removes genuine signal.",
+            "Tune lr, epochs, hidden_dim and ridge; check that the n-dependent z-statistic helps the weak-effect triples."
+        ],
+        "constraints": [
+            "Peak VRAM must stay under ~5 GB (80% of the 6.37 GB effective cap). The chunked pairwise rank is the only large tensor, about B*chunk*1024 floats; keep rank_chunk at 128 or less at batch_size 32, and run the rank under no_grad.",
+            "Keep the model under ~20k parameters, to limit overfitting on 60 training datasets and keep training fast (human directive: keep the model size and training time small).",
+            "No batch-relative or cross-triple normalisation of scores."
+        ],
+        "known_failures": [
+            "The memo's beta-weighted loss cannot be run in the native pipeline: the target is [B,1] with 0/1 labels only, so beta labels are not available to the loss. Weak-effect positives are therefore not upweighted. Weak effects may still be lost because beta=0.5 signals are close to the decoys.",
+            "Residualising on rows 2 and 3 may remove genuine signal if sender fraction (row3) correlates with the true ligand signal.",
+            "Rank sentinel or padding leaks would bias scores. Rank ties in the sparse ligand row need the tie-averaged rank.",
+            "With only 60 training datasets, the MLP may overfit tile composition. The skip keeps the baseline ranking as a fallback.",
+            "smooth_l1 on 0/1 targets with ~7% positives has no class weighting, so scores may collapse toward 0. Only the ranking matters, so check AP rather than loss."
+        ],
+        "suggested_directions": [
+            "First run: baseline_config as given (30 epochs, cosine lr schedule, no checkpoint_selection override), then compare lr_auprc to the Spearman baseline.",
+            "Second run: use_covariates=false, to isolate the covariate-adjustment contribution.",
+            "Third run: hidden_dim 16 versus 64, and dropout 0.1 if validation lags training.",
+            "If a weighting-capable loss path becomes available, re-test the beta-weighted positive upweighting; it is untested here."
+        ],
+        "rationale": "The memo's hypothesis is that covariate-adjusted, n-aware rank correlation, plus a small learned combination, lifts weak couplings above the decoys. A model of fixed statistics, a skip and a small MLP tests this directly, keeps the baseline ranking as a floor, is exactly padding- and order-invariant, and trains quickly.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "hidden_dim": 32,
+            "num_layers": 2,
+            "ridge": 0.001,
+            "use_covariates": true,
+            "rank_chunk": 128,
+            "feature_clip": 8.0,
+            "dropout": 0.0,
+            "learn_skip": true,
+            "min_contacts": 4
+        },
+        "train_config": {
+            "lr": 0.001,
+            "epochs": 30,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.00001,
+            "device": "cuda",
+            "lr_schedule": {
+                "kind": "cosine",
+                "horizon_epochs": 30,
+                "min_lr": 0.00001
+            }
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1",
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "beta_weighted_loss",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive item 1: baseline recovers 74% of beta=2 positives but only 20% of beta=0.5 positives; upweighting weak-effect positives in training loss is proposed to improve weak-effect recall."
+        },
+        {
+            "component": "ligand_receptor_row_pairing_with_covariates_rows_2_3",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive item 2: keep the row0/row1 ligand-receptor relationship and use rows 2 and 3 (library offset, sender-neighbour fraction) as covariates; also item 4 on normalising for smooth fields without batch-relative scoring."
+        },
+        {
+            "component": "masked_padding_pooling",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive item 3: padding must not affect predictions, implemented via masks in every aggregate and in the loss."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc",
+        "current_value": null,
+        "predicted_value": 0.3,
+        "threshold_for_refutation": 0.2,
+        "rationale": "No observed baseline exists (cold start). Random is ~0.11 per task statement; covariate-residualised correlation plus learned combination and beta-upweighting should lift weak-effect recall and give a clearly above-random AP of about 0.30; below 0.20 would mean the learned scorer fails to add value."
+    },
+    "proposed_vocab_links": [
+        {
+            "feature": "beta_weighted_loss",
+            "capability": "weak_effect_recall",
+            "evidence": "Suggested by human directive (strong_prior): the Spearman baseline recovers 74% of the 53 beta=2 positives in the top-k but only 20% of the 55 beta=0.5 positives. Not yet tested in this project's experiments.",
+            "status": "proposed"
+        },
+        {
+            "feature": "ligand_receptor_row_pairing",
+            "capability": "directed_coupling_detection",
+            "evidence": "Suggested by human directive (strong_prior): keep the relationship between rows 0 and 1 (ligand and receptor) and use rows 2 and 3 (library offset, sender-neighbour fraction) as covariates. Not yet tested in this project's experiments.",
+            "status": "proposed"
+        },
+        {
+            "feature": "padding_mask",
+            "capability": "padding_invariance",
+            "evidence": "Suggested by human directive (strong_prior): padding must not affect predictions. Not yet tested in this project's experiments.",
+            "status": "proposed"
+        }
+    ],
+    "proposed_vocab_candidates": [
+        {
+            "name": "beta_weighted_loss",
+            "kind": "feature",
+            "description": "Per-positive training-loss weight that increases as the injected effect size beta decreases. This upweights the weak-effect (beta=0.5) positives that the Spearman baseline misses. Requires beta labels at training time only."
+        },
+        {
+            "name": "covariate_adjusted_pair_scoring",
+            "kind": "feature",
+            "description": "Score each (L, R, A->B) triple from the ligand row and receptor row relationship. Library offset and sender-neighbour fraction enter as covariates. No batch-relative normalization is used."
+        },
+        {
+            "name": "masked_padding_pooling",
+            "kind": "feature",
+            "description": "Mask-aware pooling over a variable number of contact cells or triples, so padded entries are excluded from every aggregate and from the loss."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "Deviation 1: the memo specifies a BCE-with-logits loss with beta-weighted positives. The run constrains output_type to 'regressor', whose only legal loss is smooth_l1 (Branch A). Custom losses are unavailable in this run, and the training target is [B,1] 0/1 only, with no beta labels exposed to the loss. The beta weighting (w = 2/beta clipped to [1,4]), the 'beta weighting off' ablation, and the human directive item 1 are therefore not applied. The inherited component beta_weighted_loss is not implemented, and the weak-effect recall mechanism is untested here. Weak-effect recall is addressed only through the n-aware z-statistic and covariate residualisation.",
+        "Deviation 2: the task text says classification, but the run-level constraint allows only output_type 'regressor'. The model emits an unbounded scalar [B,1] score trained with smooth_l1 on the 0/1 target. Only the ranking is used.",
+        "Deviation 3: the memo's soft-rank is replaced by exact tie-averaged ranks computed under no_grad. The ranks are not trainable (the inputs carry no parameters), so differentiability is unnecessary, and the output still has gradients through the MLP and skip. The memo's 'tiny MLP' and 'skip from residualised correlation' are kept.",
+        "The memo's checkpoint_selection best_validation_loss is not set, because no training-validation scope is declared. The last epoch is exported. The cosine lr_schedule with horizon equal to the epoch budget (30) follows the memo, but the memo's lr 1e-3 / min_lr 1e-5 values are kept.",
+        "Inherited components: ligand_receptor_row_pairing_with_covariates_rows_2_3 (Stages 1-3) and masked_padding_pooling (the mask m in every aggregate) are implemented. beta_weighted_loss is not implemented, see Deviation 1."
+    ],
+    "parameter_count_estimate": 2500,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

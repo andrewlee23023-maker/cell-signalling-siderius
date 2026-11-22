@@ -1,0 +1,122 @@
+{
+    "candidate_id": "cand_3154ab8395e644378a7b891c27243674",
+    "model_name": "masked_rank_pcorr_skip_head",
+    "output_type": "regressor",
+    "model_description": "Tiny, permutation-invariant per-triple scorer. Step 1 (parameter-free): build an explicit mask from row 4 and compute, over non-padded contact cells only, tie-aware (average) ranks of receptor R (row 1), neighbour-ligand L (row 0) and the two nuisance covariates (rows 2 and 3). Step 2: form the 4x4 rank-correlation matrix over masked cells, invert it, and read off the rank partial correlation of R and L given the covariates. Convert it to a z-score via Fisher z times sqrt(n_eff-3). Covariates are only ever conditioned on, never fed as evidence. Step 3: a small MLP (hidden 16, 2 hidden layers) takes a fixed 5-feature vector: partial r, z, raw Spearman r, log n_eff, and the masked mean of the A-neighbour fraction. The covariate row-3 mean is not used as evidence, so the fifth feature is the partial-r by raw-r difference. The head output is added to a fixed-scale direct z-score skip. Switches (use_head, use_skip) give the three ablation arms with the same features and the same parameter count: (a) z only, (b) head without the skip, (c) head plus skip. The score is squashed with a sigmoid to a finite value in (0,1).",
+    "mathematical_definition": "Input x in R^{B x 5 x N}. m = x[:,4,:] > 0.5 (explicit padding mask), n = sum m. For each v in {L=x0, R=x1, c1=x2, c2=x3}: rank_i(v) = sum_j m_j [v_j < v_i] + 0.5 (sum_j m_j [v_j = v_i] + 1) - 0.5, evaluated only for i with m_i = 1 and set to 0 elsewhere, then masked-centred and divided by its masked std (eps-stabilised). The rank correlation matrix C = (1/n) Z^T diag(m) Z over the 4 standardised rank vectors (ridge-stabilised). P = C^{-1}; r_p = -P_{LR} / sqrt(P_{LL} P_{RR}); r_raw = C_{LR}. n_eff = n; z = atanh(clip(r_p, -0.999, 0.999)) * sqrt(max(n_eff - 3, 1)), clipped to [-z_clip, z_clip]; triples with n < min_contacts get z = 0 and r = 0. Features f = [r_p, z/z_clip, r_raw, log(1+n)/log(1+N), r_p - r_raw]. h = MLP(f) (Linear-ReLU-Linear-ReLU-Linear to a scalar, final layer zero-initialised). logit = use_head * h + use_skip * skip_scale * z. Output = sigmoid(logit) with shape [B,1]. All pooling and statistics use m as weights, so padded columns never contribute, and column order has no effect (permutation-invariant). Arm (a) is logit = skip_scale * z with no trained weights.",
+    "motivation": "The memo's proposed_change is to run the human-directed three-arm ablation: a parameter-free masked rank partial-correlation z-score, the same head with the direct z-score skip removed, and the full iter1 head with the skip. This design has all three arms share one architecture, switched by scalar flags with fixed features and fixed parameter count. The causal_hypothesis is that the Spearman baseline of R with neighbour L is confounded by the nuisance covariates (x[:,2:4,:]) and by unobserved-ligand perturbations on every other receptor x sender x receiver combination. Rank partial correlation over masked contact cells should remove the covariate-driven association and keep the injected dependence, and the learned head is expected to add little unless the skip preserves the statistic. The output is a bounded continuous score, which fits the declared regressor contract. Ranking within a dataset is all that matters.",
+    "expert_advice": {
+        "focus_areas": [
+            "Compare arms (a), (b) and (c) under identical training with 3 seeds each, and treat differences under 0.02 lr_auprc as unresolved.",
+            "Check the masked rank implementation (average ranks for ties, padding excluded) with a unit test against scipy.stats.spearmanr and a partial-correlation reference on a few real columns.",
+            "Select epochs and learning rate on a tile-grouped split of the TRAIN data only. Use validation only for the final comparison, with a 7-tile bootstrap for uncertainty.",
+            "Keep features fixed while varying width, and do not increase the parameter count."
+        ],
+        "constraints": [
+            "VRAM: baseline peak must stay under about 5 GB, which is 80% of the 6.37 GB effective cap. The pairwise rank comparison costs B*1024*1024 booleans per variable, so keep batch_size at or below 128.",
+            "Do not use negative-binomial or t-statistic association scores.",
+            "Rows 2 and 3 are covariates only. They must enter only through the partialling step, and the head must not receive them directly.",
+            "All pooling and statistics must be masked by x[:,4,:]."
+        ],
+        "known_failures": [
+            "Partialling out covariates may remove real signal if the covariates correlate with the neighbour-L signal. Arm (a) would then be near the Spearman baseline and indistinguishable from it by 0.02.",
+            "Without the skip, head (b) may overfit the 60 training datasets and fall toward random. Seed SD may exceed 0.02, leaving all arms unresolved.",
+            "Padding errors, such as ranking padded zeros, inflate ties and degrade the z-score.",
+            "Smooth L1 on 0/1 labels with about 7% positives pulls scores toward the base rate and gives little class-balance control. Rely on the skip for ranking quality."
+        ],
+        "suggested_directions": [
+            "Arm (a): use_head=false and use_skip=true, with no training (the framework may need 1 epoch with lr=0). Evaluate validation lr_auprc directly.",
+            "Arm (b): use_head=true and use_skip=false with the same train_config. Arm (c): the baseline_config as given. Run seeds 0, 1 and 2 for each.",
+            "If arm (c) is not above arm (a) by 0.02, report the head as unresolved and do not scale it up."
+        ],
+        "rationale": "The model is tiny and almost entirely parameter-free, because the human directive asks for an ablation before any new architecture. The rank partial correlation targets the confounding named in the hypothesis. The switches make the three arms identical except for the ablated component.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "hidden_dim": 16,
+            "num_hidden_layers": 2,
+            "use_head": true,
+            "use_skip": true,
+            "skip_scale": 0.2,
+            "z_clip": 15.0,
+            "min_contacts": 5,
+            "ridge_eps": 0.001,
+            "max_contacts": 1024
+        },
+        "train_config": {
+            "lr": 0.003,
+            "epochs": 30,
+            "batch_size": 64,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.00001,
+            "device": "cuda"
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1",
+            "beta": 1.0,
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "masked_rank_partial_correlation_zscore, direct_zscore_skip, padding_masked_pooling, focal_cw_loss, tile_grouped_selection, three-arm ablation protocol",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "The directive specifies the ablation arms, the rank partial correlation with covariate partialling, masked pooling, the focal_cw loss and tile-grouped selection."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc (validation, mean over 21 datasets, 3-seed mean)",
+        "current_value": null,
+        "predicted_value": 0.2,
+        "threshold_for_refutation": 0.13,
+        "rationale": "Random ranking sits at about 0.11 and the Spearman baseline is modestly above that. The partial-correlation z-score alone is predicted to reach about 0.20. The skip-connected head (c) is predicted within 0.02 of (a) or slightly higher, and the no-skip head (b) is predicted lower than (c) by more than 0.02. Refuted if arm (a) is under 0.13, which would show that partialling out covariates adds nothing over random."
+    },
+    "proposed_vocab_links": [],
+    "proposed_vocab_candidates": [
+        {
+            "name": "masked_rank_partial_correlation_zscore",
+            "kind": "feature",
+            "description": "Parameter-free Spearman/rank partial correlation of receptor R with neighbour ligand-L signal over non-padded contact cells, partialling out nuisance covariate rows x[:,2:4,:], converted to a z-score. Proposed from human directive (strong_prior); not yet tested in this project."
+        },
+        {
+            "name": "direct_zscore_skip",
+            "kind": "feature",
+            "description": "Skip connection that adds the raw partial-correlation z-score directly to the learned head's output logit. Ablation target (b) in the human directive; effect unknown."
+        },
+        {
+            "name": "padding_masked_pooling",
+            "kind": "feature",
+            "description": "Explicit mask built from padding and applied before every mean/max pooling and statistic so padded cells never contribute. Human directive requirement; unverified here."
+        },
+        {
+            "name": "focal_cw_loss",
+            "kind": "feature",
+            "description": "Built-in class-weighted focal loss (focal_cw) on 0/1 injected labels; the only permitted loss for this task per human directive."
+        },
+        {
+            "name": "tile_grouped_selection",
+            "kind": "feature",
+            "description": "Epoch and hyperparameter selection on a tile-grouped split of the TRAIN data, with validation used only for final comparison and a 7-tile bootstrap for uncertainty."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "CONFLICT with human directive item 2 (focal_cw, no SmoothL1 on 0/1 labels): the run constraint allows only output_type 'regressor', and regressor is compatible only with smooth_l1 among built-ins. focal_cw is a classifier loss and would be rejected before training. Custom losses are unavailable for this run. I therefore had to use smooth_l1, which the human advised against; the declared output_type constraint is binding. If the output_type constraint is relaxed to 'classifier', switch loss_type to focal_cw with no other change. The model already emits a [B,1] score.",
+        "The task text says 'Task type: classification', but the run constraint requires output_type 'regressor'. The model emits a bounded sigmoid score of shape [B,1] and ranking is unaffected.",
+        "The memo's arm (a) has no learned weights. In the framework it is realised as use_head=false with a trivial or lr=0 training pass. Whether the native trainer accepts a model with no trainable parameters is unverified.",
+        "Arm (c) uses a fixed (non-learned) skip_scale of 0.2 for the direct z-score skip. The memo does not specify a value, so this is my choice.",
+        "The memo says hidden_dim ~16 and 2 layers, kept here as scalar fields. The memo's 'masked mean/max-pooled per-triple features' is simplified: the pooling is folded into masked statistics (rank correlations, n_eff) and no separate mean/max pooling is used, which is a deviation. Pooling over padded cells is excluded either way.",
+        "The memo's 7-tile bootstrap, tile-grouped epoch selection and 3-seed reporting are evaluation-protocol items. They are not implemented in the model and need support from the framework or the analysis step. The default checkpoint is the last epoch, unless train_config.checkpoint_selection is set to best_validation_loss on a tile-grouped training-validation scope, which I have not set."
+    ],
+    "parameter_count_estimate": 420,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

@@ -1,0 +1,158 @@
+[
+  {
+    "candidate": "C0 baseline (contact Spearman)",
+    "val": {
+      "lr_auprc": 0.5603341513854212,
+      "direction_accuracy": 0.8265873015873014,
+      "lr_auroc": 0.887084724563214
+    },
+    "train": {
+      "lr_auprc": 0.5287711719090227,
+      "direction_accuracy": 0.8630064842564843,
+      "lr_auroc": 0.869867379004767
+    },
+    "val_minus_baseline_ci95": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "recall_topk_by_beta": {
+      "0.5": 0.2,
+      "1.0": 0.4883720930232558,
+      "2.0": 0.7358490566037735
+    },
+    "health_5_deciles": true,
+    "finite": true,
+    "val_seconds": 0.0
+  },
+  {
+    "candidate": "C1 Pearson (ligand z-clipped)",
+    "val": {
+      "lr_auprc": 0.5154237835433607,
+      "direction_accuracy": 0.8005102040816328,
+      "lr_auroc": 0.8685822589153835
+    },
+    "train": {
+      "lr_auprc": 0.49704631789212306,
+      "direction_accuracy": 0.8561536149036149,
+      "lr_auroc": 0.8649313837201402
+    },
+    "val_minus_baseline_ci95": [
+      -0.04491036784206047,
+      -0.07795573611165463,
+      -0.015174592799963714
+    ],
+    "recall_topk_by_beta": {
+      "0.5": 0.18181818181818182,
+      "1.0": 0.5116279069767442,
+      "2.0": 0.6792452830188679
+    },
+    "health_5_deciles": true,
+    "finite": true,
+    "val_seconds": 0.1
+  },
+  {
+    "candidate": "C2 partial Pearson | rows 2,3",
+    "val": {
+      "lr_auprc": 0.5215139306410139,
+      "direction_accuracy": 0.8087301587301586,
+      "lr_auroc": 0.8689605537158928
+    },
+    "train": {
+      "lr_auprc": 0.49624431479487563,
+      "direction_accuracy": 0.8514390239390239,
+      "lr_auroc": 0.8648321309858423
+    },
+    "val_minus_baseline_ci95": [
+      -0.03882022074440719,
+      -0.07118423117744024,
+      -0.00802370779260729
+    ],
+    "recall_topk_by_beta": {
+      "0.5": 0.16363636363636364,
+      "1.0": 0.4883720930232558,
+      "2.0": 0.6792452830188679
+    },
+    "health_5_deciles": true,
+    "finite": true,
+    "val_seconds": 0.2
+  },
+  {
+    "candidate": "C3 single-part slope t | rows 2,3",
+    "val": {
+      "lr_auprc": 0.5242779719929894,
+      "direction_accuracy": 0.79937641723356,
+      "lr_auroc": 0.8663282955988565
+    },
+    "train": {
+      "lr_auprc": 0.5442468507572987,
+      "direction_accuracy": 0.851491933991934,
+      "lr_auroc": 0.8658367583964848
+    },
+    "val_minus_baseline_ci95": [
+      -0.03605617939243175,
+      -0.09529697445408496,
+      0.018591952050805317
+    ],
+    "recall_topk_by_beta": {
+      "0.5": 0.2727272727272727,
+      "1.0": 0.5813953488372093,
+      "2.0": 0.660377358490566
+    },
+    "health_5_deciles": true,
+    "finite": true,
+    "val_seconds": 0.2
+  },
+  {
+    "candidate": "C4 two-part t (TEAM SPEC)",
+    "val": {
+      "lr_auprc": 0.5153431787302633,
+      "direction_accuracy": 0.8044784580498868,
+      "lr_auroc": 0.8652178503263741
+    },
+    "train": {
+      "lr_auprc": 0.5556878747456805,
+      "direction_accuracy": 0.867127455877456,
+      "lr_auroc": 0.875323618490168
+    },
+    "val_minus_baseline_ci95": [
+      -0.04499097265515796,
+      -0.10194919283673216,
+      0.010788858405668575
+    ],
+    "recall_topk_by_beta": {
+      "0.5": 0.2,
+      "1.0": 0.627906976744186,
+      "2.0": 0.6981132075471698
+    },
+    "health_5_deciles": true,
+    "finite": true,
+    "val_seconds": 0.4
+  },
+  {
+    "candidate": "C4b two-part t, no clipping",
+    "val": {
+      "lr_auprc": 0.515236072879793,
+      "direction_accuracy": 0.8044784580498868,
+      "lr_auroc": 0.8651968065553303
+    },
+    "train": {
+      "lr_auprc": 0.5550083705504975,
+      "direction_accuracy": 0.867127455877456,
+      "lr_auroc": 0.8754545166115463
+    },
+    "val_minus_baseline_ci95": [
+      -0.04509807850562823,
+      -0.10209271560484884,
+      0.010744998485465066
+    ],
+    "recall_topk_by_beta": {
+      "0.5": 0.2,
+      "1.0": 0.627906976744186,
+      "2.0": 0.6981132075471698
+    },
+    "health_5_deciles": true,
+    "finite": true,
+    "val_seconds": 0.4
+  }
+]

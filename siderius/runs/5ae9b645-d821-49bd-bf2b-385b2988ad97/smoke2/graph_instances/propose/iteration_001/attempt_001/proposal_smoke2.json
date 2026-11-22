@@ -1,0 +1,93 @@
+{
+    "candidate_id": "cand_f63d883abc124c6dad76ff1466b16359",
+    "model_name": "spatial_lr_gcn",
+    "output_type": "regressor",
+    "model_description": "A spatially-aware GCN architecture that processes local neighborhood ligand-receptor embeddings. It leverages spatial_graph_convolution to aggregate ligand signals from neighboring sender cells (A) into target receiver cells (B), then performs a coordinate-independent MLP transformation to map these interactions to a directed coupling score. The model effectively separates injected signals from non-injected stochastic noise by conditioning on library size and cellular contact density.",
+    "mathematical_definition": "Input: [B, 5, 1024] tensor. 1. Spatial aggregation: For each cell, propagate neighbor signals via spatial_graph_convolution (mean aggregation). 2. Feature Embedding: Project [neighbor_L, R, lib_size, contact_ratio] through a MLP (hidden_dim: 64, layers: 3, activation: ReLU). 3. Score Output: A linear readout layer maps the latent vector to [B, 1] for the coupling score.",
+    "motivation": "The proposed_change to use a GCN directly addresses the causal_hypothesis that R expression is a non-linear, spatially-dependent function of neighboring L. This architecture captures the 'spatial_graph_convolution' and integrates the mask-conditioned aggregation required to ignore padding, effectively filtering for signal-injected triples.",
+    "expert_advice": {
+        "focus_areas": [
+            "Learning rate scheduling near convergence",
+            "Sensitivity of the spatial aggregation depth",
+            "Impact of the mask on gradient sparsity"
+        ],
+        "constraints": [
+            "VRAM limit: 6.37 GB (Usable cap)"
+        ],
+        "known_failures": [
+            "Oversmoothing if GCN depth > 3",
+            "Memory bloat with excessive neighbor batching"
+        ],
+        "suggested_directions": [
+            "Start with a 2-layer GCN",
+            "Use cosine annealing lr_schedule",
+            "Monitor gradient norms during early training"
+        ],
+        "rationale": "GCN architectures are prone to information loss if over-deep; limiting the architecture preserves spatial specificity essential for distinguishing L-R coupling from background expression.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "hidden_dim": 64,
+            "num_layers": 3,
+            "dropout_rate": 0.1
+        },
+        "train_config": {
+            "lr": 0.0005,
+            "epochs": 20,
+            "batch_size": 1,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.0001,
+            "device": "cuda"
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "spatial_graph_convolution",
+            "source_type": "experiment",
+            "source_id": "spatial_graph_convolution",
+            "from_run": null,
+            "contribution_evidence": "Proposed in the cold-start documentation as a primary mechanism to model neighborhood-driven ligand-receptor dependencies."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc",
+        "current_value": null,
+        "predicted_value": 0.25,
+        "threshold_for_refutation": 0.12,
+        "rationale": "Given the random ranking baseline is 0.11 and the task involves injected couplings with clear signal-to-noise dynamics, a well-parameterized GCN should significantly outperform naive correlation, targeting an AUPRC of 0.25 as a benchmark for directed spatial signaling detection."
+    },
+    "proposed_vocab_links": [
+        {
+            "feature": "spatial_graph_convolution",
+            "capability": "neighborhood_aggregation",
+            "evidence": "Hypothesized to capture the direct physical interaction between ligand-producing and receptor-producing cells in the Xenium spatial sections.",
+            "status": "proposed"
+        }
+    ],
+    "proposed_vocab_candidates": [
+        {
+            "name": "spatial_graph_convolution",
+            "kind": "feature",
+            "description": "Graph convolutional layer that aggregates signals from adjacent cell types defined by physical proximity in spatial coordinates."
+        },
+        {
+            "name": "directed_lr_coupling_loss",
+            "kind": "feature",
+            "description": "Custom loss function designed to penalize non-directional ligand-receptor associations while rewarding directed A->B signals."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [],
+    "parameter_count_estimate": 450000,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

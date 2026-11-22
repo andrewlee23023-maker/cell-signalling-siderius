@@ -1,0 +1,146 @@
+{
+    "candidate_id": "cand_96a22293e14a473da4dfd56c70864bd7",
+    "model_name": "masked_contact_stats_deepsets_head",
+    "output_type": "regressor",
+    "model_description": "A tiny per-triple scorer. It builds a mask from row 4 of the [B,5,1024] input and computes six closed-form dependence statistics between receptor R (row 1) and neighbour-ligand signal L (row 0) over real contact cells only. The statistics are Spearman, Pearson, rank partial correlation (ranks of R and L residualised on rows 2-3), OLS slope of R on L, a high-vs-low ligand tercile contrast of R, and a neighbour-count split contrast. A small masked DeepSets branch is run in parallel. Its per-cell inputs are within-triple centred ranks of L and R and their product, and it applies a shared 2-layer phi, masks, then mean+max pools. The statistics and the pooled embedding are concatenated and passed to a 2-layer MLP head. The head emits one sigmoid-bounded score per triple, shape [B,1]. Rows 2-3 are used only as nuisance covariates (regressed out, or used as a split key) and are never fed to the network as direct evidence. All statistics are computed under no_grad with the mask applied first. They are zeroed when a triple has too few contacts.",
+    "mathematical_definition": "Input x in R^{B x 5 x N}. Let m = x[:,4,:] in {0,1}, n = sum_j m_j, L = x[:,0,:], R = x[:,1,:], Z = x[:,2:4,:], valid = 1[n >= min_contacts].\nMasked average ranks: rank_i(v) = sum_j m_j 1[v_j < v_i] + 0.5 (sum_j m_j 1[v_j = v_i] + 1), computed by pairwise comparison over valid columns only; rank is set to 0 at padded columns. Centre and scale to unit masked variance to get rL, rR.\nStats (all masked sums divided by n, eps-guarded):\n s1 = Spearman = masked Pearson(rL, rR).\n s2 = masked Pearson(L, R).\n s3 = rank partial correlation: regress rL and rR (separately) on design D=[1, masked-standardised Z1, Z2] with ridge-regularised normal equations (3x3 solve with lambda I); s3 = masked Pearson of the two residual vectors.\n s4 = OLS slope of R on L = masked cov(L,R) / (masked var(L)+eps), then asinh.\n s5 = tercile contrast = (mean R over cells with rank(L) in the top third - mean R over bottom third) / pooled masked std(R), then asinh.\n s6 = count-split contrast = Spearman(rL,rR) within cells whose row 3 is above the masked median minus the same within cells at or below it (row 3 is only a split key); guarded to 0 if either half has fewer than min_contacts/2 cells.\nstats = valid * [s1..s6] in R^6, no gradient.\nDeepSets: per-cell u_j = [rL_j, rR_j, rL_j*rR_j]; h_j = W2 relu(W1 u_j); mean-pool = sum_j m_j h_j / max(n,1); max-pool = max_j over (h_j masked to -1e4 at padded columns), set to 0 if n=0; e = concat(mean-pool, max-pool) in R^{2*embed_dim}.\nHead: z = concat(stats, e); y = W4 dropout(relu(W3 z)); score = sigmoid(y) in [0,1], output [B,1]. Because of the regressor output contract, the score is trained against the 0/1 target. Permutation invariance holds because ranks, sums, means, max and quantile splits are all order-free.",
+    "motivation": "proposed_change: reproduce the human-cited lr_contact_contrast_gbm_head design, i.e. build an explicit non-padded contact-cell mask, compute closed-form masked statistics (Spearman, Pearson, rank partial correlation with rows 2-3 as nuisance, OLS slope, tercile contrast, neighbour-count split), concatenate them with a small masked DeepSets embedding, and fuse them with a 2-layer MLP head. causal_hypothesis: receptor-only and non-spatial scores sit at random level and the Spearman baseline is confounded because every non-injected R x sender x receiver pair gets an equal-sized perturbation from an unobserved ligand. Multiple masked closed-form dependence statistics, with rank partial correlation removing the rows 2-3 nuisance covariates and tercile/count contrasts, give a complementary low-variance evidence vector, and a small MLP fuses them without overfitting 60 datasets. Closed-form statistics carry the inductive bias that the coupling is a dependence of R on neighbour L rather than a mean difference. The tiny head keeps variance low across tiles. The output is a bounded score [B,1] to meet the run's regressor output contract.",
+    "expert_advice": {
+        "focus_areas": [
+            "Choose epochs, lr and dropout on a tile-grouped split of TRAIN only. Use validation only for the final comparison.",
+            "Numerical guards in the masked statistics (ties, tiny n, near-singular partialling design), since NaN or inf features would be the main failure.",
+            "Ablate one thing at a time: drop DeepSets, then drop the partial-correlation feature, then drop the tercile contrast.",
+            "Hold the parameter count and the feature set fixed if hidden width is varied."
+        ],
+        "constraints": [
+            "VRAM: stay well under the 6.37 GB effective cap (target <= 5 GB). The dominant memory is the pairwise rank comparison, about 4 MB per triple per [N x N] float tensor, so batch_size 32 uses well under 1 GB. Raise batch_size only while measured peak stays below the target.",
+            "Do not increase parameter count (human directive). The baseline is about 1.7k parameters.",
+            "Every statistic and pooling op must use the row-4 mask, and padded columns must not enter ranks, means, max or medians.",
+            "Rows 2-3 are nuisance covariates only: partial them out or use them as split keys, never feed them as direct evidence.",
+            "Use no t-statistic or negative-binomial association scores. Prefer rank-based statistics."
+        ],
+        "known_failures": [
+            "Rank partial correlation and tercile statistics can be unstable or NaN for triples with few contacts or heavy ties from zero-inflated counts. The min_contacts guard and eps terms must hold.",
+            "The DeepSets branch may overfit the 10 training tiles and take weight from the closed-form stats. Differences under 0.02 lr_auprc versus a stats-only variant are unresolved.",
+            "The 0.592 of the cited prior run cannot be verified (no code supplied), so exact reproduction may differ in feature normalisation or head details.",
+            "Smooth L1 on 0/1 labels at about 7% prevalence is weakly sensitive to rare positives and may bias the score toward the base rate. Ranking quality may be lower than with focal_cw."
+        ],
+        "suggested_directions": [
+            "Run the baseline_config as is with 5-fold tile-grouped CV on TRAIN. Pick epochs by CV lr_auprc, then run the final fit and compare on validation.",
+            "Report a bootstrap that resamples the 7 validation tiles, not the 21 datasets. Treat differences under 0.02 as unresolved.",
+            "If the run constraint on output_type is lifted, swap loss_type to focal_cw with no other change. This is the first controlled comparison.",
+            "Then run the single-factor ablations listed above, one per trial."
+        ],
+        "rationale": "The statistics are fixed, parameter-free and rank-based, so the model has little to overfit. The learned part only has to weight about six evidence channels and a small set embedding. This is the safest structure when there are only 10 training tiles and the target is a within-dataset ranking.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "embed_dim": 16,
+            "phi_hidden_dim": 16,
+            "hidden_dim": 32,
+            "n_stats": 6,
+            "dropout": 0.1,
+            "min_contacts": 8,
+            "ridge_lambda": 0.001,
+            "eps": 1e-6
+        },
+        "train_config": {
+            "lr": 0.001,
+            "epochs": 30,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.00001,
+            "device": "cuda"
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1",
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "closed-form masked contact dependence stats (Spearman, Pearson, rank partial corr, OLS slope, tercile contrast, neighbour-count split) + masked DeepSets + 2-layer MLP head",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive cites this design (lr_contact_contrast_gbm_head) with a prior validation lr_auprc of 0.592; not reproduced in this project, so it is treated as a strong_prior."
+        },
+        {
+            "component": "focal_cw built-in class-weighted focal loss",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive mandates the built-in focal_cw loss for the ~7% prevalence labels, since custom losses are refused and SmoothL1 on 0/1 labels is disallowed."
+        },
+        {
+            "component": "tile-grouped train selection and tile-level bootstrap reporting",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive requires epoch and hyperparameter selection on a tile-grouped TRAIN split, a 7-tile bootstrap for uncertainty, and differences under 0.02 treated as unresolved."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc on validation (21 datasets, 7 tiles)",
+        "current_value": null,
+        "predicted_value": 0.57,
+        "threshold_for_refutation": 0.45,
+        "rationale": "The cited prior run scored 0.592; reproduction with tile-grouped selection should land slightly lower or near it, well above random (~0.11) and the Spearman baseline. A value below 0.45 would mean the design does not reproduce and the hypothesis is wrong."
+    },
+    "proposed_vocab_links": [
+        {
+            "feature": "closed_form_contact_dependence_stats",
+            "capability": "directed_lr_coupling_detection",
+            "evidence": "Suggested only by the human directive (human:human_advice), which cites a prior run, lr_contact_contrast_gbm_head, with validation 0.592. That run is not in this project's candidate list and no source code was supplied. Not confirmed by this project's experiments.",
+            "status": "proposed"
+        },
+        {
+            "feature": "masked_deepsets_pooling",
+            "capability": "padding_invariant_set_aggregation",
+            "evidence": "Human directive requires an explicit padding mask before mean/max pooling. This is a design constraint, not experimental evidence. Untested in this project.",
+            "status": "proposed"
+        },
+        {
+            "feature": "rank_partial_correlation_covariate_adjustment",
+            "capability": "nuisance_covariate_removal",
+            "evidence": "Human directive says rows 2-3 are nuisance covariates and should be partialled out. It also says rank-based statistics beat negative-binomial and t-statistic scores. This comes from external advice only and is not confirmed here.",
+            "status": "proposed"
+        }
+    ],
+    "proposed_vocab_candidates": [
+        {
+            "name": "lr_contact_contrast_gbm_head",
+            "kind": "feature",
+            "description": "Closed-form dependence statistics between receptor R and the neighbour-ligand signal over masked contact cells. The statistics are Spearman, Pearson, partial correlation after regressing out the covariate rows, OLS slope, a high- vs low-ligand tercile contrast of R, and a neighbour-count split. They are concatenated with a small masked DeepSets embedding and fed to a 2-layer MLP head. Named in the human directive with reported validation 0.592. Not yet tested in this project."
+        },
+        {
+            "name": "masked_contact_tercile_contrast",
+            "kind": "feature",
+            "description": "Difference in mean R between the high-ligand and low-ligand terciles of the neighbour-ligand signal, computed over non-padded contact cells only."
+        },
+        {
+            "name": "tile_grouped_bootstrap_eval",
+            "kind": "capability",
+            "description": "Model selection on a tile-grouped split of TRAIN. Final uncertainty from a bootstrap that resamples the 7 validation tiles. Differences under 0.02 lr_auprc are treated as unresolved."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "CONFLICT: the human directive asks for the built-in focal_cw loss and says not to use SmoothL1 on 0/1 labels. The run declares output_type must be 'regressor', and the output/loss rule allows only smooth_l1 for a regressor; a regressor with focal_cw would be rejected before training. Custom losses are unavailable and the directive also refuses them. The binding run constraint takes precedence, so loss_type is smooth_l1 despite the human instruction. This is a forced deviation, not a preference. The mitigation is that the model emits a sigmoid-bounded probability, so smooth_l1 acts as a Brier-like proper scoring rule on 0/1 labels instead of an unbounded regression. If the output_type restriction is lifted, switch to classifier + focal_cw with no architecture change. The memo and the human instruction both require focal_cw.",
+        "Task text says classification, but the run constraint allows only output_type 'regressor'. The model emits [B,1] in [0,1] (sigmoid of a logit), which also satisfies the [B,1] score contract. Only within-dataset ranking matters.",
+        "Memo specification followed: n_stats=6, embed_dim=16, hidden_dim=32, dropout=0.1, 2-layer MLP head. Additions beyond the memo are only implementation details (phi_hidden_dim, min_contacts guard, ridge_lambda, eps), and no new evidence channels were added.",
+        "The memo lists 'neighbour-count split' without a formula. It is implemented as the Spearman difference between high- and low-neighbour-count halves of the contact cells (split on the masked median of row 3). Row 3 is only a split key here. Other definitions are possible, so this is an interpretation.",
+        "Honest status: the 0.592 validation score of the prior lr_contact_contrast_gbm_head comes from the human directive only. It is not reproduced or verified in this project, and no source code was supplied. The design here is a re-implementation from the textual description, so the memo's 0.57 prediction is a prior-based guess.",
+        "The prior run name includes 'gbm', but the memo and human directive specify a 2-layer MLP head. The MLP is used and no gradient-boosting component is implemented.",
+        "Inherited components (human:human_advice): masked closed-form stats + masked DeepSets + 2-layer MLP head are present in the mathematical_definition. Tile-grouped selection and the 7-tile bootstrap are included in expert_advice. The focal_cw component could not be carried into baseline_config because of the run output_type constraint; see the first note."
+    ],
+    "parameter_count_estimate": 1700,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

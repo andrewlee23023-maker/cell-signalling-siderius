@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "candidate_id": "cand_aebbbacb428c46b2938b8913ee879d6b",
+  "realized_total_parameter_count": 1495,
+  "realized_trainable_parameter_count": 1495,
+  "model_type": "masked_contact_coupling_net",
+  "plugin_registered": true,
+  "tests_passed": true,
+  "description_valid": true,
+  "config_fields_valid": true,
+  "forbidden_patterns_check_passed": true,
+  "instantiation_passed": true,
+  "gradient_check_passed": true,
+  "output_type_valid": true,
+  "llm_review_passed": true,
+  "inheritance_check_passed": true,
+  "inheritance_check_notes": [
+    "beta-weighted positive loss: SKIPPED (no pattern in vocab seed)",
+    "rows 0/1 paired ligand-receptor signal with rows 2/3 as covariates: SKIPPED (no pattern in vocab seed)",
+    "padding-masked pooling without batch-relative scoring: SKIPPED (no pattern in vocab seed)"
+  ],
+  "unverified_inherited_components": [],
+  "probe_seed": {
+    "run_seed": 1256939732372547,
+    "at": {
+      "iteration": 1,
+      "node_id": "validate",
+      "branch": null,
+      "round": null,
+      "attempt": 1,
+      "epoch": null
+    }
+  },
+  "test_output": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /home/andre/SIDERIUS-wsl/.venv/bin/python\ncachedir: .pytest_cache\nrootdir: /home/andre/work/cell-signalling/project/results/runs/f5bcabce-5af7-4c75-a3ad-c0c6a6bcb412/workspace\nplugins: anyio-4.12.1\ncollecting ... collected 3 items\n\nloop2c/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_masked_contact_coupling_net.py::test_forward_shape PASSED [ 33%]\nloop2c/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_masked_contact_coupling_net.py::test_forward_gradient PASSED [ 66%]\nloop2c/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_masked_contact_coupling_net.py::test_config_instantiation PASSED [100%]\n\n============================== 3 passed in 3.17s ===============================\n",
+  "llm_review_spec_alignment": false,
+  "llm_review_trainability_concerns": [],
+  "llm_review_implementation_issues": [],
+  "llm_review_notes": "The model is fully trainable and structurally sound. Implementation differences (e.g., the exact ranking logic and normalization procedure) deviate slightly from the mathematical definition but maintain the intended permutation-invariant regression functionality. No crashing bugs or gradient breakages were found.",
+  "spec_deviation_notes": "NOTE: This implementation passes trainability checks but deviates from the proposed mathematical spec. The tuner is optimizing an approximation of the intended architecture. Deviations: The model is fully trainable and structurally sound. Implementation differences (e.g., the exact ranking logic and normalization procedure) deviate slightly from the mathematical definition but maintain the intended permutation-invariant regression functionality. No crashing bugs or gradient breakages were found.",
+  "inheritance_deviation_notes": null,
+  "error_message": null,
+  "$siderius_encoding": {
+    "version": "siderius.nonfinite/v1",
+    "floats": []
+  }
+}

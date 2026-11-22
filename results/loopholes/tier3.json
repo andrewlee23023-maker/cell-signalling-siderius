@@ -1,0 +1,60 @@
+{
+  "L9": {
+    "package_evaluator_passes": 1,
+    "note": "predict_all calls predict(x) once per triple in a single dict comprehension; the organizers' scoring harness is not in the package, so its pass count cannot be read."
+  },
+  "L10": {
+    "baseline": 0.5603341513854212,
+    "batch_split_1": 0.5585062230400852,
+    "batch_split_2": 0.5546911667946427,
+    "batch_split_4": 0.5506439580046889
+  },
+  "L11": {
+    "train_tiles": [
+      "t00_00",
+      "t00_01",
+      "t00_02",
+      "t00_03",
+      "t00_04",
+      "t01_00",
+      "t01_01",
+      "t01_02",
+      "t01_03",
+      "t01_04"
+    ],
+    "validation_tiles": [
+      "t02_00",
+      "t02_01",
+      "t02_02",
+      "t02_03",
+      "t03_01",
+      "t04_00",
+      "t04_03"
+    ],
+    "exact_coordinate_hash_matches": [],
+    "nearest_hist_L1_val_to_train": [
+      0.0528,
+      0.0193,
+      0.0143,
+      0.0932,
+      0.1102,
+      0.2445,
+      0.0255
+    ],
+    "nearest_hist_L1_within_train_min": 0.0116
+  },
+  "L12": {
+    "pair_accuracy_validation": 0.2032520325203252,
+    "majority_pair_rate": 0.07317073170731707,
+    "n_pairs": 36,
+    "baseline": 0.5603341513854212,
+    "baseline_plus_identity_prior": 0.555515156210206,
+    "delta": -0.004818995175215224,
+    "combiner_coefficients": [
+      [
+        10.0882,
+        1.2936
+      ]
+    ]
+  }
+}

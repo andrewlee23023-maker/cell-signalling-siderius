@@ -1,0 +1,153 @@
+{
+    "candidate_id": "cand_aebbbacb428c46b2938b8913ee879d6b",
+    "model_name": "masked_contact_coupling_net",
+    "output_type": "regressor",
+    "model_description": "A tiny permutation-invariant scorer. For each triple (one [5,1024] sample) it builds an explicit padding mask from row 4 and zeroes padded columns. It then residualises the receptor (row 1) and the neighbour ligand signal (row 0) on the covariates (row 2 library offset, row 3 sender fraction, plus an intercept) with a per-sample masked ridge least-squares fit. The fit is closed-form and uses only the sample's own contact cells, with no batch-relative statistics. Masked pooling over contact cells turns the residuals into a fixed vector of order-invariant coupling statistics: Pearson correlation, regression slope, t-like statistic, Fisher-z scaled by sqrt(n-3), masked Spearman-like rank correlation, sender-fraction-weighted correlation, residual standard deviations, and log(n_contact). A 2-layer MLP head maps these to one scalar score per triple. Pooling is a masked sum, so the score is invariant to column order and independent of padding. The model is about 3k parameters.",
+    "mathematical_definition": "Input x in R^{5x1024}. m = x[4] (binary), n = sum(m). Covariate design Z_i = [1, x[2]_i, x[3]_i]. For targets y in {R=x[1], L=x[0]}: beta_y = (Z^T diag(m) Z + lambda I)^{-1} Z^T diag(m) y (batched 3x3 solve, per sample); residual e_y = m * (y - Z beta_y). Masked moments: mu_e = sum(m e)/max(n,1), var_e = sum(m (e-mu_e)^2)/max(n-1,1). Statistics: rho = cov(e_L,e_R)/sqrt(var_eL var_eR + eps); slope = cov/(var_eL+eps); t = rho sqrt((n-2)/(1-rho^2+eps)); z = atanh(clamp(rho)) sqrt(max(n-3,0)); rank correlation rho_s = Pearson of masked ordinal ranks of e_L and e_R (padding is pushed to the end and excluded from the moments; no gradient needed); sender-fraction-weighted correlation = Pearson with weights m*x[3]; sd(e_L), sd(e_R); raw masked means of rows 0 and 1; log(1+n). If n < min_contacts, all coupling statistics are set to 0. Features f in R^d are mapped by a fixed per-feature squashing (signed log1p or tanh scaling, no learned or batch statistics), then LayerNorm over the feature vector, then MLP: Linear(d,h)-GELU-Dropout-Linear(h,h)-GELU-Dropout-Linear(h,1). Output is [B,1], an unbounded score. It is trained as a regressor on 0/1 targets with smooth_l1, and the ranking of scores is the prediction.",
+    "motivation": "The memo's proposed_change is 'Design a small generated model (model_type masked_contact_coupling_net) that scores each eligible directed triple from its per-cell contact features', with masked padding, per-cell residualisation on rows 2 and 3, masked pooling of coupling statistics, and a small MLP head. The causal_hypothesis says raw correlation is confounded by library size, sender fraction and nuisance perturbations, and that regressing out rows 2 and 3 per sample and pooling only over unmasked contact cells should raise the weak-coupling signal-to-noise ratio. A log(n_contact) term and the standard-error-style statistics (t, Fisher-z) let the head account for sample size, because the missed weak positives have more contact cells. Output_type is regressor, as the run requires. The score is a continuous scalar, and the built-in smooth_l1 loss is the legal pairing. Only the within-dataset ranking matters.",
+    "expert_advice": {
+        "focus_areas": [
+            "Learning rate and epochs: the model is tiny, so lr 1e-3 to 5e-3 and 20-60 epochs",
+            "Ridge lambda and min_contacts in the residualisation",
+            "Whether the rank-correlation and weighted-correlation features help: ablate use_rank_stats",
+            "Hidden size and dropout, to guard against overfitting across the 60 training datasets",
+            "Weak-effect recall: check AUPRC separately for beta=0.5 positives if beta is available offline"
+        ],
+        "constraints": [
+            "VRAM: the model is tiny, but the per-sample 3x3 solve and rank sort over 1024 columns should stay below about 1 GB at batch_size 32. That is far under the 6.37 GB effective cap. Keep peak at or below 5 GB when raising batch_size.",
+            "All model_config values must be scalar int, float or bool",
+            "No batch-relative statistics: no BatchNorm, no per-batch standardisation or ranking across triples",
+            "Padding columns must not affect the output. A unit test should perturb padded values and check that the score is unchanged, and permute columns and check the same."
+        ],
+        "known_failures": [
+            "The native trainer passes only the 0/1 target to the loss, and no beta label is supplied. The 1/beta positive weighting from the memo and human directive is therefore not applied. This is an unavailable intervention, so the weighting hypothesis stays untested.",
+            "Smooth_l1 on a 7%-positive target can collapse toward predicting 0. Rank quality may be poor if the head output is near-constant. Watch for low variance of scores.",
+            "Linear residualisation on row 3 may remove part of the true coupling signal if the sender fraction correlates with the ligand signal.",
+            "With 60 training datasets and shared receptors/tiles, the MLP head may overfit and not generalise to the validation tiles.",
+            "Smooth spatial fields cannot be fully removed with only the supplied rows. Residualisation only removes the library and sender-fraction components."
+        ],
+        "suggested_directions": [
+            "First run the baseline_config as given and compare its validation lr_auprc with the memo's predicted 0.30 (refutation at or below 0.20).",
+            "Ablate residualisation (residualize off) to test the covariate-conditioning hypothesis.",
+            "Ablate the log(n) and t/z features to test the sample-size hypothesis for weak effects.",
+            "If the loss collapses, raise lr or the number of epochs, or try a different built-in loss in a later iteration. Do not pass a custom loss through this registry."
+        ],
+        "rationale": "The task is low-data with a known statistical structure: a conditional dependence of R on neighbour L. Hand-built, order-invariant, covariate-adjusted coupling statistics plus a small learned head inject this structure and keep the model small, in line with the human directive. A learned combination of correlation, slope, t-like and sample-size terms can improve on the plain Spearman baseline.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "hidden_dim": 32,
+            "num_layers": 2,
+            "dropout": 0.1,
+            "ridge_lambda": 0.001,
+            "min_contacts": 3,
+            "eps": 1e-6,
+            "residualize": true,
+            "use_rank_stats": true,
+            "use_weighted_corr": true,
+            "use_log_n": true
+        },
+        "train_config": {
+            "lr": 0.002,
+            "epochs": 30,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.0001,
+            "device": "cuda",
+            "lr_schedule": {
+                "kind": "cosine",
+                "horizon_epochs": 30,
+                "min_lr": 0.00001
+            }
+        },
+        "loss_config": {
+            "loss_type": "smooth_l1",
+            "reduction": "mean"
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "beta-weighted positive loss",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive item 1 reports that the Spearman baseline finds 74% of beta=2 positives but only 20% of beta=0.5 positives, and proposes upweighting weak-effect positives by beta. This project has not tested it."
+        },
+        {
+            "component": "rows 0/1 paired ligand-receptor signal with rows 2/3 as covariates",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive items 2 and 4 say to keep the ligand and receptor rows paired, use library offset and sender fraction as covariates, and normalise for smooth spatial fields and nuisance perturbations without batch-relative scoring. This is the basis for the residualisation step."
+        },
+        {
+            "component": "padding-masked pooling without batch-relative scoring",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive items 3 and 4 require that padding does not affect predictions and that batch-relative scoring is not used. Masked pooling over contact cells is the way this proposal meets both."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc",
+        "current_value": null,
+        "predicted_value": 0.3,
+        "threshold_for_refutation": 0.2,
+        "rationale": "There is no observed baseline. The random level is about 0.11 and the Spearman baseline is presumably modestly above it. Residualisation plus a learned head with weak-effect upweighting should lift mean validation AUPRC to about 0.30. A result at or below 0.20 would mean the mechanism does not help."
+    },
+    "proposed_vocab_links": [
+        {
+            "feature": "beta_weighted_loss",
+            "capability": "weak_effect_recall",
+            "evidence": "Human directive (strong_prior, human:human_advice): the Spearman baseline finds 74% of beta=2 positives in top-k but only 20% of beta=0.5 positives. Upweighting weak-effect positives by beta may improve recall. This project has not tested it, so the link is a hypothesis only. Training labels may need to carry beta.",
+            "status": "proposed"
+        },
+        {
+            "feature": "covariate_conditioning_rows_2_3",
+            "capability": "nuisance_normalization",
+            "evidence": "Human directive: keep rows 0 and 1 (ligand and receptor) as the paired signal, and use rows 2 and 3 (library offset and sender-neighbour fraction) as covariates. This is meant to separate the coupling from smooth spatial fields and nuisance perturbations. The link is untested here.",
+            "status": "proposed"
+        },
+        {
+            "feature": "padding_mask",
+            "capability": "padding_invariance",
+            "evidence": "Human directive: padding must not affect predictions. Masked pooling over contact cells is a hypothesis for how to achieve this. It has not been tested here.",
+            "status": "proposed"
+        }
+    ],
+    "proposed_vocab_candidates": [
+        {
+            "name": "beta_weighted_loss",
+            "kind": "feature",
+            "description": "Per-sample training loss weight that increases for weak-effect (low beta) injected positives. Suggested by the human directive to address the low recall of beta=0.5 positives. No experiment has tested it yet."
+        },
+        {
+            "name": "masked_contact_pooling",
+            "kind": "feature",
+            "description": "Pooling of per-cell (ligand, receptor, covariate) features over contact cells with an explicit padding mask. Predictions do not depend on padding, and the pooling uses no batch-relative scoring."
+        },
+        {
+            "name": "weak_effect_recall",
+            "kind": "capability",
+            "description": "Ability to rank beta=0.5 injected triples highly. The Spearman baseline recovers only about 20% of them, against 74% for beta=2."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "Deviation: the memo specified BCE with logits and 1/beta positive weighting (fallback pos_weight about 3). The run requires output_type 'regressor', whose only legal built-in loss is smooth_l1. Custom losses are unavailable in this run, so BCE is replaced by smooth_l1 on the 0/1 targets.",
+        "Deviation: the memo's 1/beta weighting (human directive item 1) cannot be implemented. The native loss receives only the [B,1] target, with no beta label or per-sample weights. This is reported as an unavailable intervention. It is not a false finding, and the weighting hypothesis is untested. The model instead gives the head log(n_contact) and standard-error-style statistics to target weak effects with many contacts.",
+        "Deviation: the memo describes a tiny linear layer that predicts R and L from rows 2 and 3. This design uses a per-sample closed-form masked ridge regression on [1, row2, row3] instead. It has no shared parameters or batch statistics, so it is more robust across datasets and keeps the 'no batch-relative scoring' rule. The regress-out-the-covariates intent is unchanged.",
+        "Deviation: the memo's 'checkpoint_selection=best_validation_loss only if a training-validation scope exists' is not set, so the default last-epoch export applies. A scope was not disclosed. Memo's cosine lr_schedule is kept.",
+        "Note: the task statement says classification, but the run constraint only allows output_type 'regressor'. The run constraint is applied, and the forward output stays a [B,1] ranking score.",
+        "Note: the human directive asks to normalise for smooth spatial fields. Only rows 2 and 3 are available as covariates, so only library-size and sender-fraction effects are residualised. No spatial coordinates are in the input."
+    ],
+    "parameter_count_estimate": 3500,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": null,
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

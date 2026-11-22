@@ -1,0 +1,70 @@
+{
+  "intact": {
+    "baseline (contact Spearman)": {
+      "lr_auprc": 0.5603341513854212,
+      "direction_accuracy": 0.8265873015873014,
+      "lr_auroc": 0.887084724563214
+    },
+    "(b) iter1 without skip": {
+      "lr_auprc": 0.5889444760072339,
+      "direction_accuracy": 0.8329931972789116,
+      "lr_auroc": 0.8929919965355411
+    },
+    "(b) + generator data (uploaded)": {
+      "lr_auprc": 0.6032557030341822,
+      "direction_accuracy": 0.8152305366591082,
+      "lr_auroc": 0.897812350216847
+    }
+  },
+  "shuffle_receptor": {
+    "baseline (contact Spearman)": {
+      "lr_auprc": 0.10968176341460631,
+      "lr_auprc_sd": 0.007588886053693319,
+      "direction_accuracy": 0.5041232048374906
+    },
+    "(b) iter1 without skip": {
+      "lr_auprc": 0.11889220887110745,
+      "lr_auprc_sd": 0.009965722209880623,
+      "direction_accuracy": 0.5275245653817082
+    },
+    "(b) + generator data (uploaded)": {
+      "lr_auprc": 0.11972286839480199,
+      "lr_auprc_sd": 0.010815572759125675,
+      "direction_accuracy": 0.5231897203325775
+    }
+  },
+  "shuffle_ligand": {
+    "baseline (contact Spearman)": {
+      "lr_auprc": 0.10645666045324875,
+      "lr_auprc_sd": 0.01189875637834929,
+      "direction_accuracy": 0.4718631897203326
+    },
+    "(b) iter1 without skip": {
+      "lr_auprc": 0.11505251222747707,
+      "lr_auprc_sd": 0.014259861672064389,
+      "direction_accuracy": 0.5059032501889644
+    },
+    "(b) + generator data (uploaded)": {
+      "lr_auprc": 0.11300188998849889,
+      "lr_auprc_sd": 0.013429641679378539,
+      "direction_accuracy": 0.48952758881330316
+    }
+  },
+  "zero_covariates": {
+    "baseline (contact Spearman)": {
+      "lr_auprc": 0.5603341513854212,
+      "lr_auprc_sd": 0.0,
+      "direction_accuracy": 0.8265873015873014
+    },
+    "(b) iter1 without skip": {
+      "lr_auprc": 0.5543645480255561,
+      "lr_auprc_sd": 0.0,
+      "direction_accuracy": 0.8166666666666668
+    },
+    "(b) + generator data (uploaded)": {
+      "lr_auprc": 0.5590680742590096,
+      "lr_auprc_sd": 0.0,
+      "direction_accuracy": 0.8006046863189721
+    }
+  }
+}

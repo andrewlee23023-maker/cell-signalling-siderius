@@ -1,0 +1,146 @@
+{
+    "candidate_id": "cand_f51acff78f7e49f2a18f3da5d0fcb19c",
+    "model_name": "lr_coupling_mlp_noskip",
+    "output_type": "regressor",
+    "model_description": "A permutation-invariant coupling-statistics MLP without a skip connection, the human-named lr_coupling_mlp starting point. For each triple the [5,1024] contact-cell set is reduced with masked operations to a small fixed vector of coupling features. These include the tie-averaged Spearman correlation of R with the neighbour-ligand signal L, which is the baseline statistic. They also include the Pearson correlation, the OLS slope of R on L, and the partial correlation and slope of R on L after residualising R on log library size and neighbour fraction. A plain 3-layer MLP maps the features to one logit per triple. Only the per-triple features, the contact-cell count and masked summaries are used. There are no NB/t statistics, no alignment-free features and no cross-sample inputs. The single change relative to iter1 is the objective, which becomes class-weighted BCE on the logit.",
+    "mathematical_definition": "Input x in R^{B x 5 x N}; rows are L, R, logLib, nA, mask m. Stage 1, masked reductions per triple (all invariant to column order). n = sum m. Means and variances of L, R, logLib and nA over the masked cells. Rank transform with ties averaged: rank_i(v) = sum_j m_j [v_j < v_i] + 0.5 (sum_j m_j [v_j = v_i] + 1), computed by pairwise comparison and masked. rho_S = masked Pearson correlation of rank(L) and rank(R). rho_P = Pearson(L, R). beta = Cov(L, R) / (Var(L) + eps). Residualise: R~ = R - OLS fit of R on [1, logLib, nA]; L~ = L - OLS fit of L on [1, logLib, nA]. Then rho_partial = Pearson(L~, R~), beta_partial = Cov(L~, R~) / (Var(L~) + eps), and Spearman of rank(L~) against rank(R~). Fisher-z-like scaling is applied to the correlations, z = atanh(clip(rho)) * sqrt(max(n - 3, 0)). The feature vector f = [rho_S, rho_P, rho_partial, rho_S_resid, z-scaled versions, beta, beta_partial, mean L, std L, mean R, std R, log(1 + n), mean nA]. Stage 2: h0 = LayerNorm(f), then n_layers blocks of h <- Dropout(GELU(Linear(h))), with no residual or skip path. Stage 3: logit = Linear(h) of shape [B,1]. The output is an unbounded real-valued logit, which is the regression-type output and needs no sigmoid. Loss (custom): mean over triples of -[pos_weight * y * log sigmoid(s) + (1 - y) * log(1 - sigmoid(s))].",
+    "motivation": "The proposed_change is the single swap, relative to the human-named iter1 lr_coupling_mlp without skip, from smooth-L1 to class-weighted BCE with pos_weight of about 13.7, keeping the same MLP and the same coupling features. Per the causal_hypothesis, smooth-L1 fits 0/1 labels as numbers. With a prevalence near 0.07 it is dominated by negatives and shrinks scores toward 0, which gives a weak ordering at the top of the ranking that lr_auprc rewards. Class-weighted BCE balances the gradient mass and optimises a ranking-consistent likelihood. This is untested; no experiments exist. The output is a single continuous logit per triple, so output_type is 'regressor', as the run requires. The loss is a custom plugin so that BCE stays compatible with the regressor output contract. The feature set contains the Spearman baseline statistic, so the MLP can at least reproduce it. The partial correlations against library size and neighbour fraction target the dependence of R in B cells on neighbouring A-cell ligand signal, not mean expression differences. They are meant to help separate injected couplings from the equally sized unobserved-ligand perturbations.",
+    "expert_advice": {
+        "focus_areas": [
+            "Epoch count and lr at a fixed schedule (last completed epoch is exported, so avoid too many epochs).",
+            "Whether partial-correlation features add anything over the plain Spearman feature, as a later one-factor ablation.",
+            "pos_weight near 13.7 versus smaller values such as 5, as a later single-factor test."
+        ],
+        "constraints": [
+            "VRAM: stay under about 5 GB, which is 80% of the 6.37 GB effective cap. The pairwise rank computation is O(B*N^2), about 4 MB per triple per intermediate in fp32, so keep batch_size at or below 64 and use 16 at baseline.",
+            "Keep model_config values scalar (int, float, bool only).",
+            "Do not use NB/t-statistic features, alignment-free features, or any other sample's inputs, per the human directive.",
+            "Do not use checkpoint_selection=best_validation_loss; keep last_completed_epoch."
+        ],
+        "known_failures": [
+            "A fixed 40 epochs without best-epoch selection may overfit the 60 training datasets, so the last epoch may be worse than an early one.",
+            "The features may not separate injected couplings from unobserved-ligand perturbations, so the MLP would only match the Spearman baseline.",
+            "A heavy pos_weight can make training noisy and the logits poorly calibrated across datasets. This matters little for within-dataset ranking.",
+            "Custom losses are reported as unavailable in this run. If the custom BCE plugin cannot be loaded, the only built-in loss compatible with the regressor output is smooth_l1, which is the iter1 baseline."
+        ],
+        "suggested_directions": [
+            "First run the baseline_config as given, with BCE pos_weight 13.7 and no skip.",
+            "Then change one factor at a time: lr (3e-4 vs 1e-3), epochs (20 vs 40 vs 80), hidden_dim, dropout.",
+            "Check validation lr_auprc against the Spearman baseline, to see whether the MLP exceeds the single statistic."
+        ],
+        "rationale": "The model is tiny, about 40k parameters, and its input features are low-dimensional. The main risks are overfitting and a lack of signal, not capacity or memory. Tuning should therefore stay on optimisation hyperparameters and keep the one-change-at-a-time protocol the human asked for.",
+        "freeform_notes": null
+    },
+    "baseline_config": {
+        "model_config": {
+            "hidden_dim": 128,
+            "n_layers": 3,
+            "dropout": 0.1,
+            "use_skip": false,
+            "n_features": 18,
+            "eps": 1e-6,
+            "use_partial_features": true
+        },
+        "train_config": {
+            "lr": 0.001,
+            "epochs": 40,
+            "batch_size": 16,
+            "optimizer_type": "adamw",
+            "weight_decay": 0.0001,
+            "device": "cuda",
+            "checkpoint_selection": "last_completed_epoch",
+            "lr_schedule": null
+        },
+        "loss_config": {
+            "loss_type": "custom",
+            "loss_name": "pos_weighted_bce_logits",
+            "pos_weight": 13.7
+        }
+    },
+    "inherited_components": [
+        {
+            "component": "lr_coupling_mlp (no skip connection) architecture",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive names the iter1 lr_coupling_mlp without skip as the starting point. No scored results exist for it in this project, so this is a design choice, not measured evidence."
+        },
+        {
+            "component": "class-weighted BCE with pos_weight about 13.7 (or focal_cw)",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive argues smooth-L1 fits labels as numbers, which a ranking metric does not reward. The proposed loss is the single change tested. The claim is untested here."
+        },
+        {
+            "component": "fixed epochs with last_completed_epoch checkpointing",
+            "source_type": "human",
+            "source_id": "human:human_advice",
+            "from_run": null,
+            "contribution_evidence": "Human directive: train a fixed number of epochs and keep the last one, so validation is used only for the final comparison. This is a protocol choice with no performance evidence."
+        }
+    ],
+    "falsifiable_prediction": {
+        "metric": "lr_auprc",
+        "current_value": null,
+        "predicted_value": 0.3,
+        "threshold_for_refutation": 0.2,
+        "rationale": "No observed baseline. Random is about 0.11, and the Spearman baseline is expected to be modestly above random. A class-weighted MLP on coupling features should clearly beat random, so I predict a mean validation lr_auprc of about 0.30. A result below 0.20 refutes the claim that the weighted-BCE MLP gives a useful ranking."
+    },
+    "proposed_vocab_links": [
+        {
+            "feature": "class_weighted_bce_loss",
+            "capability": "ranking_metric_alignment",
+            "evidence": "Suggested by the human directive (strong_prior, human:human_advice). It says smooth-L1 fits labels as numbers, while class-weighted BCE (pos_weight about 13.7) or focal_cw fits a ranking metric like lr_auprc better. This project has no experiment results yet, so the link is unconfirmed.",
+            "status": "proposed"
+        },
+        {
+            "feature": "last_completed_epoch_checkpointing",
+            "capability": "validation_leakage_control",
+            "evidence": "Suggested by the human directive: train a fixed number of epochs and keep the last epoch, so validation is used only for the final comparison. No experiments have tested it. It is a protocol choice, not a performance claim.",
+            "status": "proposed"
+        }
+    ],
+    "proposed_vocab_candidates": [
+        {
+            "name": "class_weighted_bce_loss",
+            "kind": "feature",
+            "description": "Binary cross-entropy on injected-vs-not triple labels with pos_weight set to the negative-to-positive ratio (about 13.7 on train). It replaces smooth-L1 regression on the labels with a ranking-friendly objective. Alternative: the built-in focal_cw."
+        },
+        {
+            "name": "lr_coupling_mlp_no_skip",
+            "kind": "feature",
+            "description": "MLP scoring each eligible directed (L, R, A->B) triple from spatial coupling features, such as the Spearman correlation of R with the neighbour L signal over contact cells, with the skip connection removed. The human directive names it as the starting point, and no source code was supplied here."
+        },
+        {
+            "name": "ranking_metric_alignment",
+            "kind": "capability",
+            "description": "The degree to which the training objective rewards correct ordering of triples (AUPRC-like) rather than numeric fit of the labels."
+        }
+    ],
+    "proposed_discoveries": [],
+    "memo_consistency_notes": [
+        "Deviation: the memo's fallback of built-in focal_cw is not used. The run declares output_type 'regressor', for which only smooth_l1 (built-in) or a custom loss is legal, so focal_cw would be rejected. The human directive allows BCE with pos_weight as a custom loss, which I chose.",
+        "The task description says classification, but the run constraint allows only output_type 'regressor'. I emit a single [B,1] logit and declare 'regressor'. The custom BCE loss consumes the logit and the 0/1 target, so the shape contract holds.",
+        "The memo says the custom-loss registry is unavailable in this run. Branch B is not used. Branch C is used with a populated custom_loss_spec because the human explicitly requested BCE as a custom loss. If the plugin cannot be created, the only compatible built-in fallback is smooth_l1, which would undo the single change under test. This risk is flagged here and not hidden.",
+        "The memo says model_name=lr_coupling_mlp if registered. It is not registered (no custom models exist), so a new model, lr_coupling_mlp_noskip, is generated from the mathematical_definition (Branch C). No iter1 source code was supplied, so the exact iter1 feature set is reconstructed from the task baseline (Spearman of R with the neighbour L signal). The extra partial-correlation features are my interpretation, and use_partial_features makes them switchable for ablation.",
+        "The inherited components (lr_coupling_mlp without skip, class-weighted BCE with pos_weight 13.7, fixed epochs with last_completed_epoch) are all present in model_config, train_config and loss_config. use_skip=false is explicit."
+    ],
+    "parameter_count_estimate": 38000,
+    "preflight_estimated_minutes": null,
+    "preflight_factor": null,
+    "custom_loss_spec": {
+        "loss_name": "pos_weighted_bce_logits",
+        "description": "Class-weighted binary cross-entropy applied to the raw logit output of shape [B,1] against 0/1 injected labels. Positives are up-weighted by the negative-to-positive ratio of the training set (about 13.7), so the roughly 7% positives contribute gradient comparable to the negatives. It replaces smooth-L1 on the labels, which treats them as numbers to fit. It is a likelihood-based objective that optimises ordering, which is what AUPRC rewards. It is a custom plugin because the built-in focal_cw is not legal with the regressor output contract.",
+        "mathematical_definition": "Given logits s in R^{B x 1} and targets y in {0,1}^{B x 1}: L = mean_i [ -pos_weight * y_i * log sigmoid(s_i) - (1 - y_i) * log(1 - sigmoid(s_i)) ]. Implement as torch.nn.functional.binary_cross_entropy_with_logits(s, y, pos_weight=torch.tensor(pos_weight)) with reduction 'mean'. The output is a finite scalar.",
+        "config_fields": {
+            "pos_weight": 13.7,
+            "reduction": "mean"
+        },
+        "contract_snapshot": null
+    },
+    "$siderius_encoding": {
+        "version": "siderius.nonfinite/v1",
+        "floats": []
+    }
+}

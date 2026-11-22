@@ -1,0 +1,2463 @@
+[seed] run_seed=4778776952934699 source=generated
+Proposing new architecture based on interpretation of [] ...
+   Pipeline mode: explore | stages: ['comparison', 'causal_reasoning']
+   Candidates: [] (0 models, 0 with source code); non-candidates: []
+   Stage 'comparison': calling LLM... [PROMPT_SIZE] 5449 chars
+   Stage 'comparison': done.
+   Stage 'causal_reasoning': calling LLM... [PROMPT_SIZE] 7142 chars
+   Stage 'causal_reasoning': done.
+   Stage 'proposing': calling LLM (structural 1/3)...
+Proposed model (pipeline): 'lr_contact_contrast_gbm_head'
+Proposal saved -> /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/propose/iteration_001/attempt_001/proposal_explore2.json
+    Inherited experiment components: no reference source is loaded in this worker.
+🔧 Implementing model 'lr_contact_contrast_gbm_head' ...
+   Reasoning complete (14860 chars).
+✅ Plugin written → /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/implement/iteration_001/attempt_001/impl_001/models/lr_contact_contrast_gbm_head.py
+📝 Metadata built → model 'lr_contact_contrast_gbm_head' (register-on-pass)
+✅ Description   → /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/implement/iteration_001/attempt_001/impl_001/models/lr_contact_contrast_gbm_head/description.md
+✅ Test written  → /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/implement/iteration_001/attempt_001/impl_001/tests/test_lr_contact_contrast_gbm_head.py
+✅ Output record → /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/implement/iteration_001/attempt_001/impl_001/implementor_explore2.json
+  WARNING (spec alignment): implementation deviates from proposal spec. Model will train but may not exactly test the proposed hypothesis. Notes: The implementation is a functional and trainable regressor. It deviates from the spec in minor implementation details: ranking logic (using custom scatter/gather operations instead of simple torch.argsort or jitter-handling), handling of masked mean pools, and the precise list of concatenated statistics. These do not prevent the model from running or converging. The logic correctly handles masked inputs and computes the required statistics for a per-triple score.
+    [MemCheck] 'lr_contact_contrast_gbm_head': RSS 0.002 GiB; parameters 0.000 GiB; buffers 0.000 GiB; unexplained 0.002 GiB (limit 0.500 GiB)
+    [DEBUG] Plugin source saved to sentinel: /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/plugin_source_sentinel/lr_contact_contrast_gbm_head.py
+    Plugin registered → /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/train/iteration_001/attempt_001/plugins/explore2/lr_contact_contrast_gbm_head.py
+    Description registered → /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/train/iteration_001/attempt_001/plugins/explore2/lr_contact_contrast_gbm_head/description.md
+    Model 'lr_contact_contrast_gbm_head' added to registries (model_type='lr_contact_contrast_gbm_head')
+[Tuner] Hardware context: NVIDIA GeForce RTX 5060 Laptop GPU | total=8.0 GB | cap=6.4 GB | host=Andrew | available=True
+Input validated: model=lr_contact_contrast_gbm_head | rounds=2 | file_index=6 | trial_allowed=True | provider=anthropic
+[time-gate disabled / trial] trial_time_budget_minutes is None — evaluate_time_skill will not gate trial-mode rounds.
+[time-gate disabled / formal] formal_time_budget_minutes is None — evaluate_time_skill will not gate formal-mode rounds.
+[vram-gate disabled / trial] trial_vram_budget_gb is None — evaluate_vram_skill uses free×0.8 defensive limit for trial-mode rounds.
+[vram-gate disabled / formal] formal_vram_budget_gb is None — evaluate_vram_skill uses free×0.8 defensive limit for formal-mode rounds.
+[Tuner] trial anchoring SKIPPED — task data path 'directed_lr_coupling' declares none, so there is no artifact to load. Any consumer that needs one will fail closed on its own; nothing is guessed here.
+Reference scores: NOT DECLARED. The framework does not select task-specific comparison evidence implicitly; comparison tables are omitted for this run.
+=== SIDERIUS Agent Activated ===
+Provider: anthropic | Model: claude-sonnet-5-5
+HealthGate config: /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/train/iteration_001/attempt_001/health_checks_effective.yaml
+Formal comparison thresholds: reference=none, skip=none, bypass=none
+[chain_incumbent] provided=none; coupling=OFF; consumed=none
+Expert Advice: NOTE: This implementation passes trainability checks but deviates from the proposed mathematical spec. The tuner is optimizing an approximation of the intended architecture. Deviations: The implementation is a functional and trainable regressor. It deviates from the spec in minor implementation details: ranking logic (using custom scatter/gather operations instead of simple torch.argsort or jitter-handling), handling of masked mean pools, and the precise list of concatenated statistics. These do not prevent the model from running or converging. The logic correctly handles masked inputs and computes the required statistics for a per-triple score.
+
+Focus areas: Ablate the feature groups: raw Spearman only, plus partial, plus tercile contrast, plus DeepSets branch, to see which carries lr_auprc over the baseline.; Tune shrink_n0 and lambda_ridge, since rare sender-receiver pairs have few contact cells and give noisy statistics.; Tune dropout, weight_decay and epochs, because overfitting across the 10 training tiles is the main risk.; Check that the head's score is monotone in raw Spearman at initialisation, e.g. via a skip connection from r_spearman, so it never starts below the baseline.
+Constraints: Peak VRAM must stay far below the 6.37 GB effective cap (target at most 5 GB). The model has under 20k parameters and batch tensors of B x 5 x 1024, so a batch_size of a few hundred is safe.; Order invariance: no positional encodings or convolutions along the column axis; every reduction must be masked.; Output exactly [B,1] float32, finite; padded columns must never influence the output (verify by permuting columns and changing padded values).
+Known failures: Overfitting to the 10 training tiles; validation tiles have different cell-type mix and contact structure, so validation lr_auprc may fall near the baseline.; Contact definition is fixed by the dataset (6 nearest neighbours), so radius_um/k_neighbors cannot be varied and cannot be tuned to the simulator's interaction range.; Rare pairs with few contact cells give very noisy statistics and dominate the false positives, so shrinkage may be needed.; Cross-triple contrasts (reverse direction B->A, other senders, non-contact cells) are unavailable in the per-triple forward, so the confound is only partly cancelled.
+Suggested directions: First run: baseline_config as given. Compare validation lr_auprc against the plain Spearman baseline (taken as the single feature).; Second: remove the DeepSets branch (use_deepset=false) to test whether hand-built statistics suffice.; Third: add a residual connection from r_spearman and r_partial to the output, then sweep dropout in {0.0,0.1,0.3}.; If smooth_l1 on 0/1 targets under-weights positives, request a different loss in a later iteration; a ranking loss would suit the metric better but is outside the regressor/smooth_l1 contract here.
+Rationale: Under 20k parameters with strong hand-built statistics fits the small training pool (60 datasets, a few hundred to thousands of triples each). The in-triple contrast features follow the memo's confound-cancelling logic as far as the single-triple input allows.
+Max Rounds: 2 | Strategy: lr_contact_contrast_gbm_head
+Reading model configuration manual...
+No authorized model description for 'lr_contact_contrast_gbm_head' (composed source absence)
+
+
+============================================================
+ROUND 1/2 (attempt 1/3, total 1): Planning...
+============================================================
+    [PLANNER_STRATEGY] {"name":"native-timing-v1","version":"1","content_sha256":"6dc83ad5cbb0f4d51adf68bdbee08cb574de1c7a17fa9463663edd53415e12ad","assembly_sha256":"d512b2949b4a3c273ed5b1cd4722a99f6522bd36bb2a5e3d217579be11d4abe4"}
+    [PROMPT_SIZE] planner: 26181 chars
+[data_order] proposed=none override=none resolved=shuffle source=default file_order=none
+  Task-owned scope: no legacy SampleSet is built for a composed task
+Action: LR_CONTACT_CONTRAST_GBM_HEAD | ID: lr_contact_contrast_gbm_head_explore2_001
+Effective configuration for this attempt (prepared request; execution/results pending):
+  No authored configuration values were overridden.
+Authored proposal (not observed execution/results):
+  Proposal hypothesis: The model with the Spearman skip, shrink_n0=20 and dropout 0.1 reaches validation lr_auprc at or slightly above the plain Spearman baseline. The partial-correlation and tercile-contrast features should cancel part of the confound.
+  Proposal reasoning: Round 1 with no memory. Follow expert advice: start from the baseline-like config with skip connection from Spearman (monotone at init so it should not start below the baseline), DeepSets enabled, moderate shrinkage and regularization to limit overfitting across the 10 training tiles. Run formal mode, since the final round is forced formal and the formal scope is operator-fixed at full data, so the score is directly comparable.
+
+[Pre-flight 1/2] VRAM check (mode=formal, budget=free×0.8)...
+  Pre-phase GPU measurement: 1954 MiB (training), admitted
+
+[Step 1/3] Training...
+
+>>> [Skill: Training] Initiating training for lr_contact_contrast_gbm_head_explore2_001...
+>>> [Executor] Running training for lr_contact_contrast_gbm_head_explore2_001...
+--- Train Script Output ---
+[PluginLoader] Loaded plugin: 'lr_contact_contrast_gbm_head' from lr_contact_contrast_gbm_head.py
+[seed] run_seed=4778776952934699 source=supplied
+[data_order] resolved=shuffle file_order=none epoch=0 epoch_seed=7018993918600223686
+[training_budget] {"stage":"before_optimizer","epochs":30,"optimizer_steps":1590,"budget_seconds":null,"predicted_training_seconds":null,"actual_training_seconds":null,"predicted_training_budget_fraction":null,"missing_prediction_phases":["training","validation","inference","scoring"],"message":"Fixed epoch horizon; execution will not add epochs to consume remaining budget. Budget is admission-only, not guaranteed optimization time. Missing phase predictions are unknown, not zero; no unused-budget claim is possible."}
+
+Epoch 0:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 0:   2%|▏         | 1/53 [00:00<00:31,  1.63it/s]
+Epoch 0:   8%|▊         | 4/53 [00:00<00:07,  6.70it/s]
+Epoch 0:  13%|█▎        | 7/53 [00:00<00:04, 11.20it/s]
+Epoch 0:  19%|█▉        | 10/53 [00:00<00:02, 14.89it/s]
+Epoch 0:  25%|██▍       | 13/53 [00:01<00:02, 17.70it/s][training_budget] {"stage":"post_training_verification","epochs":30,"optimizer_steps":1590,"budget_seconds":null,"predicted_training_seconds":82.52657725983227,"actual_training_seconds":null,"predicted_training_budget_fraction":null,"missing_prediction_phases":["validation","inference","scoring"],"message":"Fixed epoch horizon; execution will not add epochs to consume remaining budget. Budget is admission-only, not guaranteed optimization time. Missing phase predictions are unknown, not zero; no unused-budget claim is possible."}
+
+Epoch 0:  30%|███       | 16/53 [00:01<00:01, 19.34it/s]
+Epoch 0:  36%|███▌      | 19/53 [00:01<00:01, 20.91it/s]
+Epoch 0:  42%|████▏     | 22/53 [00:01<00:01, 22.56it/s]
+Epoch 0:  47%|████▋     | 25/53 [00:01<00:01, 23.72it/s]
+Epoch 0:  53%|█████▎    | 28/53 [00:01<00:01, 24.65it/s]
+Epoch 0:  58%|█████▊    | 31/53 [00:01<00:00, 25.56it/s]
+Epoch 0:  64%|██████▍   | 34/53 [00:01<00:00, 25.93it/s]
+Epoch 0:  70%|██████▉   | 37/53 [00:01<00:00, 26.61it/s]
+Epoch 0:  75%|███████▌  | 40/53 [00:02<00:00, 26.75it/s]
+Epoch 0:  81%|████████  | 43/53 [00:02<00:00, 26.79it/s]
+Epoch 0:  87%|████████▋ | 46/53 [00:02<00:00, 26.95it/s]
+Epoch 0:  92%|█████████▏| 49/53 [00:02<00:00, 27.39it/s]
+Epoch 0:  98%|█████████▊| 52/53 [00:02<00:00, 27.39it/s]
+Epoch 0: 100%|██████████| 53/53 [00:02<00:00, 20.59it/s]
+Epoch 0 | Avg Loss: 0.026340
+Epoch 0 | Validation Loss: 0.023879 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=1 epoch_seed=5227237813512877362
+
+Epoch 1:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 1:   6%|▌         | 3/53 [00:00<00:01, 26.77it/s]
+Epoch 1:  11%|█▏        | 6/53 [00:00<00:01, 26.03it/s]
+Epoch 1:  17%|█▋        | 9/53 [00:00<00:01, 26.12it/s]
+Epoch 1:  23%|██▎       | 12/53 [00:00<00:01, 26.22it/s]
+Epoch 1:  28%|██▊       | 15/53 [00:00<00:01, 26.29it/s]
+Epoch 1:  34%|███▍      | 18/53 [00:00<00:01, 25.57it/s]
+Epoch 1:  40%|███▉      | 21/53 [00:00<00:01, 24.20it/s]
+Epoch 1:  45%|████▌     | 24/53 [00:00<00:01, 22.47it/s]
+Epoch 1:  51%|█████     | 27/53 [00:01<00:01, 20.67it/s]
+Epoch 1:  57%|█████▋    | 30/53 [00:01<00:01, 20.33it/s]
+Epoch 1:  62%|██████▏   | 33/53 [00:01<00:00, 20.74it/s]
+Epoch 1:  68%|██████▊   | 36/53 [00:01<00:00, 20.52it/s]
+Epoch 1:  74%|███████▎  | 39/53 [00:01<00:00, 21.43it/s]
+Epoch 1:  79%|███████▉  | 42/53 [00:01<00:00, 22.31it/s]
+Epoch 1:  85%|████████▍ | 45/53 [00:01<00:00, 23.31it/s]
+Epoch 1:  91%|█████████ | 48/53 [00:02<00:00, 24.28it/s]
+Epoch 1:  96%|█████████▌| 51/53 [00:02<00:00, 24.48it/s]
+Epoch 1: 100%|██████████| 53/53 [00:02<00:00, 23.33it/s]
+Epoch 1 | Avg Loss: 0.023154
+Epoch 1 | Validation Loss: 0.022216 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=2 epoch_seed=5031300211549535790
+
+Epoch 2:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 2:   6%|▌         | 3/53 [00:00<00:01, 25.07it/s]
+Epoch 2:  11%|█▏        | 6/53 [00:00<00:02, 23.43it/s]
+Epoch 2:  17%|█▋        | 9/53 [00:00<00:02, 20.17it/s]
+Epoch 2:  23%|██▎       | 12/53 [00:00<00:01, 21.79it/s]
+Epoch 2:  28%|██▊       | 15/53 [00:00<00:01, 22.68it/s]
+Epoch 2:  34%|███▍      | 18/53 [00:00<00:01, 23.09it/s]
+Epoch 2:  40%|███▉      | 21/53 [00:00<00:01, 23.44it/s]
+Epoch 2:  45%|████▌     | 24/53 [00:01<00:01, 24.21it/s]
+Epoch 2:  51%|█████     | 27/53 [00:01<00:01, 24.77it/s]
+Epoch 2:  57%|█████▋    | 30/53 [00:01<00:00, 25.26it/s]
+Epoch 2:  62%|██████▏   | 33/53 [00:01<00:00, 25.42it/s]
+Epoch 2:  68%|██████▊   | 36/53 [00:01<00:00, 25.65it/s]
+Epoch 2:  74%|███████▎  | 39/53 [00:01<00:00, 25.67it/s]
+Epoch 2:  79%|███████▉  | 42/53 [00:01<00:00, 25.75it/s]
+Epoch 2:  85%|████████▍ | 45/53 [00:01<00:00, 25.87it/s]
+Epoch 2:  91%|█████████ | 48/53 [00:01<00:00, 25.72it/s]
+Epoch 2:  96%|█████████▌| 51/53 [00:02<00:00, 25.74it/s]
+Epoch 2: 100%|██████████| 53/53 [00:02<00:00, 24.62it/s]
+Epoch 2 | Avg Loss: 0.022133
+Epoch 2 | Validation Loss: 0.022116 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=3 epoch_seed=5768630339072346052
+
+Epoch 3:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 3:   6%|▌         | 3/53 [00:00<00:01, 25.31it/s]
+Epoch 3:  11%|█▏        | 6/53 [00:00<00:01, 25.88it/s]
+Epoch 3:  17%|█▋        | 9/53 [00:00<00:01, 26.52it/s]
+Epoch 3:  23%|██▎       | 12/53 [00:00<00:01, 26.21it/s]
+Epoch 3:  28%|██▊       | 15/53 [00:00<00:01, 26.64it/s]
+Epoch 3:  34%|███▍      | 18/53 [00:00<00:01, 25.91it/s]
+Epoch 3:  40%|███▉      | 21/53 [00:00<00:01, 25.71it/s]
+Epoch 3:  45%|████▌     | 24/53 [00:00<00:01, 25.50it/s]
+Epoch 3:  51%|█████     | 27/53 [00:01<00:01, 25.35it/s]
+Epoch 3:  57%|█████▋    | 30/53 [00:01<00:00, 25.90it/s]
+Epoch 3:  62%|██████▏   | 33/53 [00:01<00:00, 25.94it/s]
+Epoch 3:  68%|██████▊   | 36/53 [00:01<00:00, 26.17it/s]
+Epoch 3:  74%|███████▎  | 39/53 [00:01<00:00, 26.69it/s]
+Epoch 3:  79%|███████▉  | 42/53 [00:01<00:00, 27.58it/s]
+Epoch 3:  85%|████████▍ | 45/53 [00:01<00:00, 28.04it/s]
+Epoch 3:  91%|█████████ | 48/53 [00:01<00:00, 28.17it/s]
+Epoch 3:  96%|█████████▌| 51/53 [00:01<00:00, 28.54it/s]
+Epoch 3: 100%|██████████| 53/53 [00:01<00:00, 26.87it/s]
+Epoch 3 | Avg Loss: 0.021989
+Epoch 3 | Validation Loss: 0.022287 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=4 epoch_seed=4531163607092794864
+
+Epoch 4:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 4:   6%|▌         | 3/53 [00:00<00:01, 26.55it/s]
+Epoch 4:  11%|█▏        | 6/53 [00:00<00:01, 27.47it/s]
+Epoch 4:  17%|█▋        | 9/53 [00:00<00:01, 28.00it/s]
+Epoch 4:  23%|██▎       | 12/53 [00:00<00:01, 28.31it/s]
+Epoch 4:  28%|██▊       | 15/53 [00:00<00:01, 28.36it/s]
+Epoch 4:  34%|███▍      | 18/53 [00:00<00:01, 26.35it/s]
+Epoch 4:  40%|███▉      | 21/53 [00:00<00:01, 24.36it/s]
+Epoch 4:  45%|████▌     | 24/53 [00:00<00:01, 24.96it/s]
+Epoch 4:  51%|█████     | 27/53 [00:01<00:01, 25.78it/s]
+Epoch 4:  57%|█████▋    | 30/53 [00:01<00:00, 26.50it/s]
+Epoch 4:  62%|██████▏   | 33/53 [00:01<00:00, 27.05it/s]
+Epoch 4:  68%|██████▊   | 36/53 [00:01<00:00, 27.39it/s]
+Epoch 4:  74%|███████▎  | 39/53 [00:01<00:00, 27.37it/s]
+Epoch 4:  79%|███████▉  | 42/53 [00:01<00:00, 27.63it/s]
+Epoch 4:  85%|████████▍ | 45/53 [00:01<00:00, 27.46it/s]
+Epoch 4:  91%|█████████ | 48/53 [00:01<00:00, 27.54it/s]
+Epoch 4:  96%|█████████▌| 51/53 [00:01<00:00, 27.74it/s]
+Epoch 4: 100%|██████████| 53/53 [00:01<00:00, 27.08it/s]
+Epoch 4 | Avg Loss: 0.021769
+Epoch 4 | Validation Loss: 0.022104 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=5 epoch_seed=6375699455771649730
+
+Epoch 5:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 5:   6%|▌         | 3/53 [00:00<00:01, 28.93it/s]
+Epoch 5:  11%|█▏        | 6/53 [00:00<00:01, 28.59it/s]
+Epoch 5:  17%|█▋        | 9/53 [00:00<00:01, 28.27it/s]
+Epoch 5:  23%|██▎       | 12/53 [00:00<00:01, 27.89it/s]
+Epoch 5:  28%|██▊       | 15/53 [00:00<00:01, 26.71it/s]
+Epoch 5:  34%|███▍      | 18/53 [00:00<00:01, 25.99it/s]
+Epoch 5:  40%|███▉      | 21/53 [00:00<00:01, 26.46it/s]
+Epoch 5:  45%|████▌     | 24/53 [00:00<00:01, 26.88it/s]
+Epoch 5:  51%|█████     | 27/53 [00:00<00:00, 27.32it/s]
+Epoch 5:  57%|█████▋    | 30/53 [00:01<00:00, 27.50it/s]
+Epoch 5:  62%|██████▏   | 33/53 [00:01<00:00, 27.99it/s]
+Epoch 5:  68%|██████▊   | 36/53 [00:01<00:00, 27.78it/s]
+Epoch 5:  74%|███████▎  | 39/53 [00:01<00:00, 28.02it/s]
+Epoch 5:  79%|███████▉  | 42/53 [00:01<00:00, 28.22it/s]
+Epoch 5:  85%|████████▍ | 45/53 [00:01<00:00, 28.21it/s]
+Epoch 5:  91%|█████████ | 48/53 [00:01<00:00, 28.49it/s]
+Epoch 5:  98%|█████████▊| 52/53 [00:01<00:00, 29.12it/s]
+Epoch 5: 100%|██████████| 53/53 [00:01<00:00, 27.94it/s]
+Epoch 5 | Avg Loss: 0.021401
+Epoch 5 | Validation Loss: 0.022563 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=6 epoch_seed=3731714155198967716
+
+Epoch 6:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 6:   6%|▌         | 3/53 [00:00<00:01, 27.67it/s]
+Epoch 6:  11%|█▏        | 6/53 [00:00<00:01, 27.93it/s]
+Epoch 6:  17%|█▋        | 9/53 [00:00<00:01, 28.56it/s]
+Epoch 6:  23%|██▎       | 12/53 [00:00<00:01, 28.06it/s]
+Epoch 6:  28%|██▊       | 15/53 [00:00<00:01, 28.20it/s]
+Epoch 6:  34%|███▍      | 18/53 [00:00<00:01, 28.14it/s]
+Epoch 6:  40%|███▉      | 21/53 [00:00<00:01, 28.44it/s]
+Epoch 6:  45%|████▌     | 24/53 [00:00<00:01, 28.85it/s]
+Epoch 6:  51%|█████     | 27/53 [00:00<00:00, 28.66it/s]
+Epoch 6:  57%|█████▋    | 30/53 [00:01<00:00, 28.38it/s]
+Epoch 6:  62%|██████▏   | 33/53 [00:01<00:00, 28.15it/s]
+Epoch 6:  68%|██████▊   | 36/53 [00:01<00:00, 28.48it/s]
+Epoch 6:  74%|███████▎  | 39/53 [00:01<00:00, 28.52it/s]
+Epoch 6:  79%|███████▉  | 42/53 [00:01<00:00, 28.55it/s]
+Epoch 6:  85%|████████▍ | 45/53 [00:01<00:00, 28.66it/s]
+Epoch 6:  91%|█████████ | 48/53 [00:01<00:00, 28.74it/s]
+Epoch 6:  96%|█████████▌| 51/53 [00:01<00:00, 28.69it/s]
+Epoch 6: 100%|██████████| 53/53 [00:01<00:00, 28.47it/s]
+Epoch 6 | Avg Loss: 0.021373
+Epoch 6 | Validation Loss: 0.021987 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=7 epoch_seed=722208531915638863
+
+Epoch 7:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 7:   6%|▌         | 3/53 [00:00<00:01, 29.84it/s]
+Epoch 7:  11%|█▏        | 6/53 [00:00<00:01, 29.10it/s]
+Epoch 7:  17%|█▋        | 9/53 [00:00<00:01, 29.24it/s]
+Epoch 7:  23%|██▎       | 12/53 [00:00<00:01, 29.38it/s]
+Epoch 7:  28%|██▊       | 15/53 [00:00<00:01, 29.41it/s]
+Epoch 7:  34%|███▍      | 18/53 [00:00<00:01, 28.97it/s]
+Epoch 7:  40%|███▉      | 21/53 [00:00<00:01, 28.22it/s]
+Epoch 7:  45%|████▌     | 24/53 [00:00<00:01, 28.33it/s]
+Epoch 7:  51%|█████     | 27/53 [00:00<00:00, 28.37it/s]
+Epoch 7:  57%|█████▋    | 30/53 [00:01<00:00, 28.56it/s]
+Epoch 7:  62%|██████▏   | 33/53 [00:01<00:00, 28.56it/s]
+Epoch 7:  68%|██████▊   | 36/53 [00:01<00:00, 28.45it/s]
+Epoch 7:  74%|███████▎  | 39/53 [00:01<00:00, 28.59it/s]
+Epoch 7:  79%|███████▉  | 42/53 [00:01<00:00, 28.85it/s]
+Epoch 7:  85%|████████▍ | 45/53 [00:01<00:00, 28.91it/s]
+Epoch 7:  91%|█████████ | 48/53 [00:01<00:00, 28.69it/s]
+Epoch 7:  96%|█████████▌| 51/53 [00:01<00:00, 28.77it/s]
+Epoch 7: 100%|██████████| 53/53 [00:01<00:00, 28.73it/s]
+Epoch 7 | Avg Loss: 0.021515
+Epoch 7 | Validation Loss: 0.022125 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=8 epoch_seed=7012943743679806448
+
+Epoch 8:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 8:   6%|▌         | 3/53 [00:00<00:01, 26.18it/s]
+Epoch 8:  11%|█▏        | 6/53 [00:00<00:01, 27.04it/s]
+Epoch 8:  17%|█▋        | 9/53 [00:00<00:01, 27.57it/s]
+Epoch 8:  23%|██▎       | 12/53 [00:00<00:01, 27.68it/s]
+Epoch 8:  28%|██▊       | 15/53 [00:00<00:01, 28.36it/s]
+Epoch 8:  34%|███▍      | 18/53 [00:00<00:01, 28.69it/s]
+Epoch 8:  42%|████▏     | 22/53 [00:00<00:01, 29.23it/s]
+Epoch 8:  47%|████▋     | 25/53 [00:00<00:00, 29.45it/s]
+Epoch 8:  53%|█████▎    | 28/53 [00:00<00:00, 29.39it/s]
+Epoch 8:  58%|█████▊    | 31/53 [00:01<00:00, 29.37it/s]
+Epoch 8:  64%|██████▍   | 34/53 [00:01<00:00, 29.33it/s]
+Epoch 8:  70%|██████▉   | 37/53 [00:01<00:00, 28.93it/s]
+Epoch 8:  75%|███████▌  | 40/53 [00:01<00:00, 28.92it/s]
+Epoch 8:  81%|████████  | 43/53 [00:01<00:00, 28.86it/s]
+Epoch 8:  87%|████████▋ | 46/53 [00:01<00:00, 28.99it/s]
+Epoch 8:  92%|█████████▏| 49/53 [00:01<00:00, 29.11it/s]
+Epoch 8:  98%|█████████▊| 52/53 [00:01<00:00, 28.88it/s]
+Epoch 8: 100%|██████████| 53/53 [00:01<00:00, 28.77it/s]
+Epoch 8 | Avg Loss: 0.021486
+Epoch 8 | Validation Loss: 0.022225 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=9 epoch_seed=5342107251407380028
+
+Epoch 9:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 9:   6%|▌         | 3/53 [00:00<00:01, 28.90it/s]
+Epoch 9:  11%|█▏        | 6/53 [00:00<00:01, 29.12it/s]
+Epoch 9:  17%|█▋        | 9/53 [00:00<00:01, 29.38it/s]
+Epoch 9:  23%|██▎       | 12/53 [00:00<00:01, 29.38it/s]
+Epoch 9:  28%|██▊       | 15/53 [00:00<00:01, 28.86it/s]
+Epoch 9:  34%|███▍      | 18/53 [00:00<00:01, 28.66it/s]
+Epoch 9:  40%|███▉      | 21/53 [00:00<00:01, 28.54it/s]
+Epoch 9:  45%|████▌     | 24/53 [00:00<00:01, 28.62it/s]
+Epoch 9:  51%|█████     | 27/53 [00:00<00:00, 28.87it/s]
+Epoch 9:  57%|█████▋    | 30/53 [00:01<00:00, 28.75it/s]
+Epoch 9:  62%|██████▏   | 33/53 [00:01<00:00, 28.20it/s]
+Epoch 9:  68%|██████▊   | 36/53 [00:01<00:00, 28.36it/s]
+Epoch 9:  74%|███████▎  | 39/53 [00:01<00:00, 28.57it/s]
+Epoch 9:  81%|████████  | 43/53 [00:01<00:00, 29.19it/s]
+Epoch 9:  87%|████████▋ | 46/53 [00:01<00:00, 29.24it/s]
+Epoch 9:  92%|█████████▏| 49/53 [00:01<00:00, 29.12it/s]
+Epoch 9:  98%|█████████▊| 52/53 [00:01<00:00, 29.28it/s]
+Epoch 9: 100%|██████████| 53/53 [00:01<00:00, 28.93it/s]
+Epoch 9 | Avg Loss: 0.021319
+Epoch 9 | Validation Loss: 0.022631 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=10 epoch_seed=7857856606864449990
+
+Epoch 10:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 10:   6%|▌         | 3/53 [00:00<00:01, 29.30it/s]
+Epoch 10:  11%|█▏        | 6/53 [00:00<00:01, 28.84it/s]
+Epoch 10:  17%|█▋        | 9/53 [00:00<00:01, 28.94it/s]
+Epoch 10:  23%|██▎       | 12/53 [00:00<00:01, 28.96it/s]
+Epoch 10:  30%|███       | 16/53 [00:00<00:01, 29.47it/s]
+Epoch 10:  36%|███▌      | 19/53 [00:00<00:01, 29.24it/s]
+Epoch 10:  42%|████▏     | 22/53 [00:00<00:01, 29.03it/s]
+Epoch 10:  47%|████▋     | 25/53 [00:00<00:00, 28.75it/s]
+Epoch 10:  53%|█████▎    | 28/53 [00:00<00:00, 27.85it/s]
+Epoch 10:  58%|█████▊    | 31/53 [00:01<00:00, 27.41it/s]
+Epoch 10:  64%|██████▍   | 34/53 [00:01<00:00, 27.20it/s]
+Epoch 10:  70%|██████▉   | 37/53 [00:01<00:00, 27.10it/s]
+Epoch 10:  75%|███████▌  | 40/53 [00:01<00:00, 26.90it/s]
+Epoch 10:  81%|████████  | 43/53 [00:01<00:00, 26.96it/s]
+Epoch 10:  87%|████████▋ | 46/53 [00:01<00:00, 27.16it/s]
+Epoch 10:  92%|█████████▏| 49/53 [00:01<00:00, 27.09it/s]
+Epoch 10:  98%|█████████▊| 52/53 [00:01<00:00, 26.54it/s]
+Epoch 10: 100%|██████████| 53/53 [00:01<00:00, 27.68it/s]
+Epoch 10 | Avg Loss: 0.021212
+Epoch 10 | Validation Loss: 0.022605 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=11 epoch_seed=7001822945735973637
+
+Epoch 11:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 11:   6%|▌         | 3/53 [00:00<00:01, 27.54it/s]
+Epoch 11:  11%|█▏        | 6/53 [00:00<00:01, 27.52it/s]
+Epoch 11:  17%|█▋        | 9/53 [00:00<00:01, 27.24it/s]
+Epoch 11:  23%|██▎       | 12/53 [00:00<00:01, 27.34it/s]
+Epoch 11:  28%|██▊       | 15/53 [00:00<00:01, 27.13it/s]
+Epoch 11:  34%|███▍      | 18/53 [00:00<00:01, 27.36it/s]
+Epoch 11:  40%|███▉      | 21/53 [00:00<00:01, 27.56it/s]
+Epoch 11:  45%|████▌     | 24/53 [00:00<00:01, 27.75it/s]
+Epoch 11:  51%|█████     | 27/53 [00:00<00:00, 28.12it/s]
+Epoch 11:  57%|█████▋    | 30/53 [00:01<00:00, 28.08it/s]
+Epoch 11:  62%|██████▏   | 33/53 [00:01<00:00, 28.22it/s]
+Epoch 11:  68%|██████▊   | 36/53 [00:01<00:00, 28.30it/s]
+Epoch 11:  74%|███████▎  | 39/53 [00:01<00:00, 28.55it/s]
+Epoch 11:  79%|███████▉  | 42/53 [00:01<00:00, 28.82it/s]
+Epoch 11:  85%|████████▍ | 45/53 [00:01<00:00, 28.78it/s]
+Epoch 11:  91%|█████████ | 48/53 [00:01<00:00, 28.67it/s]
+Epoch 11:  96%|█████████▌| 51/53 [00:01<00:00, 28.41it/s]
+Epoch 11: 100%|██████████| 53/53 [00:01<00:00, 28.05it/s]
+Epoch 11 | Avg Loss: 0.021224
+Epoch 11 | Validation Loss: 0.021844 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=12 epoch_seed=1898436008482191370
+
+Epoch 12:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 12:   6%|▌         | 3/53 [00:00<00:01, 27.62it/s]
+Epoch 12:  11%|█▏        | 6/53 [00:00<00:01, 28.06it/s]
+Epoch 12:  17%|█▋        | 9/53 [00:00<00:01, 28.03it/s]
+Epoch 12:  23%|██▎       | 12/53 [00:00<00:01, 28.15it/s]
+Epoch 12:  28%|██▊       | 15/53 [00:00<00:01, 28.37it/s]
+Epoch 12:  34%|███▍      | 18/53 [00:00<00:01, 28.17it/s]
+Epoch 12:  40%|███▉      | 21/53 [00:00<00:01, 27.95it/s]
+Epoch 12:  45%|████▌     | 24/53 [00:00<00:01, 28.19it/s]
+Epoch 12:  51%|█████     | 27/53 [00:00<00:00, 28.19it/s]
+Epoch 12:  57%|█████▋    | 30/53 [00:01<00:00, 28.10it/s]
+Epoch 12:  62%|██████▏   | 33/53 [00:01<00:00, 28.04it/s]
+Epoch 12:  68%|██████▊   | 36/53 [00:01<00:00, 28.31it/s]
+Epoch 12:  74%|███████▎  | 39/53 [00:01<00:00, 28.13it/s]
+Epoch 12:  79%|███████▉  | 42/53 [00:01<00:00, 28.05it/s]
+Epoch 12:  85%|████████▍ | 45/53 [00:01<00:00, 28.00it/s]
+Epoch 12:  91%|█████████ | 48/53 [00:01<00:00, 27.60it/s]
+Epoch 12:  96%|█████████▌| 51/53 [00:01<00:00, 28.00it/s]
+Epoch 12: 100%|██████████| 53/53 [00:01<00:00, 28.08it/s]
+Epoch 12 | Avg Loss: 0.021184
+Epoch 12 | Validation Loss: 0.021748 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=13 epoch_seed=9143648229558018357
+
+Epoch 13:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 13:   6%|▌         | 3/53 [00:00<00:01, 27.54it/s]
+Epoch 13:  11%|█▏        | 6/53 [00:00<00:01, 28.05it/s]
+Epoch 13:  17%|█▋        | 9/53 [00:00<00:01, 28.61it/s]
+Epoch 13:  23%|██▎       | 12/53 [00:00<00:01, 28.80it/s]
+Epoch 13:  28%|██▊       | 15/53 [00:00<00:01, 28.77it/s]
+Epoch 13:  34%|███▍      | 18/53 [00:00<00:01, 28.35it/s]
+Epoch 13:  40%|███▉      | 21/53 [00:00<00:01, 28.47it/s]
+Epoch 13:  45%|████▌     | 24/53 [00:00<00:01, 28.77it/s]
+Epoch 13:  51%|█████     | 27/53 [00:00<00:00, 28.93it/s]
+Epoch 13:  57%|█████▋    | 30/53 [00:01<00:00, 28.89it/s]
+Epoch 13:  62%|██████▏   | 33/53 [00:01<00:00, 29.02it/s]
+Epoch 13:  68%|██████▊   | 36/53 [00:01<00:00, 29.10it/s]
+Epoch 13:  74%|███████▎  | 39/53 [00:01<00:00, 28.85it/s]
+Epoch 13:  79%|███████▉  | 42/53 [00:01<00:00, 28.90it/s]
+Epoch 13:  85%|████████▍ | 45/53 [00:01<00:00, 28.93it/s]
+Epoch 13:  91%|█████████ | 48/53 [00:01<00:00, 28.99it/s]
+Epoch 13:  96%|█████████▌| 51/53 [00:01<00:00, 28.77it/s]
+Epoch 13: 100%|██████████| 53/53 [00:01<00:00, 28.78it/s]
+Epoch 13 | Avg Loss: 0.021198
+Epoch 13 | Validation Loss: 0.021825 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=14 epoch_seed=2428890545018072023
+
+Epoch 14:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 14:   6%|▌         | 3/53 [00:00<00:01, 28.79it/s]
+Epoch 14:  11%|█▏        | 6/53 [00:00<00:01, 28.63it/s]
+Epoch 14:  17%|█▋        | 9/53 [00:00<00:01, 29.02it/s]
+Epoch 14:  23%|██▎       | 12/53 [00:00<00:01, 29.10it/s]
+Epoch 14:  28%|██▊       | 15/53 [00:00<00:01, 29.31it/s]
+Epoch 14:  34%|███▍      | 18/53 [00:00<00:01, 29.17it/s]
+Epoch 14:  40%|███▉      | 21/53 [00:00<00:01, 28.80it/s]
+Epoch 14:  45%|████▌     | 24/53 [00:00<00:01, 28.41it/s]
+Epoch 14:  51%|█████     | 27/53 [00:00<00:00, 28.26it/s]
+Epoch 14:  57%|█████▋    | 30/53 [00:01<00:00, 24.23it/s]
+Epoch 14:  62%|██████▏   | 33/53 [00:01<00:00, 24.41it/s]
+Epoch 14:  68%|██████▊   | 36/53 [00:01<00:00, 25.31it/s]
+Epoch 14:  74%|███████▎  | 39/53 [00:01<00:00, 25.68it/s]
+Epoch 14:  79%|███████▉  | 42/53 [00:01<00:00, 25.82it/s]
+Epoch 14:  85%|████████▍ | 45/53 [00:01<00:00, 26.18it/s]
+Epoch 14:  91%|█████████ | 48/53 [00:01<00:00, 26.99it/s]
+Epoch 14:  96%|█████████▌| 51/53 [00:01<00:00, 27.45it/s]
+Epoch 14: 100%|██████████| 53/53 [00:01<00:00, 27.17it/s]
+Epoch 14 | Avg Loss: 0.021044
+Epoch 14 | Validation Loss: 0.021588 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=15 epoch_seed=7825815149637291816
+
+Epoch 15:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 15:   6%|▌         | 3/53 [00:00<00:01, 28.21it/s]
+Epoch 15:  13%|█▎        | 7/53 [00:00<00:01, 29.35it/s]
+Epoch 15:  21%|██        | 11/53 [00:00<00:01, 29.61it/s]
+Epoch 15:  26%|██▋       | 14/53 [00:00<00:01, 29.13it/s]
+Epoch 15:  32%|███▏      | 17/53 [00:00<00:01, 28.40it/s]
+Epoch 15:  38%|███▊      | 20/53 [00:00<00:01, 28.74it/s]
+Epoch 15:  43%|████▎     | 23/53 [00:00<00:01, 28.87it/s]
+Epoch 15:  49%|████▉     | 26/53 [00:00<00:00, 29.01it/s]
+Epoch 15:  55%|█████▍    | 29/53 [00:01<00:00, 28.93it/s]
+Epoch 15:  60%|██████    | 32/53 [00:01<00:00, 28.78it/s]
+Epoch 15:  66%|██████▌   | 35/53 [00:01<00:00, 28.92it/s]
+Epoch 15:  72%|███████▏  | 38/53 [00:01<00:00, 29.17it/s]
+Epoch 15:  77%|███████▋  | 41/53 [00:01<00:00, 28.95it/s]
+Epoch 15:  83%|████████▎ | 44/53 [00:01<00:00, 28.89it/s]
+Epoch 15:  89%|████████▊ | 47/53 [00:01<00:00, 28.46it/s]
+Epoch 15:  94%|█████████▍| 50/53 [00:01<00:00, 28.79it/s]
+Epoch 15: 100%|██████████| 53/53 [00:01<00:00, 28.96it/s]
+Epoch 15 | Avg Loss: 0.021061
+Epoch 15 | Validation Loss: 0.021872 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=16 epoch_seed=1350129619338986950
+
+Epoch 16:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 16:   6%|▌         | 3/53 [00:00<00:01, 29.26it/s]
+Epoch 16:  11%|█▏        | 6/53 [00:00<00:01, 29.08it/s]
+Epoch 16:  17%|█▋        | 9/53 [00:00<00:01, 29.38it/s]
+Epoch 16:  23%|██▎       | 12/53 [00:00<00:01, 29.34it/s]
+Epoch 16:  28%|██▊       | 15/53 [00:00<00:01, 29.21it/s]
+Epoch 16:  34%|███▍      | 18/53 [00:00<00:01, 28.95it/s]
+Epoch 16:  40%|███▉      | 21/53 [00:00<00:01, 28.70it/s]
+Epoch 16:  45%|████▌     | 24/53 [00:00<00:01, 28.37it/s]
+Epoch 16:  51%|█████     | 27/53 [00:00<00:00, 28.31it/s]
+Epoch 16:  57%|█████▋    | 30/53 [00:01<00:00, 28.15it/s]
+Epoch 16:  62%|██████▏   | 33/53 [00:01<00:00, 28.25it/s]
+Epoch 16:  68%|██████▊   | 36/53 [00:01<00:00, 27.92it/s]
+Epoch 16:  74%|███████▎  | 39/53 [00:01<00:00, 27.37it/s]
+Epoch 16:  79%|███████▉  | 42/53 [00:01<00:00, 27.76it/s]
+Epoch 16:  85%|████████▍ | 45/53 [00:01<00:00, 28.06it/s]
+Epoch 16:  91%|█████████ | 48/53 [00:01<00:00, 28.31it/s]
+Epoch 16:  96%|█████████▌| 51/53 [00:01<00:00, 28.50it/s]
+Epoch 16: 100%|██████████| 53/53 [00:01<00:00, 28.47it/s]
+Epoch 16 | Avg Loss: 0.021003
+Epoch 16 | Validation Loss: 0.021820 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=17 epoch_seed=5108134515217751350
+
+Epoch 17:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 17:   6%|▌         | 3/53 [00:00<00:01, 28.51it/s]
+Epoch 17:  11%|█▏        | 6/53 [00:00<00:01, 27.70it/s]
+Epoch 17:  17%|█▋        | 9/53 [00:00<00:01, 28.03it/s]
+Epoch 17:  23%|██▎       | 12/53 [00:00<00:01, 27.68it/s]
+Epoch 17:  28%|██▊       | 15/53 [00:00<00:01, 27.67it/s]
+Epoch 17:  34%|███▍      | 18/53 [00:00<00:01, 28.22it/s]
+Epoch 17:  40%|███▉      | 21/53 [00:00<00:01, 28.02it/s]
+Epoch 17:  45%|████▌     | 24/53 [00:00<00:01, 28.33it/s]
+Epoch 17:  51%|█████     | 27/53 [00:00<00:00, 28.06it/s]
+Epoch 17:  57%|█████▋    | 30/53 [00:01<00:00, 28.36it/s]
+Epoch 17:  62%|██████▏   | 33/53 [00:01<00:00, 28.68it/s]
+Epoch 17:  68%|██████▊   | 36/53 [00:01<00:00, 28.71it/s]
+Epoch 17:  74%|███████▎  | 39/53 [00:01<00:00, 28.83it/s]
+Epoch 17:  79%|███████▉  | 42/53 [00:01<00:00, 28.67it/s]
+Epoch 17:  85%|████████▍ | 45/53 [00:01<00:00, 28.41it/s]
+Epoch 17:  91%|█████████ | 48/53 [00:01<00:00, 28.54it/s]
+Epoch 17:  96%|█████████▌| 51/53 [00:01<00:00, 28.75it/s]
+Epoch 17: 100%|██████████| 53/53 [00:01<00:00, 28.35it/s]
+Epoch 17 | Avg Loss: 0.021211
+Epoch 17 | Validation Loss: 0.022679 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=18 epoch_seed=3067438774038892532
+
+Epoch 18:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 18:   6%|▌         | 3/53 [00:00<00:01, 28.12it/s]
+Epoch 18:  13%|█▎        | 7/53 [00:00<00:01, 29.10it/s]
+Epoch 18:  19%|█▉        | 10/53 [00:00<00:01, 28.88it/s]
+Epoch 18:  25%|██▍       | 13/53 [00:00<00:01, 28.51it/s]
+Epoch 18:  30%|███       | 16/53 [00:00<00:01, 28.55it/s]
+Epoch 18:  36%|███▌      | 19/53 [00:00<00:01, 28.81it/s]
+Epoch 18:  42%|████▏     | 22/53 [00:00<00:01, 29.12it/s]
+Epoch 18:  47%|████▋     | 25/53 [00:00<00:00, 28.59it/s]
+Epoch 18:  53%|█████▎    | 28/53 [00:00<00:00, 27.80it/s]
+Epoch 18:  58%|█████▊    | 31/53 [00:01<00:00, 27.65it/s]
+Epoch 18:  64%|██████▍   | 34/53 [00:01<00:00, 28.07it/s]
+Epoch 18:  70%|██████▉   | 37/53 [00:01<00:00, 28.41it/s]
+Epoch 18:  75%|███████▌  | 40/53 [00:01<00:00, 28.29it/s]
+Epoch 18:  81%|████████  | 43/53 [00:01<00:00, 28.40it/s]
+Epoch 18:  87%|████████▋ | 46/53 [00:01<00:00, 28.30it/s]
+Epoch 18:  92%|█████████▏| 49/53 [00:01<00:00, 28.68it/s]
+Epoch 18:  98%|█████████▊| 52/53 [00:01<00:00, 28.68it/s]
+Epoch 18: 100%|██████████| 53/53 [00:01<00:00, 28.48it/s]
+Epoch 18 | Avg Loss: 0.021348
+Epoch 18 | Validation Loss: 0.021496 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=19 epoch_seed=3218067820695130978
+
+Epoch 19:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 19:   6%|▌         | 3/53 [00:00<00:01, 27.60it/s]
+Epoch 19:  11%|█▏        | 6/53 [00:00<00:01, 28.27it/s]
+Epoch 19:  17%|█▋        | 9/53 [00:00<00:01, 28.58it/s]
+Epoch 19:  23%|██▎       | 12/53 [00:00<00:01, 28.97it/s]
+Epoch 19:  28%|██▊       | 15/53 [00:00<00:01, 28.92it/s]
+Epoch 19:  34%|███▍      | 18/53 [00:00<00:01, 28.64it/s]
+Epoch 19:  40%|███▉      | 21/53 [00:00<00:01, 28.78it/s]
+Epoch 19:  45%|████▌     | 24/53 [00:00<00:01, 28.73it/s]
+Epoch 19:  51%|█████     | 27/53 [00:00<00:00, 28.51it/s]
+Epoch 19:  57%|█████▋    | 30/53 [00:01<00:00, 28.85it/s]
+Epoch 19:  62%|██████▏   | 33/53 [00:01<00:00, 28.88it/s]
+Epoch 19:  68%|██████▊   | 36/53 [00:01<00:00, 28.72it/s]
+Epoch 19:  74%|███████▎  | 39/53 [00:01<00:00, 28.65it/s]
+Epoch 19:  79%|███████▉  | 42/53 [00:01<00:00, 28.70it/s]
+Epoch 19:  85%|████████▍ | 45/53 [00:01<00:00, 28.65it/s]
+Epoch 19:  91%|█████████ | 48/53 [00:01<00:00, 28.70it/s]
+Epoch 19:  96%|█████████▌| 51/53 [00:01<00:00, 28.55it/s]
+Epoch 19: 100%|██████████| 53/53 [00:01<00:00, 28.63it/s]
+Epoch 19 | Avg Loss: 0.021276
+Epoch 19 | Validation Loss: 0.022814 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=20 epoch_seed=1024668911523072615
+
+Epoch 20:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 20:   6%|▌         | 3/53 [00:00<00:01, 28.74it/s]
+Epoch 20:  11%|█▏        | 6/53 [00:00<00:01, 28.55it/s]
+Epoch 20:  17%|█▋        | 9/53 [00:00<00:01, 28.97it/s]
+Epoch 20:  23%|██▎       | 12/53 [00:00<00:01, 28.76it/s]
+Epoch 20:  28%|██▊       | 15/53 [00:00<00:01, 28.31it/s]
+Epoch 20:  34%|███▍      | 18/53 [00:00<00:01, 28.39it/s]
+Epoch 20:  40%|███▉      | 21/53 [00:00<00:01, 28.55it/s]
+Epoch 20:  45%|████▌     | 24/53 [00:00<00:01, 28.67it/s]
+Epoch 20:  51%|█████     | 27/53 [00:00<00:00, 28.51it/s]
+Epoch 20:  57%|█████▋    | 30/53 [00:01<00:00, 28.39it/s]
+Epoch 20:  62%|██████▏   | 33/53 [00:01<00:00, 28.31it/s]
+Epoch 20:  68%|██████▊   | 36/53 [00:01<00:00, 28.67it/s]
+Epoch 20:  74%|███████▎  | 39/53 [00:01<00:00, 28.69it/s]
+Epoch 20:  79%|███████▉  | 42/53 [00:01<00:00, 28.88it/s]
+Epoch 20:  85%|████████▍ | 45/53 [00:01<00:00, 28.86it/s]
+Epoch 20:  91%|█████████ | 48/53 [00:01<00:00, 29.09it/s]
+Epoch 20:  96%|█████████▌| 51/53 [00:01<00:00, 29.26it/s]
+Epoch 20: 100%|██████████| 53/53 [00:01<00:00, 28.68it/s]
+Epoch 20 | Avg Loss: 0.021189
+Epoch 20 | Validation Loss: 0.021523 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=21 epoch_seed=384935054826505457
+
+Epoch 21:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 21:   6%|▌         | 3/53 [00:00<00:01, 28.64it/s]
+Epoch 21:  11%|█▏        | 6/53 [00:00<00:01, 28.77it/s]
+Epoch 21:  17%|█▋        | 9/53 [00:00<00:01, 29.18it/s]
+Epoch 21:  23%|██▎       | 12/53 [00:00<00:01, 29.29it/s]
+Epoch 21:  28%|██▊       | 15/53 [00:00<00:01, 29.19it/s]
+Epoch 21:  34%|███▍      | 18/53 [00:00<00:01, 28.96it/s]
+Epoch 21:  40%|███▉      | 21/53 [00:00<00:01, 28.71it/s]
+Epoch 21:  45%|████▌     | 24/53 [00:00<00:01, 28.84it/s]
+Epoch 21:  51%|█████     | 27/53 [00:00<00:00, 28.83it/s]
+Epoch 21:  57%|█████▋    | 30/53 [00:01<00:00, 28.56it/s]
+Epoch 21:  62%|██████▏   | 33/53 [00:01<00:00, 28.48it/s]
+Epoch 21:  68%|██████▊   | 36/53 [00:01<00:00, 28.55it/s]
+Epoch 21:  74%|███████▎  | 39/53 [00:01<00:00, 28.71it/s]
+Epoch 21:  79%|███████▉  | 42/53 [00:01<00:00, 28.37it/s]
+Epoch 21:  85%|████████▍ | 45/53 [00:01<00:00, 28.28it/s]
+Epoch 21:  91%|█████████ | 48/53 [00:01<00:00, 28.02it/s]
+Epoch 21:  96%|█████████▌| 51/53 [00:01<00:00, 28.25it/s]
+Epoch 21: 100%|██████████| 53/53 [00:01<00:00, 28.66it/s]
+Epoch 21 | Avg Loss: 0.020879
+Epoch 21 | Validation Loss: 0.021619 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=22 epoch_seed=5698781221050666818
+
+Epoch 22:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 22:   6%|▌         | 3/53 [00:00<00:01, 28.98it/s]
+Epoch 22:  11%|█▏        | 6/53 [00:00<00:01, 29.21it/s]
+Epoch 22:  17%|█▋        | 9/53 [00:00<00:01, 28.46it/s]
+Epoch 22:  23%|██▎       | 12/53 [00:00<00:01, 27.78it/s]
+Epoch 22:  28%|██▊       | 15/53 [00:00<00:01, 27.42it/s]
+Epoch 22:  34%|███▍      | 18/53 [00:00<00:01, 26.62it/s]
+Epoch 22:  40%|███▉      | 21/53 [00:00<00:01, 26.81it/s]
+Epoch 22:  45%|████▌     | 24/53 [00:00<00:01, 27.33it/s]
+Epoch 22:  51%|█████     | 27/53 [00:00<00:00, 27.75it/s]
+Epoch 22:  57%|█████▋    | 30/53 [00:01<00:00, 27.64it/s]
+Epoch 22:  62%|██████▏   | 33/53 [00:01<00:00, 27.78it/s]
+Epoch 22:  68%|██████▊   | 36/53 [00:01<00:00, 27.46it/s]
+Epoch 22:  74%|███████▎  | 39/53 [00:01<00:00, 27.30it/s]
+Epoch 22:  79%|███████▉  | 42/53 [00:01<00:00, 26.53it/s]
+Epoch 22:  85%|████████▍ | 45/53 [00:01<00:00, 26.74it/s]
+Epoch 22:  91%|█████████ | 48/53 [00:01<00:00, 26.80it/s]
+Epoch 22:  96%|█████████▌| 51/53 [00:01<00:00, 26.30it/s]
+Epoch 22: 100%|██████████| 53/53 [00:01<00:00, 27.15it/s]
+Epoch 22 | Avg Loss: 0.020779
+Epoch 22 | Validation Loss: 0.021538 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=23 epoch_seed=6806973551752262164
+
+Epoch 23:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 23:   6%|▌         | 3/53 [00:00<00:01, 28.52it/s]
+Epoch 23:  11%|█▏        | 6/53 [00:00<00:01, 27.97it/s]
+Epoch 23:  17%|█▋        | 9/53 [00:00<00:01, 27.10it/s]
+Epoch 23:  23%|██▎       | 12/53 [00:00<00:01, 27.28it/s]
+Epoch 23:  28%|██▊       | 15/53 [00:00<00:01, 27.53it/s]
+Epoch 23:  34%|███▍      | 18/53 [00:00<00:01, 27.43it/s]
+Epoch 23:  40%|███▉      | 21/53 [00:00<00:01, 27.41it/s]
+Epoch 23:  45%|████▌     | 24/53 [00:00<00:01, 27.22it/s]
+Epoch 23:  51%|█████     | 27/53 [00:00<00:00, 27.39it/s]
+Epoch 23:  57%|█████▋    | 30/53 [00:01<00:00, 27.32it/s]
+Epoch 23:  62%|██████▏   | 33/53 [00:01<00:00, 27.31it/s]
+Epoch 23:  68%|██████▊   | 36/53 [00:01<00:00, 26.65it/s]
+Epoch 23:  74%|███████▎  | 39/53 [00:01<00:00, 27.02it/s]
+Epoch 23:  79%|███████▉  | 42/53 [00:01<00:00, 27.25it/s]
+Epoch 23:  85%|████████▍ | 45/53 [00:01<00:00, 27.56it/s]
+Epoch 23:  91%|█████████ | 48/53 [00:01<00:00, 27.70it/s]
+Epoch 23:  96%|█████████▌| 51/53 [00:01<00:00, 27.47it/s]
+Epoch 23: 100%|██████████| 53/53 [00:01<00:00, 27.37it/s]
+Epoch 23 | Avg Loss: 0.020848
+Epoch 23 | Validation Loss: 0.021401 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=24 epoch_seed=6069678491516555685
+
+Epoch 24:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 24:   6%|▌         | 3/53 [00:00<00:01, 27.71it/s]
+Epoch 24:  11%|█▏        | 6/53 [00:00<00:01, 27.34it/s]
+Epoch 24:  17%|█▋        | 9/53 [00:00<00:01, 27.20it/s]
+Epoch 24:  23%|██▎       | 12/53 [00:00<00:01, 27.27it/s]
+Epoch 24:  28%|██▊       | 15/53 [00:00<00:01, 27.29it/s]
+Epoch 24:  34%|███▍      | 18/53 [00:00<00:01, 25.15it/s]
+Epoch 24:  40%|███▉      | 21/53 [00:00<00:01, 24.46it/s]
+Epoch 24:  45%|████▌     | 24/53 [00:00<00:01, 24.34it/s]
+Epoch 24:  51%|█████     | 27/53 [00:01<00:01, 24.69it/s]
+Epoch 24:  57%|█████▋    | 30/53 [00:01<00:00, 25.55it/s]
+Epoch 24:  62%|██████▏   | 33/53 [00:01<00:00, 25.74it/s]
+Epoch 24:  68%|██████▊   | 36/53 [00:01<00:00, 26.30it/s]
+Epoch 24:  74%|███████▎  | 39/53 [00:01<00:00, 26.16it/s]
+Epoch 24:  79%|███████▉  | 42/53 [00:01<00:00, 26.31it/s]
+Epoch 24:  85%|████████▍ | 45/53 [00:01<00:00, 26.24it/s]
+Epoch 24:  91%|█████████ | 48/53 [00:01<00:00, 26.17it/s]
+Epoch 24:  96%|█████████▌| 51/53 [00:01<00:00, 25.74it/s]
+Epoch 24: 100%|██████████| 53/53 [00:02<00:00, 25.72it/s]
+Epoch 24 | Avg Loss: 0.020805
+Epoch 24 | Validation Loss: 0.021770 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=25 epoch_seed=1906439676600896152
+
+Epoch 25:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 25:   6%|▌         | 3/53 [00:00<00:01, 25.52it/s]
+Epoch 25:  11%|█▏        | 6/53 [00:00<00:01, 26.80it/s]
+Epoch 25:  17%|█▋        | 9/53 [00:00<00:01, 26.84it/s]
+Epoch 25:  23%|██▎       | 12/53 [00:00<00:01, 27.28it/s]
+Epoch 25:  28%|██▊       | 15/53 [00:00<00:01, 27.11it/s]
+Epoch 25:  34%|███▍      | 18/53 [00:00<00:01, 27.61it/s]
+Epoch 25:  40%|███▉      | 21/53 [00:00<00:01, 27.71it/s]
+Epoch 25:  45%|████▌     | 24/53 [00:00<00:01, 28.09it/s]
+Epoch 25:  51%|█████     | 27/53 [00:00<00:00, 28.26it/s]
+Epoch 25:  57%|█████▋    | 30/53 [00:01<00:00, 28.19it/s]
+Epoch 25:  62%|██████▏   | 33/53 [00:01<00:00, 28.39it/s]
+Epoch 25:  68%|██████▊   | 36/53 [00:01<00:00, 28.29it/s]
+Epoch 25:  74%|███████▎  | 39/53 [00:01<00:00, 27.77it/s]
+Epoch 25:  79%|███████▉  | 42/53 [00:01<00:00, 27.25it/s]
+Epoch 25:  85%|████████▍ | 45/53 [00:01<00:00, 27.46it/s]
+Epoch 25:  91%|█████████ | 48/53 [00:01<00:00, 27.47it/s]
+Epoch 25:  96%|█████████▌| 51/53 [00:01<00:00, 27.44it/s]
+Epoch 25: 100%|██████████| 53/53 [00:01<00:00, 27.59it/s]
+Epoch 25 | Avg Loss: 0.021093
+Epoch 25 | Validation Loss: 0.021925 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=26 epoch_seed=5555403071247547780
+
+Epoch 26:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 26:   6%|▌         | 3/53 [00:00<00:01, 27.77it/s]
+Epoch 26:  11%|█▏        | 6/53 [00:00<00:01, 27.89it/s]
+Epoch 26:  17%|█▋        | 9/53 [00:00<00:01, 27.78it/s]
+Epoch 26:  23%|██▎       | 12/53 [00:00<00:01, 27.88it/s]
+Epoch 26:  28%|██▊       | 15/53 [00:00<00:01, 27.58it/s]
+Epoch 26:  34%|███▍      | 18/53 [00:00<00:01, 27.58it/s]
+Epoch 26:  40%|███▉      | 21/53 [00:00<00:01, 27.11it/s]
+Epoch 26:  45%|████▌     | 24/53 [00:00<00:01, 27.28it/s]
+Epoch 26:  51%|█████     | 27/53 [00:00<00:00, 26.54it/s]
+Epoch 26:  57%|█████▋    | 30/53 [00:01<00:00, 26.98it/s]
+Epoch 26:  62%|██████▏   | 33/53 [00:01<00:00, 27.17it/s]
+Epoch 26:  68%|██████▊   | 36/53 [00:01<00:00, 26.39it/s]
+Epoch 26:  74%|███████▎  | 39/53 [00:01<00:00, 26.68it/s]
+Epoch 26:  79%|███████▉  | 42/53 [00:01<00:00, 25.49it/s]
+Epoch 26:  85%|████████▍ | 45/53 [00:01<00:00, 20.43it/s]
+Epoch 26:  91%|█████████ | 48/53 [00:01<00:00, 19.74it/s]
+Epoch 26:  96%|█████████▌| 51/53 [00:02<00:00, 19.52it/s]
+Epoch 26: 100%|██████████| 53/53 [00:02<00:00, 23.97it/s]
+Epoch 26 | Avg Loss: 0.020863
+Epoch 26 | Validation Loss: 0.021878 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=27 epoch_seed=953439629048407544
+
+Epoch 27:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 27:   6%|▌         | 3/53 [00:00<00:02, 20.82it/s]
+Epoch 27:  11%|█▏        | 6/53 [00:00<00:02, 21.20it/s]
+Epoch 27:  17%|█▋        | 9/53 [00:00<00:02, 20.50it/s]
+Epoch 27:  23%|██▎       | 12/53 [00:00<00:02, 20.32it/s]
+Epoch 27:  28%|██▊       | 15/53 [00:00<00:02, 17.45it/s]
+Epoch 27:  32%|███▏      | 17/53 [00:01<00:02, 14.52it/s]
+Epoch 27:  36%|███▌      | 19/53 [00:01<00:02, 13.62it/s]
+Epoch 27:  40%|███▉      | 21/53 [00:01<00:02, 13.71it/s]
+Epoch 27:  43%|████▎     | 23/53 [00:01<00:02, 14.10it/s]
+Epoch 27:  47%|████▋     | 25/53 [00:01<00:01, 14.54it/s]
+Epoch 27:  51%|█████     | 27/53 [00:01<00:01, 15.14it/s]
+Epoch 27:  55%|█████▍    | 29/53 [00:01<00:01, 15.83it/s]
+Epoch 27:  60%|██████    | 32/53 [00:01<00:01, 17.54it/s]
+Epoch 27:  66%|██████▌   | 35/53 [00:02<00:00, 19.04it/s]
+Epoch 27:  72%|███████▏  | 38/53 [00:02<00:00, 20.15it/s]
+Epoch 27:  77%|███████▋  | 41/53 [00:02<00:00, 21.25it/s]
+Epoch 27:  83%|████████▎ | 44/53 [00:02<00:00, 21.28it/s]
+Epoch 27:  89%|████████▊ | 47/53 [00:02<00:00, 21.78it/s]
+Epoch 27:  94%|█████████▍| 50/53 [00:02<00:00, 22.38it/s]
+Epoch 27: 100%|██████████| 53/53 [00:02<00:00, 22.92it/s]
+Epoch 27: 100%|██████████| 53/53 [00:02<00:00, 18.51it/s]
+Epoch 27 | Avg Loss: 0.020636
+Epoch 27 | Validation Loss: 0.021331 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=28 epoch_seed=437581152993182509
+
+Epoch 28:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 28:   6%|▌         | 3/53 [00:00<00:02, 20.96it/s]
+Epoch 28:  11%|█▏        | 6/53 [00:00<00:02, 21.19it/s]
+Epoch 28:  17%|█▋        | 9/53 [00:00<00:02, 20.40it/s]
+Epoch 28:  23%|██▎       | 12/53 [00:00<00:01, 20.81it/s]
+Epoch 28:  28%|██▊       | 15/53 [00:00<00:01, 20.58it/s]
+Epoch 28:  34%|███▍      | 18/53 [00:00<00:01, 20.85it/s]
+Epoch 28:  40%|███▉      | 21/53 [00:01<00:01, 21.13it/s]
+Epoch 28:  45%|████▌     | 24/53 [00:01<00:01, 21.14it/s]
+Epoch 28:  51%|█████     | 27/53 [00:01<00:01, 21.38it/s]
+Epoch 28:  57%|█████▋    | 30/53 [00:01<00:01, 21.58it/s]
+Epoch 28:  62%|██████▏   | 33/53 [00:01<00:00, 21.02it/s]
+Epoch 28:  68%|██████▊   | 36/53 [00:01<00:00, 20.80it/s]
+Epoch 28:  74%|███████▎  | 39/53 [00:01<00:00, 20.21it/s]
+Epoch 28:  79%|███████▉  | 42/53 [00:02<00:00, 20.69it/s]
+Epoch 28:  85%|████████▍ | 45/53 [00:02<00:00, 21.20it/s]
+Epoch 28:  91%|█████████ | 48/53 [00:02<00:00, 21.69it/s]
+Epoch 28:  96%|█████████▌| 51/53 [00:02<00:00, 22.13it/s]
+Epoch 28: 100%|██████████| 53/53 [00:02<00:00, 21.27it/s]
+Epoch 28 | Avg Loss: 0.020637
+Epoch 28 | Validation Loss: 0.021308 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=29 epoch_seed=4074254812951384395
+
+Epoch 29:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 29:   8%|▊         | 4/53 [00:00<00:01, 30.09it/s]
+Epoch 29:  15%|█▌        | 8/53 [00:00<00:01, 29.62it/s]
+Epoch 29:  21%|██        | 11/53 [00:00<00:01, 28.23it/s]
+Epoch 29:  26%|██▋       | 14/53 [00:00<00:01, 26.99it/s]
+Epoch 29:  32%|███▏      | 17/53 [00:00<00:01, 26.99it/s]
+Epoch 29:  38%|███▊      | 20/53 [00:00<00:01, 27.21it/s]
+Epoch 29:  43%|████▎     | 23/53 [00:00<00:01, 27.41it/s]
+Epoch 29:  49%|████▉     | 26/53 [00:00<00:00, 27.66it/s]
+Epoch 29:  55%|█████▍    | 29/53 [00:01<00:00, 27.75it/s]
+Epoch 29:  62%|██████▏   | 33/53 [00:01<00:00, 28.64it/s]
+Epoch 29:  70%|██████▉   | 37/53 [00:01<00:00, 29.00it/s]
+Epoch 29:  75%|███████▌  | 40/53 [00:01<00:00, 28.01it/s]
+Epoch 29:  81%|████████  | 43/53 [00:01<00:00, 27.37it/s]
+Epoch 29:  87%|████████▋ | 46/53 [00:01<00:00, 27.48it/s]
+Epoch 29:  92%|█████████▏| 49/53 [00:01<00:00, 27.15it/s]
+Epoch 29:  98%|█████████▊| 52/53 [00:01<00:00, 26.15it/s]
+Epoch 29: 100%|██████████| 53/53 [00:01<00:00, 27.45it/s]
+Epoch 29 | Avg Loss: 0.020644
+Epoch 29 | Validation Loss: 0.021229 (2214 ML segments)
+Model saved to: /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/train/iteration_001/attempt_001/cached_models/model_lr_contact_contrast_gbm_head_lr_contact_contrast_gbm_head_explore2_001_agent.pth
+Results saved to: /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/train/iteration_001/attempt_001/records/explore2/experiment_results_lr_contact_contrast_gbm_head_lr_contact_contrast_gbm_head_explore2_001.json
+
+[Step 2/3] Inference...
+
+>>> [Skill: Inference] Running inference for lr_contact_contrast_gbm_head_explore2_001...
+>>> [Executor] Running inference for lr_contact_contrast_gbm_head_explore2_001...
+--- [Admission] inference WOULD BE REFUSED (observe_only, policy_unavailable): device occupancy was measured, but no applicable measured GPU memory requirement is available for this phase; a predicted estimate cannot establish the required memory. Proceeding because enforcement_observe_only; the phase posture remains 'formal'.
+--- Inference Output ---
+[PluginLoader] Loaded plugin: 'lr_contact_contrast_gbm_head' from lr_contact_contrast_gbm_head.py
+[generic_inference] 2214 sample(s) in 35 batch(es) -> lr_coupling_scores_lr_contact_contrast_gbm_head_explore2_lr_contact_contrast_gbm_head_explore2_001_0000.json (1.97s)
+
+[Step 3/3] Scoring...
+[MEM] scope=tuner iter=1 phase=pre_score rss=0.78 GB vms=47.12 GB
+
+>>> [Skill: Scoring] Calculating scores for lr_contact_contrast_gbm_head_explore2_001...
+>>> [Executor] Running scoring for lr_contact_contrast_gbm_head_explore2_001...
+[MEM] scope=tuner iter=1 phase=post_score rss=0.78 GB vms=47.12 GB
+
+Generating Research Memory...
+------------------------------
+RESEARCH REFLECTION for lr_contact_contrast_gbm_head_explore2_001:
+Conclusion  : Provisionally good, but without a reference. The run scored lr_auprc 0.5835 (lr_auroc 0.899, direction_accuracy 0.801). Baseline and best-so-far are both None, so it is flagged is_new_best by default. The hypothesis was 'at or slightly above plain Spearman baseline', and the context supplies no Spearman number, so that claim cannot be verified. Training ran at formal scope (portion 1.0), so data volume is not a concern. The health gates passed with 10 distinct symbols and a dominant-symbol fraction of 0.10.
+Key Factor  : Spearman skip combined with shrink_n0=20 and dropout 0.1 on a small model of 9265 params with smooth_l1 loss. No ablation isolates which part (skip, shrinkage or dropout) mattered. The partial-correlation and tercile-contrast features are the hypothesised confound-cancelling mechanism, but this run does not test them.
+Discovery   : Training was stable and well regularised. Train smooth_l1 fell 0.0263->0.0206 and validation fell 0.0239->0.0212, with the best validation epoch at 29 of 30, so the checkpoint was selected at the end. The final train-val gap is small (+0.00059, comparable). The validation curve is noisy epoch to epoch (e.g. spikes at epochs 18 and 20 of about 0.0227) but trends down. There is no sign of overfitting. Both curves are still drifting down slowly at epoch 30, so the model is probably not fully converged. Capacity and epochs are the likely limits, not regularisation. Smooth_l1 loss is the only loss type so far, so 0.0206 is the reference for later same-loss runs.
+Memory Update: Record lr_auprc=0.5835 (auroc 0.899, dir_acc 0.801) as the first reference for the Spearman-skip + shrink_n0=20 + dropout 0.1 config (9265 params, 30 epochs, smooth_l1, formal portion 1.0). Next round, (1) run the plain Spearman baseline with the same seed and scope to test the hypothesis directly, since no baseline score exists yet. (2) Try more epochs (e.g. 50-60) or a slightly lower dropout (0.05), because the loss was still decreasing with a small train-val gap. (3) Ablate shrink_n0 (e.g. 10 vs 20 vs 40) and the partial-correlation and tercile-contrast features one at a time. Change one factor per run. Do not recommend raising trial_portion, since formal scope is operator-fixed. Treat score differences as real signal only if they are larger than seed-to-seed variance, which is still unmeasured, so consider repeating with a different seed.
+------------------------------
+[runtime_control] calibration training: not authoritative — 1 observation(s): below the minimum (2) or outside the consistency ratio (1.5)
+[runtime_control] calibration inference: not authoritative — 1 observation(s): below the minimum (2) or outside the consistency ratio (1.5)
+Round 1/2 Complete. Score: 0.5835399763333624
+
+
+============================================================
+ROUND 2/2 (attempt 1/5, total 2): Planning...
+============================================================
+    [PLANNER_STRATEGY] {"name":"native-timing-v1","version":"1","content_sha256":"6dc83ad5cbb0f4d51adf68bdbee08cb574de1c7a17fa9463663edd53415e12ad","assembly_sha256":"d512b2949b4a3c273ed5b1cd4722a99f6522bd36bb2a5e3d217579be11d4abe4"}
+    [PROMPT_SIZE] planner: 64298 chars
+  [STRATEGY] formal_round_strategy=full_clone
+  [FORMAL OVERRIDE] WARNING: no successful trial round is HealthGate-valid in this iteration — planner's plan unchanged. Score may be unreliable.
+[data_order] proposed=none override=none resolved=shuffle source=default file_order=none
+  Task-owned scope: no legacy SampleSet is built for a composed task
+Action: LR_CONTACT_CONTRAST_GBM_HEAD | ID: lr_contact_contrast_gbm_head_explore2_002
+Effective configuration for this attempt (prepared request; execution/results pending):
+  No authored configuration values were overridden.
+Authored proposal (not observed execution/results):
+  Proposal hypothesis: Longer training with slightly more capacity and less regularisation lowers validation loss below 0.0212 and lifts lr_auprc modestly above 0.5835, perhaps to 0.59-0.61. The gap should stay small.
+  Proposal reasoning: Final round, so formal mode is mandatory. Round 1 reached lr_auprc 0.5835. Train and validation loss were both still falling at epoch 30, and the train-val gap was tiny (+0.0006), so the model is not overfitting and is probably limited by training length and capacity. I will make a modest change in that direction. I raise epochs to 60 and add capacity with hidden_dim 96. I reduce dropout to 0.05 and lower shrink_n0 to 10, keeping the skip connection on. Memory advises changing one factor at a time, but there is no second round, so I will bundle changes that point the same way. Cost is small: about 1 min of training per 30 epochs, and VRAM was about 144 MiB.
+
+[Pre-flight 1/2] VRAM check (mode=formal, budget=free×0.8)...
+  Pre-phase GPU measurement: 1953 MiB (training), admitted
+
+[Step 1/3] Training...
+
+>>> [Skill: Training] Initiating training for lr_contact_contrast_gbm_head_explore2_002...
+>>> [Executor] Running training for lr_contact_contrast_gbm_head_explore2_002...
+--- Train Script Output ---
+[PluginLoader] Loaded plugin: 'lr_contact_contrast_gbm_head' from lr_contact_contrast_gbm_head.py
+[seed] run_seed=4778776952934699 source=supplied
+[data_order] resolved=shuffle file_order=none epoch=0 epoch_seed=7437777083591992850
+[training_budget] {"stage":"before_optimizer","epochs":60,"optimizer_steps":3180,"budget_seconds":null,"predicted_training_seconds":null,"actual_training_seconds":null,"predicted_training_budget_fraction":null,"missing_prediction_phases":["training","validation","inference","scoring"],"message":"Fixed epoch horizon; execution will not add epochs to consume remaining budget. Budget is admission-only, not guaranteed optimization time. Missing phase predictions are unknown, not zero; no unused-budget claim is possible."}
+
+Epoch 0:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 0:   2%|▏         | 1/53 [00:00<00:34,  1.50it/s]
+Epoch 0:   8%|▊         | 4/53 [00:00<00:07,  6.29it/s]
+Epoch 0:  13%|█▎        | 7/53 [00:00<00:04, 10.56it/s]
+Epoch 0:  19%|█▉        | 10/53 [00:01<00:03, 14.32it/s]
+Epoch 0:  25%|██▍       | 13/53 [00:01<00:02, 17.10it/s][training_budget] {"stage":"post_training_verification","epochs":60,"optimizer_steps":3180,"budget_seconds":null,"predicted_training_seconds":166.67001132806035,"actual_training_seconds":null,"predicted_training_budget_fraction":null,"missing_prediction_phases":["validation","inference","scoring"],"message":"Fixed epoch horizon; execution will not add epochs to consume remaining budget. Budget is admission-only, not guaranteed optimization time. Missing phase predictions are unknown, not zero; no unused-budget claim is possible."}
+
+Epoch 0:  30%|███       | 16/53 [00:01<00:01, 19.39it/s]
+Epoch 0:  36%|███▌      | 19/53 [00:01<00:01, 21.00it/s]
+Epoch 0:  42%|████▏     | 22/53 [00:01<00:01, 22.18it/s]
+Epoch 0:  47%|████▋     | 25/53 [00:01<00:01, 23.19it/s]
+Epoch 0:  53%|█████▎    | 28/53 [00:01<00:01, 23.73it/s]
+Epoch 0:  58%|█████▊    | 31/53 [00:01<00:00, 24.32it/s]
+Epoch 0:  64%|██████▍   | 34/53 [00:01<00:00, 24.74it/s]
+Epoch 0:  70%|██████▉   | 37/53 [00:02<00:00, 24.88it/s]
+Epoch 0:  75%|███████▌  | 40/53 [00:02<00:00, 25.14it/s]
+Epoch 0:  81%|████████  | 43/53 [00:02<00:00, 25.12it/s]
+Epoch 0:  87%|████████▋ | 46/53 [00:02<00:00, 25.35it/s]
+Epoch 0:  92%|█████████▏| 49/53 [00:02<00:00, 25.40it/s]
+Epoch 0:  98%|█████████▊| 52/53 [00:02<00:00, 25.77it/s]
+Epoch 0: 100%|██████████| 53/53 [00:02<00:00, 19.61it/s]
+Epoch 0 | Avg Loss: 0.026440
+Epoch 0 | Validation Loss: 0.024062 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=1 epoch_seed=1370696609082863214
+
+Epoch 1:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 1:   6%|▌         | 3/53 [00:00<00:01, 27.74it/s]
+Epoch 1:  11%|█▏        | 6/53 [00:00<00:01, 25.90it/s]
+Epoch 1:  17%|█▋        | 9/53 [00:00<00:01, 26.15it/s]
+Epoch 1:  23%|██▎       | 12/53 [00:00<00:01, 25.84it/s]
+Epoch 1:  28%|██▊       | 15/53 [00:00<00:01, 26.08it/s]
+Epoch 1:  34%|███▍      | 18/53 [00:00<00:01, 25.78it/s]
+Epoch 1:  40%|███▉      | 21/53 [00:00<00:01, 23.79it/s]
+Epoch 1:  45%|████▌     | 24/53 [00:01<00:01, 21.20it/s]
+Epoch 1:  51%|█████     | 27/53 [00:01<00:01, 21.95it/s]
+Epoch 1:  57%|█████▋    | 30/53 [00:01<00:01, 22.85it/s]
+Epoch 1:  62%|██████▏   | 33/53 [00:01<00:00, 23.75it/s]
+Epoch 1:  68%|██████▊   | 36/53 [00:01<00:00, 23.87it/s]
+Epoch 1:  74%|███████▎  | 39/53 [00:01<00:00, 24.60it/s]
+Epoch 1:  79%|███████▉  | 42/53 [00:01<00:00, 24.83it/s]
+Epoch 1:  85%|████████▍ | 45/53 [00:01<00:00, 24.89it/s]
+Epoch 1:  91%|█████████ | 48/53 [00:01<00:00, 25.00it/s]
+Epoch 1:  96%|█████████▌| 51/53 [00:02<00:00, 25.48it/s]
+Epoch 1: 100%|██████████| 53/53 [00:02<00:00, 24.51it/s]
+Epoch 1 | Avg Loss: 0.022540
+Epoch 1 | Validation Loss: 0.022710 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=2 epoch_seed=8031541202772703328
+
+Epoch 2:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 2:   6%|▌         | 3/53 [00:00<00:02, 23.96it/s]
+Epoch 2:  11%|█▏        | 6/53 [00:00<00:01, 24.59it/s]
+Epoch 2:  17%|█▋        | 9/53 [00:00<00:01, 25.90it/s]
+Epoch 2:  23%|██▎       | 12/53 [00:00<00:01, 26.14it/s]
+Epoch 2:  28%|██▊       | 15/53 [00:00<00:01, 26.08it/s]
+Epoch 2:  34%|███▍      | 18/53 [00:00<00:01, 26.78it/s]
+Epoch 2:  40%|███▉      | 21/53 [00:00<00:01, 27.18it/s]
+Epoch 2:  45%|████▌     | 24/53 [00:00<00:01, 27.68it/s]
+Epoch 2:  51%|█████     | 27/53 [00:01<00:00, 27.90it/s]
+Epoch 2:  57%|█████▋    | 30/53 [00:01<00:00, 27.67it/s]
+Epoch 2:  62%|██████▏   | 33/53 [00:01<00:00, 27.76it/s]
+Epoch 2:  68%|██████▊   | 36/53 [00:01<00:00, 27.83it/s]
+Epoch 2:  74%|███████▎  | 39/53 [00:01<00:00, 25.25it/s]
+Epoch 2:  79%|███████▉  | 42/53 [00:01<00:00, 25.82it/s]
+Epoch 2:  85%|████████▍ | 45/53 [00:01<00:00, 26.33it/s]
+Epoch 2:  91%|█████████ | 48/53 [00:01<00:00, 27.13it/s]
+Epoch 2:  96%|█████████▌| 51/53 [00:01<00:00, 27.54it/s]
+Epoch 2: 100%|██████████| 53/53 [00:01<00:00, 26.88it/s]
+Epoch 2 | Avg Loss: 0.022085
+Epoch 2 | Validation Loss: 0.022130 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=3 epoch_seed=7834520997436299166
+
+Epoch 3:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 3:   6%|▌         | 3/53 [00:00<00:01, 27.58it/s]
+Epoch 3:  11%|█▏        | 6/53 [00:00<00:01, 26.98it/s]
+Epoch 3:  17%|█▋        | 9/53 [00:00<00:01, 27.38it/s]
+Epoch 3:  23%|██▎       | 12/53 [00:00<00:01, 27.90it/s]
+Epoch 3:  28%|██▊       | 15/53 [00:00<00:01, 27.95it/s]
+Epoch 3:  34%|███▍      | 18/53 [00:00<00:01, 27.54it/s]
+Epoch 3:  40%|███▉      | 21/53 [00:00<00:01, 26.79it/s]
+Epoch 3:  45%|████▌     | 24/53 [00:00<00:01, 27.34it/s]
+Epoch 3:  51%|█████     | 27/53 [00:00<00:00, 26.95it/s]
+Epoch 3:  57%|█████▋    | 30/53 [00:01<00:00, 27.36it/s]
+Epoch 3:  62%|██████▏   | 33/53 [00:01<00:00, 27.22it/s]
+Epoch 3:  68%|██████▊   | 36/53 [00:01<00:00, 26.86it/s]
+Epoch 3:  74%|███████▎  | 39/53 [00:01<00:00, 25.44it/s]
+Epoch 3:  79%|███████▉  | 42/53 [00:01<00:00, 24.29it/s]
+Epoch 3:  85%|████████▍ | 45/53 [00:01<00:00, 22.82it/s]
+Epoch 3:  91%|█████████ | 48/53 [00:01<00:00, 23.88it/s]
+Epoch 3:  96%|█████████▌| 51/53 [00:01<00:00, 24.94it/s]
+Epoch 3: 100%|██████████| 53/53 [00:02<00:00, 26.08it/s]
+Epoch 3 | Avg Loss: 0.021671
+Epoch 3 | Validation Loss: 0.021843 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=4 epoch_seed=6800384088498940324
+
+Epoch 4:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 4:   6%|▌         | 3/53 [00:00<00:01, 28.11it/s]
+Epoch 4:  11%|█▏        | 6/53 [00:00<00:01, 27.20it/s]
+Epoch 4:  17%|█▋        | 9/53 [00:00<00:01, 27.85it/s]
+Epoch 4:  23%|██▎       | 12/53 [00:00<00:01, 27.29it/s]
+Epoch 4:  28%|██▊       | 15/53 [00:00<00:01, 27.87it/s]
+Epoch 4:  34%|███▍      | 18/53 [00:00<00:01, 28.04it/s]
+Epoch 4:  40%|███▉      | 21/53 [00:00<00:01, 27.32it/s]
+Epoch 4:  45%|████▌     | 24/53 [00:00<00:01, 26.78it/s]
+Epoch 4:  51%|█████     | 27/53 [00:00<00:00, 26.45it/s]
+Epoch 4:  57%|█████▋    | 30/53 [00:01<00:00, 26.27it/s]
+Epoch 4:  62%|██████▏   | 33/53 [00:01<00:00, 24.82it/s]
+Epoch 4:  68%|██████▊   | 36/53 [00:01<00:00, 22.10it/s]
+Epoch 4:  74%|███████▎  | 39/53 [00:01<00:00, 23.23it/s]
+Epoch 4:  79%|███████▉  | 42/53 [00:01<00:00, 23.88it/s]
+Epoch 4:  85%|████████▍ | 45/53 [00:01<00:00, 24.28it/s]
+Epoch 4:  91%|█████████ | 48/53 [00:01<00:00, 24.30it/s]
+Epoch 4:  96%|█████████▌| 51/53 [00:02<00:00, 24.95it/s]
+Epoch 4: 100%|██████████| 53/53 [00:02<00:00, 25.46it/s]
+Epoch 4 | Avg Loss: 0.021534
+Epoch 4 | Validation Loss: 0.022424 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=5 epoch_seed=9147316225937171640
+
+Epoch 5:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 5:   6%|▌         | 3/53 [00:00<00:01, 25.24it/s]
+Epoch 5:  11%|█▏        | 6/53 [00:00<00:01, 24.69it/s]
+Epoch 5:  17%|█▋        | 9/53 [00:00<00:01, 25.99it/s]
+Epoch 5:  23%|██▎       | 12/53 [00:00<00:01, 26.37it/s]
+Epoch 5:  28%|██▊       | 15/53 [00:00<00:01, 26.62it/s]
+Epoch 5:  34%|███▍      | 18/53 [00:00<00:01, 26.58it/s]
+Epoch 5:  40%|███▉      | 21/53 [00:00<00:01, 27.37it/s]
+Epoch 5:  45%|████▌     | 24/53 [00:00<00:01, 27.55it/s]
+Epoch 5:  51%|█████     | 27/53 [00:01<00:01, 25.51it/s]
+Epoch 5:  57%|█████▋    | 30/53 [00:01<00:00, 25.21it/s]
+Epoch 5:  62%|██████▏   | 33/53 [00:01<00:00, 25.54it/s]
+Epoch 5:  68%|██████▊   | 36/53 [00:01<00:00, 26.07it/s]
+Epoch 5:  74%|███████▎  | 39/53 [00:01<00:00, 26.42it/s]
+Epoch 5:  79%|███████▉  | 42/53 [00:01<00:00, 26.24it/s]
+Epoch 5:  85%|████████▍ | 45/53 [00:01<00:00, 26.70it/s]
+Epoch 5:  91%|█████████ | 48/53 [00:01<00:00, 25.86it/s]
+Epoch 5:  96%|█████████▌| 51/53 [00:01<00:00, 26.03it/s]
+Epoch 5: 100%|██████████| 53/53 [00:02<00:00, 26.14it/s]
+Epoch 5 | Avg Loss: 0.021447
+Epoch 5 | Validation Loss: 0.022341 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=6 epoch_seed=222614906457211760
+
+Epoch 6:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 6:   6%|▌         | 3/53 [00:00<00:02, 24.11it/s]
+Epoch 6:  11%|█▏        | 6/53 [00:00<00:01, 24.63it/s]
+Epoch 6:  17%|█▋        | 9/53 [00:00<00:01, 25.87it/s]
+Epoch 6:  23%|██▎       | 12/53 [00:00<00:01, 26.12it/s]
+Epoch 6:  28%|██▊       | 15/53 [00:00<00:01, 25.75it/s]
+Epoch 6:  34%|███▍      | 18/53 [00:00<00:01, 26.61it/s]
+Epoch 6:  40%|███▉      | 21/53 [00:00<00:01, 26.33it/s]
+Epoch 6:  45%|████▌     | 24/53 [00:00<00:01, 26.72it/s]
+Epoch 6:  51%|█████     | 27/53 [00:01<00:00, 26.78it/s]
+Epoch 6:  57%|█████▋    | 30/53 [00:01<00:00, 26.81it/s]
+Epoch 6:  62%|██████▏   | 33/53 [00:01<00:00, 27.11it/s]
+Epoch 6:  68%|██████▊   | 36/53 [00:01<00:00, 27.29it/s]
+Epoch 6:  74%|███████▎  | 39/53 [00:01<00:00, 27.69it/s]
+Epoch 6:  79%|███████▉  | 42/53 [00:01<00:00, 27.13it/s]
+Epoch 6:  85%|████████▍ | 45/53 [00:01<00:00, 27.08it/s]
+Epoch 6:  91%|█████████ | 48/53 [00:01<00:00, 26.23it/s]
+Epoch 6:  96%|█████████▌| 51/53 [00:01<00:00, 25.71it/s]
+Epoch 6: 100%|██████████| 53/53 [00:02<00:00, 26.31it/s]
+Epoch 6 | Avg Loss: 0.021319
+Epoch 6 | Validation Loss: 0.022064 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=7 epoch_seed=1055242602332579939
+
+Epoch 7:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 7:   6%|▌         | 3/53 [00:00<00:01, 26.41it/s]
+Epoch 7:  11%|█▏        | 6/53 [00:00<00:01, 24.14it/s]
+Epoch 7:  17%|█▋        | 9/53 [00:00<00:01, 24.55it/s]
+Epoch 7:  23%|██▎       | 12/53 [00:00<00:01, 25.78it/s]
+Epoch 7:  28%|██▊       | 15/53 [00:00<00:01, 25.38it/s]
+Epoch 7:  34%|███▍      | 18/53 [00:00<00:01, 26.31it/s]
+Epoch 7:  40%|███▉      | 21/53 [00:00<00:01, 26.99it/s]
+Epoch 7:  45%|████▌     | 24/53 [00:00<00:01, 26.64it/s]
+Epoch 7:  51%|█████     | 27/53 [00:01<00:00, 26.35it/s]
+Epoch 7:  57%|█████▋    | 30/53 [00:01<00:00, 26.14it/s]
+Epoch 7:  62%|██████▏   | 33/53 [00:01<00:00, 25.48it/s]
+Epoch 7:  68%|██████▊   | 36/53 [00:01<00:00, 25.83it/s]
+Epoch 7:  74%|███████▎  | 39/53 [00:01<00:00, 26.52it/s]
+Epoch 7:  79%|███████▉  | 42/53 [00:01<00:00, 26.19it/s]
+Epoch 7:  85%|████████▍ | 45/53 [00:01<00:00, 26.54it/s]
+Epoch 7:  91%|█████████ | 48/53 [00:01<00:00, 25.60it/s]
+Epoch 7:  96%|█████████▌| 51/53 [00:01<00:00, 25.48it/s]
+Epoch 7: 100%|██████████| 53/53 [00:02<00:00, 25.90it/s]
+Epoch 7 | Avg Loss: 0.021349
+Epoch 7 | Validation Loss: 0.021676 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=8 epoch_seed=2628887587707376722
+
+Epoch 8:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 8:   6%|▌         | 3/53 [00:00<00:01, 27.18it/s]
+Epoch 8:  11%|█▏        | 6/53 [00:00<00:01, 27.20it/s]
+Epoch 8:  17%|█▋        | 9/53 [00:00<00:01, 26.34it/s]
+Epoch 8:  23%|██▎       | 12/53 [00:00<00:01, 26.70it/s]
+Epoch 8:  28%|██▊       | 15/53 [00:00<00:01, 26.33it/s]
+Epoch 8:  34%|███▍      | 18/53 [00:00<00:01, 27.13it/s]
+Epoch 8:  40%|███▉      | 21/53 [00:00<00:01, 27.41it/s]
+Epoch 8:  45%|████▌     | 24/53 [00:00<00:01, 27.58it/s]
+Epoch 8:  51%|█████     | 27/53 [00:00<00:00, 27.66it/s]
+Epoch 8:  57%|█████▋    | 30/53 [00:01<00:00, 27.18it/s]
+Epoch 8:  62%|██████▏   | 33/53 [00:01<00:00, 27.10it/s]
+Epoch 8:  68%|██████▊   | 36/53 [00:01<00:00, 26.86it/s]
+Epoch 8:  74%|███████▎  | 39/53 [00:01<00:00, 26.68it/s]
+Epoch 8:  79%|███████▉  | 42/53 [00:01<00:00, 26.15it/s]
+Epoch 8:  85%|████████▍ | 45/53 [00:01<00:00, 26.16it/s]
+Epoch 8:  91%|█████████ | 48/53 [00:01<00:00, 26.04it/s]
+Epoch 8:  96%|█████████▌| 51/53 [00:01<00:00, 25.91it/s]
+Epoch 8: 100%|██████████| 53/53 [00:01<00:00, 26.71it/s]
+Epoch 8 | Avg Loss: 0.021286
+Epoch 8 | Validation Loss: 0.021737 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=9 epoch_seed=36470365465837997
+
+Epoch 9:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 9:   6%|▌         | 3/53 [00:00<00:02, 18.89it/s]
+Epoch 9:   9%|▉         | 5/53 [00:00<00:02, 17.62it/s]
+Epoch 9:  13%|█▎        | 7/53 [00:00<00:02, 16.40it/s]
+Epoch 9:  17%|█▋        | 9/53 [00:00<00:02, 15.87it/s]
+Epoch 9:  21%|██        | 11/53 [00:00<00:02, 16.75it/s]
+Epoch 9:  25%|██▍       | 13/53 [00:00<00:02, 17.64it/s]
+Epoch 9:  28%|██▊       | 15/53 [00:00<00:02, 18.19it/s]
+Epoch 9:  34%|███▍      | 18/53 [00:00<00:01, 19.99it/s]
+Epoch 9:  40%|███▉      | 21/53 [00:01<00:01, 22.43it/s]
+Epoch 9:  45%|████▌     | 24/53 [00:01<00:01, 23.23it/s]
+Epoch 9:  51%|█████     | 27/53 [00:01<00:01, 24.54it/s]
+Epoch 9:  57%|█████▋    | 30/53 [00:01<00:00, 25.18it/s]
+Epoch 9:  62%|██████▏   | 33/53 [00:01<00:00, 25.03it/s]
+Epoch 9:  68%|██████▊   | 36/53 [00:01<00:00, 24.87it/s]
+Epoch 9:  74%|███████▎  | 39/53 [00:01<00:00, 25.24it/s]
+Epoch 9:  79%|███████▉  | 42/53 [00:01<00:00, 23.95it/s]
+Epoch 9:  85%|████████▍ | 45/53 [00:02<00:00, 24.27it/s]
+Epoch 9:  91%|█████████ | 48/53 [00:02<00:00, 24.83it/s]
+Epoch 9:  96%|█████████▌| 51/53 [00:02<00:00, 25.54it/s]
+Epoch 9: 100%|██████████| 53/53 [00:02<00:00, 22.59it/s]
+Epoch 9 | Avg Loss: 0.021287
+Epoch 9 | Validation Loss: 0.023923 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=10 epoch_seed=7689381191051799594
+
+Epoch 10:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 10:   6%|▌         | 3/53 [00:00<00:01, 27.21it/s]
+Epoch 10:  11%|█▏        | 6/53 [00:00<00:01, 28.00it/s]
+Epoch 10:  17%|█▋        | 9/53 [00:00<00:01, 27.79it/s]
+Epoch 10:  23%|██▎       | 12/53 [00:00<00:01, 27.05it/s]
+Epoch 10:  28%|██▊       | 15/53 [00:00<00:01, 26.95it/s]
+Epoch 10:  34%|███▍      | 18/53 [00:00<00:01, 26.90it/s]
+Epoch 10:  40%|███▉      | 21/53 [00:00<00:01, 26.82it/s]
+Epoch 10:  45%|████▌     | 24/53 [00:00<00:01, 26.97it/s]
+Epoch 10:  51%|█████     | 27/53 [00:01<00:00, 26.59it/s]
+Epoch 10:  57%|█████▋    | 30/53 [00:01<00:00, 26.93it/s]
+Epoch 10:  62%|██████▏   | 33/53 [00:01<00:00, 27.34it/s]
+Epoch 10:  68%|██████▊   | 36/53 [00:01<00:00, 26.99it/s]
+Epoch 10:  74%|███████▎  | 39/53 [00:01<00:00, 26.55it/s]
+Epoch 10:  79%|███████▉  | 42/53 [00:01<00:00, 26.85it/s]
+Epoch 10:  85%|████████▍ | 45/53 [00:01<00:00, 27.01it/s]
+Epoch 10:  91%|█████████ | 48/53 [00:01<00:00, 26.73it/s]
+Epoch 10:  96%|█████████▌| 51/53 [00:01<00:00, 25.81it/s]
+Epoch 10: 100%|██████████| 53/53 [00:01<00:00, 26.54it/s]
+Epoch 10 | Avg Loss: 0.021313
+Epoch 10 | Validation Loss: 0.021628 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=11 epoch_seed=8035780191737124862
+
+Epoch 11:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 11:   6%|▌         | 3/53 [00:00<00:02, 23.72it/s]
+Epoch 11:  11%|█▏        | 6/53 [00:00<00:01, 24.08it/s]
+Epoch 11:  17%|█▋        | 9/53 [00:00<00:01, 24.69it/s]
+Epoch 11:  23%|██▎       | 12/53 [00:00<00:01, 24.83it/s]
+Epoch 11:  28%|██▊       | 15/53 [00:00<00:01, 24.90it/s]
+Epoch 11:  34%|███▍      | 18/53 [00:00<00:01, 25.05it/s]
+Epoch 11:  40%|███▉      | 21/53 [00:00<00:01, 25.28it/s]
+Epoch 11:  45%|████▌     | 24/53 [00:00<00:01, 26.03it/s]
+Epoch 11:  51%|█████     | 27/53 [00:01<00:00, 26.16it/s]
+Epoch 11:  57%|█████▋    | 30/53 [00:01<00:00, 25.04it/s]
+Epoch 11:  62%|██████▏   | 33/53 [00:01<00:00, 24.28it/s]
+Epoch 11:  68%|██████▊   | 36/53 [00:01<00:00, 24.32it/s]
+Epoch 11:  74%|███████▎  | 39/53 [00:01<00:00, 24.75it/s]
+Epoch 11:  79%|███████▉  | 42/53 [00:01<00:00, 25.36it/s]
+Epoch 11:  85%|████████▍ | 45/53 [00:01<00:00, 25.98it/s]
+Epoch 11:  91%|█████████ | 48/53 [00:01<00:00, 25.60it/s]
+Epoch 11:  96%|█████████▌| 51/53 [00:02<00:00, 25.54it/s]
+Epoch 11: 100%|██████████| 53/53 [00:02<00:00, 25.17it/s]
+Epoch 11 | Avg Loss: 0.020987
+Epoch 11 | Validation Loss: 0.021597 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=12 epoch_seed=7881057617402350943
+
+Epoch 12:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 12:   6%|▌         | 3/53 [00:00<00:01, 27.95it/s]
+Epoch 12:  11%|█▏        | 6/53 [00:00<00:01, 28.33it/s]
+Epoch 12:  17%|█▋        | 9/53 [00:00<00:01, 28.75it/s]
+Epoch 12:  23%|██▎       | 12/53 [00:00<00:01, 28.99it/s]
+Epoch 12:  28%|██▊       | 15/53 [00:00<00:01, 28.92it/s]
+Epoch 12:  34%|███▍      | 18/53 [00:00<00:01, 28.09it/s]
+Epoch 12:  40%|███▉      | 21/53 [00:00<00:01, 27.92it/s]
+Epoch 12:  45%|████▌     | 24/53 [00:00<00:01, 27.06it/s]
+Epoch 12:  51%|█████     | 27/53 [00:00<00:00, 27.08it/s]
+Epoch 12:  57%|█████▋    | 30/53 [00:01<00:00, 26.99it/s]
+Epoch 12:  62%|██████▏   | 33/53 [00:01<00:00, 26.70it/s]
+Epoch 12:  68%|██████▊   | 36/53 [00:01<00:00, 26.62it/s]
+Epoch 12:  74%|███████▎  | 39/53 [00:01<00:00, 26.75it/s]
+Epoch 12:  79%|███████▉  | 42/53 [00:01<00:00, 26.67it/s]
+Epoch 12:  85%|████████▍ | 45/53 [00:01<00:00, 26.17it/s]
+Epoch 12:  91%|█████████ | 48/53 [00:01<00:00, 26.07it/s]
+Epoch 12:  96%|█████████▌| 51/53 [00:01<00:00, 26.46it/s]
+Epoch 12: 100%|██████████| 53/53 [00:01<00:00, 27.03it/s]
+Epoch 12 | Avg Loss: 0.020854
+Epoch 12 | Validation Loss: 0.021615 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=13 epoch_seed=7719297903408248083
+
+Epoch 13:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 13:   6%|▌         | 3/53 [00:00<00:01, 26.40it/s]
+Epoch 13:  11%|█▏        | 6/53 [00:00<00:01, 26.33it/s]
+Epoch 13:  17%|█▋        | 9/53 [00:00<00:01, 25.74it/s]
+Epoch 13:  23%|██▎       | 12/53 [00:00<00:01, 25.53it/s]
+Epoch 13:  28%|██▊       | 15/53 [00:00<00:01, 25.46it/s]
+Epoch 13:  34%|███▍      | 18/53 [00:00<00:01, 25.86it/s]
+Epoch 13:  40%|███▉      | 21/53 [00:00<00:01, 26.03it/s]
+Epoch 13:  45%|████▌     | 24/53 [00:00<00:01, 26.12it/s]
+Epoch 13:  51%|█████     | 27/53 [00:01<00:00, 26.38it/s]
+Epoch 13:  57%|█████▋    | 30/53 [00:01<00:00, 26.55it/s]
+Epoch 13:  62%|██████▏   | 33/53 [00:01<00:00, 26.00it/s]
+Epoch 13:  68%|██████▊   | 36/53 [00:01<00:00, 25.44it/s]
+Epoch 13:  74%|███████▎  | 39/53 [00:01<00:00, 25.46it/s]
+Epoch 13:  79%|███████▉  | 42/53 [00:01<00:00, 25.47it/s]
+Epoch 13:  85%|████████▍ | 45/53 [00:01<00:00, 25.40it/s]
+Epoch 13:  91%|█████████ | 48/53 [00:01<00:00, 25.17it/s]
+Epoch 13:  96%|█████████▌| 51/53 [00:01<00:00, 25.11it/s]
+Epoch 13: 100%|██████████| 53/53 [00:02<00:00, 25.67it/s]
+Epoch 13 | Avg Loss: 0.021134
+Epoch 13 | Validation Loss: 0.021689 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=14 epoch_seed=1164667621875952605
+
+Epoch 14:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 14:   6%|▌         | 3/53 [00:00<00:01, 26.31it/s]
+Epoch 14:  11%|█▏        | 6/53 [00:00<00:01, 26.03it/s]
+Epoch 14:  17%|█▋        | 9/53 [00:00<00:01, 26.11it/s]
+Epoch 14:  23%|██▎       | 12/53 [00:00<00:01, 26.41it/s]
+Epoch 14:  28%|██▊       | 15/53 [00:00<00:01, 26.65it/s]
+Epoch 14:  34%|███▍      | 18/53 [00:00<00:01, 26.06it/s]
+Epoch 14:  40%|███▉      | 21/53 [00:00<00:01, 26.59it/s]
+Epoch 14:  45%|████▌     | 24/53 [00:00<00:01, 27.19it/s]
+Epoch 14:  51%|█████     | 27/53 [00:01<00:00, 27.72it/s]
+Epoch 14:  57%|█████▋    | 30/53 [00:01<00:00, 28.20it/s]
+Epoch 14:  62%|██████▏   | 33/53 [00:01<00:00, 28.39it/s]
+Epoch 14:  68%|██████▊   | 36/53 [00:01<00:00, 28.76it/s]
+Epoch 14:  74%|███████▎  | 39/53 [00:01<00:00, 28.82it/s]
+Epoch 14:  79%|███████▉  | 42/53 [00:01<00:00, 28.23it/s]
+Epoch 14:  85%|████████▍ | 45/53 [00:01<00:00, 28.11it/s]
+Epoch 14:  91%|█████████ | 48/53 [00:01<00:00, 27.97it/s]
+Epoch 14:  96%|█████████▌| 51/53 [00:01<00:00, 27.57it/s]
+Epoch 14: 100%|██████████| 53/53 [00:01<00:00, 27.46it/s]
+Epoch 14 | Avg Loss: 0.020827
+Epoch 14 | Validation Loss: 0.021514 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=15 epoch_seed=167644066436909436
+
+Epoch 15:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 15:   6%|▌         | 3/53 [00:00<00:01, 26.12it/s]
+Epoch 15:  11%|█▏        | 6/53 [00:00<00:01, 28.00it/s]
+Epoch 15:  17%|█▋        | 9/53 [00:00<00:01, 27.80it/s]
+Epoch 15:  23%|██▎       | 12/53 [00:00<00:01, 27.36it/s]
+Epoch 15:  28%|██▊       | 15/53 [00:00<00:01, 26.66it/s]
+Epoch 15:  34%|███▍      | 18/53 [00:00<00:01, 27.33it/s]
+Epoch 15:  40%|███▉      | 21/53 [00:00<00:01, 27.83it/s]
+Epoch 15:  45%|████▌     | 24/53 [00:00<00:01, 27.45it/s]
+Epoch 15:  51%|█████     | 27/53 [00:00<00:00, 27.01it/s]
+Epoch 15:  57%|█████▋    | 30/53 [00:01<00:00, 27.34it/s]
+Epoch 15:  62%|██████▏   | 33/53 [00:01<00:00, 27.69it/s]
+Epoch 15:  68%|██████▊   | 36/53 [00:01<00:00, 28.19it/s]
+Epoch 15:  74%|███████▎  | 39/53 [00:01<00:00, 27.90it/s]
+Epoch 15:  79%|███████▉  | 42/53 [00:01<00:00, 27.60it/s]
+Epoch 15:  85%|████████▍ | 45/53 [00:01<00:00, 27.92it/s]
+Epoch 15:  91%|█████████ | 48/53 [00:01<00:00, 27.44it/s]
+Epoch 15:  96%|█████████▌| 51/53 [00:01<00:00, 27.90it/s]
+Epoch 15: 100%|██████████| 53/53 [00:01<00:00, 27.61it/s]
+Epoch 15 | Avg Loss: 0.021144
+Epoch 15 | Validation Loss: 0.021793 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=16 epoch_seed=3338346307418375904
+
+Epoch 16:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 16:   6%|▌         | 3/53 [00:00<00:02, 22.68it/s]
+Epoch 16:  11%|█▏        | 6/53 [00:00<00:02, 23.31it/s]
+Epoch 16:  17%|█▋        | 9/53 [00:00<00:01, 23.51it/s]
+Epoch 16:  23%|██▎       | 12/53 [00:00<00:01, 23.91it/s]
+Epoch 16:  28%|██▊       | 15/53 [00:00<00:01, 24.43it/s]
+Epoch 16:  34%|███▍      | 18/53 [00:00<00:01, 25.22it/s]
+Epoch 16:  40%|███▉      | 21/53 [00:00<00:01, 25.75it/s]
+Epoch 16:  45%|████▌     | 24/53 [00:00<00:01, 26.30it/s]
+Epoch 16:  51%|█████     | 27/53 [00:01<00:00, 26.72it/s]
+Epoch 16:  57%|█████▋    | 30/53 [00:01<00:00, 27.05it/s]
+Epoch 16:  62%|██████▏   | 33/53 [00:01<00:00, 26.99it/s]
+Epoch 16:  68%|██████▊   | 36/53 [00:01<00:00, 27.11it/s]
+Epoch 16:  74%|███████▎  | 39/53 [00:01<00:00, 26.50it/s]
+Epoch 16:  79%|███████▉  | 42/53 [00:01<00:00, 27.02it/s]
+Epoch 16:  85%|████████▍ | 45/53 [00:01<00:00, 26.88it/s]
+Epoch 16:  91%|█████████ | 48/53 [00:01<00:00, 27.22it/s]
+Epoch 16:  96%|█████████▌| 51/53 [00:01<00:00, 27.24it/s]
+Epoch 16: 100%|██████████| 53/53 [00:02<00:00, 26.26it/s]
+Epoch 16 | Avg Loss: 0.020828
+Epoch 16 | Validation Loss: 0.021568 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=17 epoch_seed=8536620179357275133
+
+Epoch 17:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 17:   6%|▌         | 3/53 [00:00<00:02, 24.82it/s]
+Epoch 17:  11%|█▏        | 6/53 [00:00<00:01, 24.44it/s]
+Epoch 17:  17%|█▋        | 9/53 [00:00<00:01, 24.71it/s]
+Epoch 17:  23%|██▎       | 12/53 [00:00<00:01, 24.90it/s]
+Epoch 17:  28%|██▊       | 15/53 [00:00<00:01, 25.59it/s]
+Epoch 17:  34%|███▍      | 18/53 [00:00<00:01, 26.09it/s]
+Epoch 17:  40%|███▉      | 21/53 [00:00<00:01, 26.08it/s]
+Epoch 17:  45%|████▌     | 24/53 [00:00<00:01, 26.66it/s]
+Epoch 17:  51%|█████     | 27/53 [00:01<00:00, 26.90it/s]
+Epoch 17:  57%|█████▋    | 30/53 [00:01<00:00, 26.86it/s]
+Epoch 17:  62%|██████▏   | 33/53 [00:01<00:00, 26.38it/s]
+Epoch 17:  68%|██████▊   | 36/53 [00:01<00:00, 26.21it/s]
+Epoch 17:  74%|███████▎  | 39/53 [00:01<00:00, 26.76it/s]
+Epoch 17:  79%|███████▉  | 42/53 [00:01<00:00, 26.71it/s]
+Epoch 17:  85%|████████▍ | 45/53 [00:01<00:00, 27.34it/s]
+Epoch 17:  91%|█████████ | 48/53 [00:01<00:00, 27.32it/s]
+Epoch 17:  96%|█████████▌| 51/53 [00:01<00:00, 27.13it/s]
+Epoch 17: 100%|██████████| 53/53 [00:02<00:00, 26.45it/s]
+Epoch 17 | Avg Loss: 0.020720
+Epoch 17 | Validation Loss: 0.021410 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=18 epoch_seed=528897530477371377
+
+Epoch 18:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 18:   6%|▌         | 3/53 [00:00<00:01, 27.29it/s]
+Epoch 18:  11%|█▏        | 6/53 [00:00<00:01, 28.26it/s]
+Epoch 18:  17%|█▋        | 9/53 [00:00<00:01, 28.38it/s]
+Epoch 18:  23%|██▎       | 12/53 [00:00<00:01, 28.35it/s]
+Epoch 18:  28%|██▊       | 15/53 [00:00<00:01, 28.34it/s]
+Epoch 18:  34%|███▍      | 18/53 [00:00<00:01, 28.26it/s]
+Epoch 18:  40%|███▉      | 21/53 [00:00<00:01, 28.10it/s]
+Epoch 18:  45%|████▌     | 24/53 [00:00<00:01, 27.09it/s]
+Epoch 18:  51%|█████     | 27/53 [00:00<00:00, 27.14it/s]
+Epoch 18:  57%|█████▋    | 30/53 [00:01<00:00, 27.18it/s]
+Epoch 18:  62%|██████▏   | 33/53 [00:01<00:00, 26.64it/s]
+Epoch 18:  68%|██████▊   | 36/53 [00:01<00:00, 26.77it/s]
+Epoch 18:  74%|███████▎  | 39/53 [00:01<00:00, 27.14it/s]
+Epoch 18:  79%|███████▉  | 42/53 [00:01<00:00, 27.15it/s]
+Epoch 18:  85%|████████▍ | 45/53 [00:01<00:00, 27.52it/s]
+Epoch 18:  91%|█████████ | 48/53 [00:01<00:00, 27.47it/s]
+Epoch 18:  96%|█████████▌| 51/53 [00:01<00:00, 27.51it/s]
+Epoch 18: 100%|██████████| 53/53 [00:01<00:00, 27.53it/s]
+Epoch 18 | Avg Loss: 0.021020
+Epoch 18 | Validation Loss: 0.021451 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=19 epoch_seed=6160664425339809579
+
+Epoch 19:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 19:   6%|▌         | 3/53 [00:00<00:02, 24.50it/s]
+Epoch 19:  11%|█▏        | 6/53 [00:00<00:01, 23.57it/s]
+Epoch 19:  17%|█▋        | 9/53 [00:00<00:01, 23.94it/s]
+Epoch 19:  23%|██▎       | 12/53 [00:00<00:01, 24.57it/s]
+Epoch 19:  28%|██▊       | 15/53 [00:00<00:01, 25.34it/s]
+Epoch 19:  34%|███▍      | 18/53 [00:00<00:01, 26.16it/s]
+Epoch 19:  40%|███▉      | 21/53 [00:00<00:01, 26.84it/s]
+Epoch 19:  45%|████▌     | 24/53 [00:00<00:01, 27.57it/s]
+Epoch 19:  51%|█████     | 27/53 [00:01<00:00, 27.79it/s]
+Epoch 19:  57%|█████▋    | 30/53 [00:01<00:00, 27.96it/s]
+Epoch 19:  62%|██████▏   | 33/53 [00:01<00:00, 28.01it/s]
+Epoch 19:  68%|██████▊   | 36/53 [00:01<00:00, 27.94it/s]
+Epoch 19:  74%|███████▎  | 39/53 [00:01<00:00, 27.90it/s]
+Epoch 19:  79%|███████▉  | 42/53 [00:01<00:00, 27.14it/s]
+Epoch 19:  85%|████████▍ | 45/53 [00:01<00:00, 26.90it/s]
+Epoch 19:  91%|█████████ | 48/53 [00:01<00:00, 26.90it/s]
+Epoch 19:  96%|█████████▌| 51/53 [00:01<00:00, 27.35it/s]
+Epoch 19: 100%|██████████| 53/53 [00:01<00:00, 26.85it/s]
+Epoch 19 | Avg Loss: 0.020906
+Epoch 19 | Validation Loss: 0.021363 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=20 epoch_seed=7237383870153610788
+
+Epoch 20:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 20:   6%|▌         | 3/53 [00:00<00:01, 27.84it/s]
+Epoch 20:  11%|█▏        | 6/53 [00:00<00:01, 28.24it/s]
+Epoch 20:  17%|█▋        | 9/53 [00:00<00:01, 28.46it/s]
+Epoch 20:  23%|██▎       | 12/53 [00:00<00:01, 28.04it/s]
+Epoch 20:  28%|██▊       | 15/53 [00:00<00:01, 28.12it/s]
+Epoch 20:  34%|███▍      | 18/53 [00:00<00:01, 26.97it/s]
+Epoch 20:  40%|███▉      | 21/53 [00:00<00:01, 27.44it/s]
+Epoch 20:  45%|████▌     | 24/53 [00:00<00:01, 27.05it/s]
+Epoch 20:  51%|█████     | 27/53 [00:00<00:00, 27.57it/s]
+Epoch 20:  57%|█████▋    | 30/53 [00:01<00:00, 27.26it/s]
+Epoch 20:  62%|██████▏   | 33/53 [00:01<00:00, 27.45it/s]
+Epoch 20:  68%|██████▊   | 36/53 [00:01<00:00, 27.56it/s]
+Epoch 20:  74%|███████▎  | 39/53 [00:01<00:00, 24.61it/s]
+Epoch 20:  79%|███████▉  | 42/53 [00:01<00:00, 22.47it/s]
+Epoch 20:  85%|████████▍ | 45/53 [00:01<00:00, 22.76it/s]
+Epoch 20:  91%|█████████ | 48/53 [00:01<00:00, 24.00it/s]
+Epoch 20:  96%|█████████▌| 51/53 [00:01<00:00, 25.11it/s]
+Epoch 20: 100%|██████████| 53/53 [00:02<00:00, 26.06it/s]
+Epoch 20 | Avg Loss: 0.021093
+Epoch 20 | Validation Loss: 0.021277 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=21 epoch_seed=3888562760393625496
+
+Epoch 21:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 21:   6%|▌         | 3/53 [00:00<00:01, 29.79it/s]
+Epoch 21:  11%|█▏        | 6/53 [00:00<00:01, 28.08it/s]
+Epoch 21:  17%|█▋        | 9/53 [00:00<00:01, 27.45it/s]
+Epoch 21:  23%|██▎       | 12/53 [00:00<00:01, 26.32it/s]
+Epoch 21:  28%|██▊       | 15/53 [00:00<00:01, 25.73it/s]
+Epoch 21:  34%|███▍      | 18/53 [00:00<00:01, 25.32it/s]
+Epoch 21:  40%|███▉      | 21/53 [00:00<00:01, 24.96it/s]
+Epoch 21:  45%|████▌     | 24/53 [00:00<00:01, 24.78it/s]
+Epoch 21:  51%|█████     | 27/53 [00:01<00:01, 24.86it/s]
+Epoch 21:  57%|█████▋    | 30/53 [00:01<00:00, 24.82it/s]
+Epoch 21:  62%|██████▏   | 33/53 [00:01<00:00, 24.99it/s]
+Epoch 21:  68%|██████▊   | 36/53 [00:01<00:00, 25.32it/s]
+Epoch 21:  74%|███████▎  | 39/53 [00:01<00:00, 26.23it/s]
+Epoch 21:  79%|███████▉  | 42/53 [00:01<00:00, 26.53it/s]
+Epoch 21:  85%|████████▍ | 45/53 [00:01<00:00, 27.13it/s]
+Epoch 21:  91%|█████████ | 48/53 [00:01<00:00, 27.55it/s]
+Epoch 21:  96%|█████████▌| 51/53 [00:01<00:00, 27.93it/s]
+Epoch 21: 100%|██████████| 53/53 [00:02<00:00, 26.36it/s]
+Epoch 21 | Avg Loss: 0.020831
+Epoch 21 | Validation Loss: 0.021236 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=22 epoch_seed=301394820806317590
+
+Epoch 22:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 22:   6%|▌         | 3/53 [00:00<00:01, 28.55it/s]
+Epoch 22:  11%|█▏        | 6/53 [00:00<00:01, 27.25it/s]
+Epoch 22:  17%|█▋        | 9/53 [00:00<00:01, 27.63it/s]
+Epoch 22:  23%|██▎       | 12/53 [00:00<00:01, 27.63it/s]
+Epoch 22:  28%|██▊       | 15/53 [00:00<00:01, 27.20it/s]
+Epoch 22:  34%|███▍      | 18/53 [00:00<00:01, 26.49it/s]
+Epoch 22:  40%|███▉      | 21/53 [00:00<00:01, 25.73it/s]
+Epoch 22:  45%|████▌     | 24/53 [00:00<00:01, 25.19it/s]
+Epoch 22:  51%|█████     | 27/53 [00:01<00:01, 25.32it/s]
+Epoch 22:  57%|█████▋    | 30/53 [00:01<00:00, 25.61it/s]
+Epoch 22:  62%|██████▏   | 33/53 [00:01<00:00, 25.63it/s]
+Epoch 22:  68%|██████▊   | 36/53 [00:01<00:00, 25.47it/s]
+Epoch 22:  74%|███████▎  | 39/53 [00:01<00:00, 25.43it/s]
+Epoch 22:  79%|███████▉  | 42/53 [00:01<00:00, 24.98it/s]
+Epoch 22:  85%|████████▍ | 45/53 [00:01<00:00, 24.73it/s]
+Epoch 22:  91%|█████████ | 48/53 [00:01<00:00, 24.34it/s]
+Epoch 22:  96%|█████████▌| 51/53 [00:02<00:00, 24.27it/s]
+Epoch 22: 100%|██████████| 53/53 [00:02<00:00, 25.48it/s]
+Epoch 22 | Avg Loss: 0.020721
+Epoch 22 | Validation Loss: 0.021195 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=23 epoch_seed=8424262446922793681
+
+Epoch 23:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 23:   6%|▌         | 3/53 [00:00<00:01, 26.67it/s]
+Epoch 23:  11%|█▏        | 6/53 [00:00<00:01, 26.84it/s]
+Epoch 23:  17%|█▋        | 9/53 [00:00<00:01, 27.17it/s]
+Epoch 23:  23%|██▎       | 12/53 [00:00<00:01, 26.33it/s]
+Epoch 23:  28%|██▊       | 15/53 [00:00<00:01, 26.04it/s]
+Epoch 23:  34%|███▍      | 18/53 [00:00<00:01, 26.31it/s]
+Epoch 23:  40%|███▉      | 21/53 [00:00<00:01, 26.75it/s]
+Epoch 23:  45%|████▌     | 24/53 [00:00<00:01, 26.54it/s]
+Epoch 23:  51%|█████     | 27/53 [00:01<00:00, 26.71it/s]
+Epoch 23:  57%|█████▋    | 30/53 [00:01<00:00, 26.90it/s]
+Epoch 23:  62%|██████▏   | 33/53 [00:01<00:00, 26.23it/s]
+Epoch 23:  68%|██████▊   | 36/53 [00:01<00:00, 25.84it/s]
+Epoch 23:  74%|███████▎  | 39/53 [00:01<00:00, 25.91it/s]
+Epoch 23:  79%|███████▉  | 42/53 [00:01<00:00, 25.00it/s]
+Epoch 23:  85%|████████▍ | 45/53 [00:01<00:00, 25.37it/s]
+Epoch 23:  91%|█████████ | 48/53 [00:01<00:00, 26.11it/s]
+Epoch 23:  96%|█████████▌| 51/53 [00:01<00:00, 26.25it/s]
+Epoch 23: 100%|██████████| 53/53 [00:02<00:00, 26.25it/s]
+Epoch 23 | Avg Loss: 0.020573
+Epoch 23 | Validation Loss: 0.021236 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=24 epoch_seed=702753142299380285
+
+Epoch 24:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 24:   6%|▌         | 3/53 [00:00<00:01, 26.68it/s]
+Epoch 24:  11%|█▏        | 6/53 [00:00<00:01, 26.90it/s]
+Epoch 24:  17%|█▋        | 9/53 [00:00<00:01, 26.76it/s]
+Epoch 24:  23%|██▎       | 12/53 [00:00<00:01, 26.56it/s]
+Epoch 24:  28%|██▊       | 15/53 [00:00<00:01, 26.89it/s]
+Epoch 24:  34%|███▍      | 18/53 [00:00<00:01, 27.14it/s]
+Epoch 24:  40%|███▉      | 21/53 [00:00<00:01, 26.30it/s]
+Epoch 24:  45%|████▌     | 24/53 [00:00<00:01, 24.92it/s]
+Epoch 24:  51%|█████     | 27/53 [00:01<00:01, 24.87it/s]
+Epoch 24:  57%|█████▋    | 30/53 [00:01<00:00, 25.19it/s]
+Epoch 24:  62%|██████▏   | 33/53 [00:01<00:00, 25.53it/s]
+Epoch 24:  68%|██████▊   | 36/53 [00:01<00:00, 25.90it/s]
+Epoch 24:  74%|███████▎  | 39/53 [00:01<00:00, 26.42it/s]
+Epoch 24:  79%|███████▉  | 42/53 [00:01<00:00, 26.37it/s]
+Epoch 24:  85%|████████▍ | 45/53 [00:01<00:00, 26.91it/s]
+Epoch 24:  91%|█████████ | 48/53 [00:01<00:00, 27.50it/s]
+Epoch 24:  96%|█████████▌| 51/53 [00:01<00:00, 27.50it/s]
+Epoch 24: 100%|██████████| 53/53 [00:02<00:00, 26.50it/s]
+Epoch 24 | Avg Loss: 0.020757
+Epoch 24 | Validation Loss: 0.021186 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=25 epoch_seed=671966997979737915
+
+Epoch 25:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 25:   6%|▌         | 3/53 [00:00<00:01, 28.49it/s]
+Epoch 25:  11%|█▏        | 6/53 [00:00<00:01, 28.00it/s]
+Epoch 25:  17%|█▋        | 9/53 [00:00<00:01, 27.75it/s]
+Epoch 25:  23%|██▎       | 12/53 [00:00<00:01, 27.21it/s]
+Epoch 25:  28%|██▊       | 15/53 [00:00<00:01, 27.54it/s]
+Epoch 25:  34%|███▍      | 18/53 [00:00<00:01, 27.55it/s]
+Epoch 25:  40%|███▉      | 21/53 [00:00<00:01, 27.57it/s]
+Epoch 25:  45%|████▌     | 24/53 [00:00<00:01, 27.60it/s]
+Epoch 25:  51%|█████     | 27/53 [00:00<00:00, 27.57it/s]
+Epoch 25:  57%|█████▋    | 30/53 [00:01<00:00, 27.47it/s]
+Epoch 25:  62%|██████▏   | 33/53 [00:01<00:00, 26.55it/s]
+Epoch 25:  68%|██████▊   | 36/53 [00:01<00:00, 26.18it/s]
+Epoch 25:  74%|███████▎  | 39/53 [00:01<00:00, 26.22it/s]
+Epoch 25:  79%|███████▉  | 42/53 [00:01<00:00, 26.03it/s]
+Epoch 25:  85%|████████▍ | 45/53 [00:01<00:00, 25.78it/s]
+Epoch 25:  91%|█████████ | 48/53 [00:01<00:00, 25.50it/s]
+Epoch 25:  96%|█████████▌| 51/53 [00:01<00:00, 25.32it/s]
+Epoch 25: 100%|██████████| 53/53 [00:01<00:00, 26.51it/s]
+Epoch 25 | Avg Loss: 0.020723
+Epoch 25 | Validation Loss: 0.021203 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=26 epoch_seed=8157270913664601716
+
+Epoch 26:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 26:   6%|▌         | 3/53 [00:00<00:01, 26.11it/s]
+Epoch 26:  11%|█▏        | 6/53 [00:00<00:01, 26.37it/s]
+Epoch 26:  17%|█▋        | 9/53 [00:00<00:01, 25.68it/s]
+Epoch 26:  23%|██▎       | 12/53 [00:00<00:01, 23.56it/s]
+Epoch 26:  28%|██▊       | 15/53 [00:00<00:01, 21.93it/s]
+Epoch 26:  34%|███▍      | 18/53 [00:00<00:01, 19.74it/s]
+Epoch 26:  40%|███▉      | 21/53 [00:01<00:01, 18.21it/s]
+Epoch 26:  43%|████▎     | 23/53 [00:01<00:01, 18.37it/s]
+Epoch 26:  49%|████▉     | 26/53 [00:01<00:01, 19.71it/s]
+Epoch 26:  55%|█████▍    | 29/53 [00:01<00:01, 21.23it/s]
+Epoch 26:  60%|██████    | 32/53 [00:01<00:00, 22.34it/s]
+Epoch 26:  66%|██████▌   | 35/53 [00:01<00:00, 23.63it/s]
+Epoch 26:  72%|███████▏  | 38/53 [00:01<00:00, 24.31it/s]
+Epoch 26:  77%|███████▋  | 41/53 [00:01<00:00, 24.41it/s]
+Epoch 26:  83%|████████▎ | 44/53 [00:01<00:00, 24.92it/s]
+Epoch 26:  89%|████████▊ | 47/53 [00:02<00:00, 25.79it/s]
+Epoch 26:  94%|█████████▍| 50/53 [00:02<00:00, 26.12it/s]
+Epoch 26: 100%|██████████| 53/53 [00:02<00:00, 25.42it/s]
+Epoch 26: 100%|██████████| 53/53 [00:02<00:00, 23.06it/s]
+Epoch 26 | Avg Loss: 0.020612
+Epoch 26 | Validation Loss: 0.022038 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=27 epoch_seed=8107295800080822979
+
+Epoch 27:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 27:   6%|▌         | 3/53 [00:00<00:01, 26.12it/s]
+Epoch 27:  11%|█▏        | 6/53 [00:00<00:01, 25.89it/s]
+Epoch 27:  17%|█▋        | 9/53 [00:00<00:01, 26.32it/s]
+Epoch 27:  23%|██▎       | 12/53 [00:00<00:01, 26.46it/s]
+Epoch 27:  28%|██▊       | 15/53 [00:00<00:01, 26.42it/s]
+Epoch 27:  34%|███▍      | 18/53 [00:00<00:01, 25.94it/s]
+Epoch 27:  40%|███▉      | 21/53 [00:00<00:01, 25.56it/s]
+Epoch 27:  45%|████▌     | 24/53 [00:00<00:01, 25.78it/s]
+Epoch 27:  51%|█████     | 27/53 [00:01<00:01, 25.29it/s]
+Epoch 27:  57%|█████▋    | 30/53 [00:01<00:00, 25.57it/s]
+Epoch 27:  62%|██████▏   | 33/53 [00:01<00:00, 26.41it/s]
+Epoch 27:  68%|██████▊   | 36/53 [00:01<00:00, 27.03it/s]
+Epoch 27:  74%|███████▎  | 39/53 [00:01<00:00, 26.45it/s]
+Epoch 27:  79%|███████▉  | 42/53 [00:01<00:00, 26.00it/s]
+Epoch 27:  85%|████████▍ | 45/53 [00:01<00:00, 21.66it/s]
+Epoch 27:  91%|█████████ | 48/53 [00:01<00:00, 21.66it/s]
+Epoch 27:  96%|█████████▌| 51/53 [00:02<00:00, 22.55it/s]
+Epoch 27: 100%|██████████| 53/53 [00:02<00:00, 24.67it/s]
+Epoch 27 | Avg Loss: 0.021009
+Epoch 27 | Validation Loss: 0.021653 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=28 epoch_seed=2070853257920994599
+
+Epoch 28:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 28:   6%|▌         | 3/53 [00:00<00:01, 26.27it/s]
+Epoch 28:  11%|█▏        | 6/53 [00:00<00:01, 26.49it/s]
+Epoch 28:  17%|█▋        | 9/53 [00:00<00:01, 25.91it/s]
+Epoch 28:  23%|██▎       | 12/53 [00:00<00:01, 26.00it/s]
+Epoch 28:  28%|██▊       | 15/53 [00:00<00:01, 26.22it/s]
+Epoch 28:  34%|███▍      | 18/53 [00:00<00:01, 26.71it/s]
+Epoch 28:  40%|███▉      | 21/53 [00:00<00:01, 27.34it/s]
+Epoch 28:  45%|████▌     | 24/53 [00:00<00:01, 27.64it/s]
+Epoch 28:  51%|█████     | 27/53 [00:00<00:00, 28.31it/s]
+Epoch 28:  57%|█████▋    | 30/53 [00:01<00:00, 28.48it/s]
+Epoch 28:  62%|██████▏   | 33/53 [00:01<00:00, 28.50it/s]
+Epoch 28:  68%|██████▊   | 36/53 [00:01<00:00, 28.05it/s]
+Epoch 28:  74%|███████▎  | 39/53 [00:01<00:00, 27.92it/s]
+Epoch 28:  79%|███████▉  | 42/53 [00:01<00:00, 27.64it/s]
+Epoch 28:  85%|████████▍ | 45/53 [00:01<00:00, 27.91it/s]
+Epoch 28:  91%|█████████ | 48/53 [00:01<00:00, 27.63it/s]
+Epoch 28:  96%|█████████▌| 51/53 [00:01<00:00, 28.12it/s]
+Epoch 28: 100%|██████████| 53/53 [00:01<00:00, 27.63it/s]
+Epoch 28 | Avg Loss: 0.020395
+Epoch 28 | Validation Loss: 0.021383 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=29 epoch_seed=1130546252606550869
+
+Epoch 29:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 29:   6%|▌         | 3/53 [00:00<00:01, 28.05it/s]
+Epoch 29:  11%|█▏        | 6/53 [00:00<00:01, 27.92it/s]
+Epoch 29:  17%|█▋        | 9/53 [00:00<00:01, 27.82it/s]
+Epoch 29:  23%|██▎       | 12/53 [00:00<00:01, 27.96it/s]
+Epoch 29:  28%|██▊       | 15/53 [00:00<00:01, 28.20it/s]
+Epoch 29:  34%|███▍      | 18/53 [00:00<00:01, 28.57it/s]
+Epoch 29:  40%|███▉      | 21/53 [00:00<00:01, 28.32it/s]
+Epoch 29:  45%|████▌     | 24/53 [00:00<00:01, 28.46it/s]
+Epoch 29:  51%|█████     | 27/53 [00:00<00:00, 28.45it/s]
+Epoch 29:  57%|█████▋    | 30/53 [00:01<00:00, 28.36it/s]
+Epoch 29:  62%|██████▏   | 33/53 [00:01<00:00, 28.52it/s]
+Epoch 29:  68%|██████▊   | 36/53 [00:01<00:00, 27.93it/s]
+Epoch 29:  74%|███████▎  | 39/53 [00:01<00:00, 27.54it/s]
+Epoch 29:  79%|███████▉  | 42/53 [00:01<00:00, 27.64it/s]
+Epoch 29:  85%|████████▍ | 45/53 [00:01<00:00, 27.89it/s]
+Epoch 29:  91%|█████████ | 48/53 [00:01<00:00, 27.97it/s]
+Epoch 29:  96%|█████████▌| 51/53 [00:01<00:00, 28.09it/s]
+Epoch 29: 100%|██████████| 53/53 [00:01<00:00, 28.15it/s]
+Epoch 29 | Avg Loss: 0.020633
+Epoch 29 | Validation Loss: 0.021885 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=30 epoch_seed=8061995160440996772
+
+Epoch 30:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 30:   6%|▌         | 3/53 [00:00<00:01, 28.29it/s]
+Epoch 30:  11%|█▏        | 6/53 [00:00<00:01, 27.27it/s]
+Epoch 30:  17%|█▋        | 9/53 [00:00<00:02, 20.25it/s]
+Epoch 30:  23%|██▎       | 12/53 [00:00<00:02, 19.86it/s]
+Epoch 30:  28%|██▊       | 15/53 [00:00<00:01, 21.00it/s]
+Epoch 30:  34%|███▍      | 18/53 [00:00<00:01, 21.91it/s]
+Epoch 30:  40%|███▉      | 21/53 [00:00<00:01, 23.12it/s]
+Epoch 30:  45%|████▌     | 24/53 [00:01<00:01, 24.22it/s]
+Epoch 30:  51%|█████     | 27/53 [00:01<00:01, 25.01it/s]
+Epoch 30:  57%|█████▋    | 30/53 [00:01<00:00, 25.37it/s]
+Epoch 30:  62%|██████▏   | 33/53 [00:01<00:00, 25.70it/s]
+Epoch 30:  68%|██████▊   | 36/53 [00:01<00:00, 26.34it/s]
+Epoch 30:  74%|███████▎  | 39/53 [00:01<00:00, 27.00it/s]
+Epoch 30:  79%|███████▉  | 42/53 [00:01<00:00, 26.96it/s]
+Epoch 30:  85%|████████▍ | 45/53 [00:01<00:00, 27.00it/s]
+Epoch 30:  91%|█████████ | 48/53 [00:01<00:00, 26.55it/s]
+Epoch 30:  96%|█████████▌| 51/53 [00:02<00:00, 25.99it/s]
+Epoch 30: 100%|██████████| 53/53 [00:02<00:00, 24.90it/s]
+Epoch 30 | Avg Loss: 0.020782
+Epoch 30 | Validation Loss: 0.022208 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=31 epoch_seed=6037648095045292423
+
+Epoch 31:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 31:   6%|▌         | 3/53 [00:00<00:01, 28.20it/s]
+Epoch 31:  11%|█▏        | 6/53 [00:00<00:01, 27.95it/s]
+Epoch 31:  17%|█▋        | 9/53 [00:00<00:01, 28.30it/s]
+Epoch 31:  23%|██▎       | 12/53 [00:00<00:01, 27.72it/s]
+Epoch 31:  28%|██▊       | 15/53 [00:00<00:01, 27.59it/s]
+Epoch 31:  34%|███▍      | 18/53 [00:00<00:01, 27.48it/s]
+Epoch 31:  40%|███▉      | 21/53 [00:00<00:01, 27.40it/s]
+Epoch 31:  45%|████▌     | 24/53 [00:00<00:01, 27.92it/s]
+Epoch 31:  51%|█████     | 27/53 [00:00<00:00, 28.13it/s]
+Epoch 31:  57%|█████▋    | 30/53 [00:01<00:00, 28.16it/s]
+Epoch 31:  62%|██████▏   | 33/53 [00:01<00:00, 28.20it/s]
+Epoch 31:  68%|██████▊   | 36/53 [00:01<00:00, 27.52it/s]
+Epoch 31:  74%|███████▎  | 39/53 [00:01<00:00, 27.90it/s]
+Epoch 31:  79%|███████▉  | 42/53 [00:01<00:00, 26.92it/s]
+Epoch 31:  85%|████████▍ | 45/53 [00:01<00:00, 26.82it/s]
+Epoch 31:  91%|█████████ | 48/53 [00:01<00:00, 27.15it/s]
+Epoch 31:  96%|█████████▌| 51/53 [00:01<00:00, 27.48it/s]
+Epoch 31: 100%|██████████| 53/53 [00:01<00:00, 27.61it/s]
+Epoch 31 | Avg Loss: 0.020846
+Epoch 31 | Validation Loss: 0.021115 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=32 epoch_seed=6896932217303467709
+
+Epoch 32:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 32:   6%|▌         | 3/53 [00:00<00:01, 28.02it/s]
+Epoch 32:  11%|█▏        | 6/53 [00:00<00:01, 27.60it/s]
+Epoch 32:  17%|█▋        | 9/53 [00:00<00:01, 27.30it/s]
+Epoch 32:  23%|██▎       | 12/53 [00:00<00:01, 25.00it/s]
+Epoch 32:  28%|██▊       | 15/53 [00:00<00:01, 25.48it/s]
+Epoch 32:  34%|███▍      | 18/53 [00:00<00:01, 25.99it/s]
+Epoch 32:  40%|███▉      | 21/53 [00:00<00:01, 25.62it/s]
+Epoch 32:  45%|████▌     | 24/53 [00:00<00:01, 25.44it/s]
+Epoch 32:  51%|█████     | 27/53 [00:01<00:01, 25.32it/s]
+Epoch 32:  57%|█████▋    | 30/53 [00:01<00:00, 25.89it/s]
+Epoch 32:  62%|██████▏   | 33/53 [00:01<00:00, 26.35it/s]
+Epoch 32:  68%|██████▊   | 36/53 [00:01<00:00, 25.80it/s]
+Epoch 32:  74%|███████▎  | 39/53 [00:01<00:00, 26.12it/s]
+Epoch 32:  79%|███████▉  | 42/53 [00:01<00:00, 26.58it/s]
+Epoch 32:  85%|████████▍ | 45/53 [00:01<00:00, 26.12it/s]
+Epoch 32:  91%|█████████ | 48/53 [00:01<00:00, 26.03it/s]
+Epoch 32:  96%|█████████▌| 51/53 [00:01<00:00, 26.27it/s]
+Epoch 32: 100%|██████████| 53/53 [00:02<00:00, 26.04it/s]
+Epoch 32 | Avg Loss: 0.020399
+Epoch 32 | Validation Loss: 0.021488 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=33 epoch_seed=3541542548132292386
+
+Epoch 33:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 33:   6%|▌         | 3/53 [00:00<00:01, 26.78it/s]
+Epoch 33:  11%|█▏        | 6/53 [00:00<00:01, 27.63it/s]
+Epoch 33:  17%|█▋        | 9/53 [00:00<00:01, 27.30it/s]
+Epoch 33:  23%|██▎       | 12/53 [00:00<00:01, 26.45it/s]
+Epoch 33:  28%|██▊       | 15/53 [00:00<00:01, 25.91it/s]
+Epoch 33:  34%|███▍      | 18/53 [00:00<00:01, 26.20it/s]
+Epoch 33:  40%|███▉      | 21/53 [00:00<00:01, 26.84it/s]
+Epoch 33:  45%|████▌     | 24/53 [00:00<00:01, 27.15it/s]
+Epoch 33:  51%|█████     | 27/53 [00:01<00:00, 27.23it/s]
+Epoch 33:  57%|█████▋    | 30/53 [00:01<00:00, 27.29it/s]
+Epoch 33:  62%|██████▏   | 33/53 [00:01<00:00, 27.44it/s]
+Epoch 33:  68%|██████▊   | 36/53 [00:01<00:00, 27.34it/s]
+Epoch 33:  74%|███████▎  | 39/53 [00:01<00:00, 27.52it/s]
+Epoch 33:  79%|███████▉  | 42/53 [00:01<00:00, 27.52it/s]
+Epoch 33:  85%|████████▍ | 45/53 [00:01<00:00, 27.06it/s]
+Epoch 33:  91%|█████████ | 48/53 [00:01<00:00, 26.87it/s]
+Epoch 33:  96%|█████████▌| 51/53 [00:01<00:00, 26.70it/s]
+Epoch 33: 100%|██████████| 53/53 [00:01<00:00, 26.92it/s]
+Epoch 33 | Avg Loss: 0.020615
+Epoch 33 | Validation Loss: 0.021207 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=34 epoch_seed=1843763346379094756
+
+Epoch 34:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 34:   6%|▌         | 3/53 [00:00<00:01, 26.80it/s]
+Epoch 34:  11%|█▏        | 6/53 [00:00<00:01, 26.52it/s]
+Epoch 34:  17%|█▋        | 9/53 [00:00<00:01, 26.88it/s]
+Epoch 34:  23%|██▎       | 12/53 [00:00<00:01, 26.67it/s]
+Epoch 34:  28%|██▊       | 15/53 [00:00<00:01, 25.97it/s]
+Epoch 34:  34%|███▍      | 18/53 [00:00<00:01, 25.20it/s]
+Epoch 34:  40%|███▉      | 21/53 [00:00<00:01, 25.28it/s]
+Epoch 34:  45%|████▌     | 24/53 [00:00<00:01, 25.39it/s]
+Epoch 34:  51%|█████     | 27/53 [00:01<00:01, 24.80it/s]
+Epoch 34:  57%|█████▋    | 30/53 [00:01<00:00, 24.98it/s]
+Epoch 34:  62%|██████▏   | 33/53 [00:01<00:00, 25.37it/s]
+Epoch 34:  68%|██████▊   | 36/53 [00:01<00:00, 25.38it/s]
+Epoch 34:  74%|███████▎  | 39/53 [00:01<00:00, 25.44it/s]
+Epoch 34:  79%|███████▉  | 42/53 [00:01<00:00, 25.17it/s]
+Epoch 34:  85%|████████▍ | 45/53 [00:01<00:00, 25.10it/s]
+Epoch 34:  91%|█████████ | 48/53 [00:01<00:00, 25.06it/s]
+Epoch 34:  96%|█████████▌| 51/53 [00:02<00:00, 25.29it/s]
+Epoch 34: 100%|██████████| 53/53 [00:02<00:00, 25.41it/s]
+Epoch 34 | Avg Loss: 0.020191
+Epoch 34 | Validation Loss: 0.021180 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=35 epoch_seed=4174470420615481869
+
+Epoch 35:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 35:   6%|▌         | 3/53 [00:00<00:02, 23.68it/s]
+Epoch 35:  11%|█▏        | 6/53 [00:00<00:01, 24.95it/s]
+Epoch 35:  17%|█▋        | 9/53 [00:00<00:01, 25.33it/s]
+Epoch 35:  23%|██▎       | 12/53 [00:00<00:01, 25.83it/s]
+Epoch 35:  28%|██▊       | 15/53 [00:00<00:01, 25.40it/s]
+Epoch 35:  34%|███▍      | 18/53 [00:00<00:01, 24.93it/s]
+Epoch 35:  40%|███▉      | 21/53 [00:00<00:01, 23.74it/s]
+Epoch 35:  45%|████▌     | 24/53 [00:00<00:01, 23.82it/s]
+Epoch 35:  51%|█████     | 27/53 [00:01<00:01, 23.38it/s]
+Epoch 35:  57%|█████▋    | 30/53 [00:01<00:00, 23.74it/s]
+Epoch 35:  62%|██████▏   | 33/53 [00:01<00:00, 24.03it/s]
+Epoch 35:  68%|██████▊   | 36/53 [00:01<00:00, 23.76it/s]
+Epoch 35:  74%|███████▎  | 39/53 [00:01<00:00, 24.33it/s]
+Epoch 35:  79%|███████▉  | 42/53 [00:01<00:00, 24.45it/s]
+Epoch 35:  85%|████████▍ | 45/53 [00:01<00:00, 24.75it/s]
+Epoch 35:  91%|█████████ | 48/53 [00:01<00:00, 25.27it/s]
+Epoch 35:  96%|█████████▌| 51/53 [00:02<00:00, 25.91it/s]
+Epoch 35: 100%|██████████| 53/53 [00:02<00:00, 24.67it/s]
+Epoch 35 | Avg Loss: 0.020631
+Epoch 35 | Validation Loss: 0.021493 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=36 epoch_seed=2618262131560363965
+
+Epoch 36:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 36:   6%|▌         | 3/53 [00:00<00:01, 27.38it/s]
+Epoch 36:  11%|█▏        | 6/53 [00:00<00:01, 28.05it/s]
+Epoch 36:  17%|█▋        | 9/53 [00:00<00:01, 28.44it/s]
+Epoch 36:  23%|██▎       | 12/53 [00:00<00:01, 27.98it/s]
+Epoch 36:  28%|██▊       | 15/53 [00:00<00:01, 26.63it/s]
+Epoch 36:  34%|███▍      | 18/53 [00:00<00:01, 26.47it/s]
+Epoch 36:  40%|███▉      | 21/53 [00:00<00:01, 26.97it/s]
+Epoch 36:  45%|████▌     | 24/53 [00:00<00:01, 27.15it/s]
+Epoch 36:  51%|█████     | 27/53 [00:01<00:00, 26.52it/s]
+Epoch 36:  57%|█████▋    | 30/53 [00:01<00:00, 25.86it/s]
+Epoch 36:  62%|██████▏   | 33/53 [00:01<00:00, 26.22it/s]
+Epoch 36:  68%|██████▊   | 36/53 [00:01<00:00, 26.72it/s]
+Epoch 36:  74%|███████▎  | 39/53 [00:01<00:00, 26.80it/s]
+Epoch 36:  79%|███████▉  | 42/53 [00:01<00:00, 26.60it/s]
+Epoch 36:  85%|████████▍ | 45/53 [00:01<00:00, 26.06it/s]
+Epoch 36:  91%|█████████ | 48/53 [00:01<00:00, 25.41it/s]
+Epoch 36:  96%|█████████▌| 51/53 [00:01<00:00, 25.39it/s]
+Epoch 36: 100%|██████████| 53/53 [00:02<00:00, 26.38it/s]
+Epoch 36 | Avg Loss: 0.020585
+Epoch 36 | Validation Loss: 0.021522 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=37 epoch_seed=8359712554474571119
+
+Epoch 37:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 37:   6%|▌         | 3/53 [00:00<00:02, 24.77it/s]
+Epoch 37:  11%|█▏        | 6/53 [00:00<00:01, 25.61it/s]
+Epoch 37:  17%|█▋        | 9/53 [00:00<00:01, 26.71it/s]
+Epoch 37:  23%|██▎       | 12/53 [00:00<00:01, 26.17it/s]
+Epoch 37:  28%|██▊       | 15/53 [00:00<00:01, 26.95it/s]
+Epoch 37:  34%|███▍      | 18/53 [00:00<00:01, 26.94it/s]
+Epoch 37:  40%|███▉      | 21/53 [00:00<00:01, 27.43it/s]
+Epoch 37:  45%|████▌     | 24/53 [00:00<00:01, 27.45it/s]
+Epoch 37:  51%|█████     | 27/53 [00:01<00:00, 27.45it/s]
+Epoch 37:  57%|█████▋    | 30/53 [00:01<00:00, 28.08it/s]
+Epoch 37:  62%|██████▏   | 33/53 [00:01<00:00, 27.82it/s]
+Epoch 37:  68%|██████▊   | 36/53 [00:01<00:00, 27.81it/s]
+Epoch 37:  74%|███████▎  | 39/53 [00:01<00:00, 27.65it/s]
+Epoch 37:  79%|███████▉  | 42/53 [00:01<00:00, 27.54it/s]
+Epoch 37:  85%|████████▍ | 45/53 [00:01<00:00, 27.85it/s]
+Epoch 37:  91%|█████████ | 48/53 [00:01<00:00, 28.20it/s]
+Epoch 37:  96%|█████████▌| 51/53 [00:01<00:00, 28.20it/s]
+Epoch 37: 100%|██████████| 53/53 [00:01<00:00, 27.54it/s]
+Epoch 37 | Avg Loss: 0.020270
+Epoch 37 | Validation Loss: 0.021008 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=38 epoch_seed=1002683942831035057
+
+Epoch 38:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 38:   6%|▌         | 3/53 [00:00<00:01, 27.76it/s]
+Epoch 38:  11%|█▏        | 6/53 [00:00<00:01, 27.74it/s]
+Epoch 38:  17%|█▋        | 9/53 [00:00<00:01, 27.84it/s]
+Epoch 38:  23%|██▎       | 12/53 [00:00<00:01, 27.33it/s]
+Epoch 38:  28%|██▊       | 15/53 [00:00<00:01, 26.84it/s]
+Epoch 38:  34%|███▍      | 18/53 [00:00<00:01, 27.12it/s]
+Epoch 38:  40%|███▉      | 21/53 [00:00<00:01, 26.61it/s]
+Epoch 38:  45%|████▌     | 24/53 [00:00<00:01, 26.69it/s]
+Epoch 38:  51%|█████     | 27/53 [00:00<00:00, 26.85it/s]
+Epoch 38:  57%|█████▋    | 30/53 [00:01<00:00, 26.50it/s]
+Epoch 38:  62%|██████▏   | 33/53 [00:01<00:00, 26.93it/s]
+Epoch 38:  68%|██████▊   | 36/53 [00:01<00:00, 26.88it/s]
+Epoch 38:  74%|███████▎  | 39/53 [00:01<00:00, 26.99it/s]
+Epoch 38:  79%|███████▉  | 42/53 [00:01<00:00, 26.11it/s]
+Epoch 38:  85%|████████▍ | 45/53 [00:01<00:00, 25.29it/s]
+Epoch 38:  91%|█████████ | 48/53 [00:01<00:00, 24.66it/s]
+Epoch 38:  96%|█████████▌| 51/53 [00:01<00:00, 23.77it/s]
+Epoch 38: 100%|██████████| 53/53 [00:02<00:00, 25.85it/s]
+Epoch 38 | Avg Loss: 0.020489
+Epoch 38 | Validation Loss: 0.022184 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=39 epoch_seed=6930881953618920335
+
+Epoch 39:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 39:   6%|▌         | 3/53 [00:00<00:01, 27.22it/s]
+Epoch 39:  11%|█▏        | 6/53 [00:00<00:01, 25.60it/s]
+Epoch 39:  17%|█▋        | 9/53 [00:00<00:01, 23.23it/s]
+Epoch 39:  23%|██▎       | 12/53 [00:00<00:01, 21.85it/s]
+Epoch 39:  28%|██▊       | 15/53 [00:00<00:02, 17.56it/s]
+Epoch 39:  32%|███▏      | 17/53 [00:00<00:02, 17.00it/s]
+Epoch 39:  36%|███▌      | 19/53 [00:00<00:01, 17.26it/s]
+Epoch 39:  42%|████▏     | 22/53 [00:01<00:01, 17.73it/s]
+Epoch 39:  45%|████▌     | 24/53 [00:01<00:01, 16.94it/s]
+Epoch 39:  51%|█████     | 27/53 [00:01<00:01, 18.12it/s]
+Epoch 39:  57%|█████▋    | 30/53 [00:01<00:01, 19.49it/s]
+Epoch 39:  62%|██████▏   | 33/53 [00:01<00:00, 20.28it/s]
+Epoch 39:  68%|██████▊   | 36/53 [00:01<00:00, 20.53it/s]
+Epoch 39:  74%|███████▎  | 39/53 [00:01<00:00, 21.01it/s]
+Epoch 39:  79%|███████▉  | 42/53 [00:02<00:00, 22.05it/s]
+Epoch 39:  85%|████████▍ | 45/53 [00:02<00:00, 22.31it/s]
+Epoch 39:  91%|█████████ | 48/53 [00:02<00:00, 22.14it/s]
+Epoch 39:  96%|█████████▌| 51/53 [00:02<00:00, 22.64it/s]
+Epoch 39: 100%|██████████| 53/53 [00:02<00:00, 20.58it/s]
+Epoch 39 | Avg Loss: 0.020861
+Epoch 39 | Validation Loss: 0.020978 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=40 epoch_seed=4827278406198888469
+
+Epoch 40:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 40:   4%|▍         | 2/53 [00:00<00:02, 18.53it/s]
+Epoch 40:   8%|▊         | 4/53 [00:00<00:02, 19.15it/s]
+Epoch 40:  13%|█▎        | 7/53 [00:00<00:02, 19.94it/s]
+Epoch 40:  19%|█▉        | 10/53 [00:00<00:02, 20.79it/s]
+Epoch 40:  25%|██▍       | 13/53 [00:00<00:01, 21.01it/s]
+Epoch 40:  30%|███       | 16/53 [00:00<00:01, 22.05it/s]
+Epoch 40:  36%|███▌      | 19/53 [00:00<00:01, 22.99it/s]
+Epoch 40:  42%|████▏     | 22/53 [00:00<00:01, 23.93it/s]
+Epoch 40:  47%|████▋     | 25/53 [00:01<00:01, 24.03it/s]
+Epoch 40:  53%|█████▎    | 28/53 [00:01<00:01, 23.50it/s]
+Epoch 40:  58%|█████▊    | 31/53 [00:01<00:01, 21.32it/s]
+Epoch 40:  64%|██████▍   | 34/53 [00:01<00:00, 21.11it/s]
+Epoch 40:  70%|██████▉   | 37/53 [00:01<00:00, 21.71it/s]
+Epoch 40:  75%|███████▌  | 40/53 [00:01<00:00, 22.27it/s]
+Epoch 40:  81%|████████  | 43/53 [00:01<00:00, 22.94it/s]
+Epoch 40:  87%|████████▋ | 46/53 [00:02<00:00, 23.18it/s]
+Epoch 40:  92%|█████████▏| 49/53 [00:02<00:00, 23.52it/s]
+Epoch 40:  98%|█████████▊| 52/53 [00:02<00:00, 23.67it/s]
+Epoch 40: 100%|██████████| 53/53 [00:02<00:00, 22.49it/s]
+Epoch 40 | Avg Loss: 0.020179
+Epoch 40 | Validation Loss: 0.021147 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=41 epoch_seed=8060539282030765970
+
+Epoch 41:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 41:   6%|▌         | 3/53 [00:00<00:02, 22.97it/s]
+Epoch 41:  11%|█▏        | 6/53 [00:00<00:02, 23.39it/s]
+Epoch 41:  17%|█▋        | 9/53 [00:00<00:01, 23.36it/s]
+Epoch 41:  23%|██▎       | 12/53 [00:00<00:01, 23.16it/s]
+Epoch 41:  28%|██▊       | 15/53 [00:00<00:01, 23.40it/s]
+Epoch 41:  34%|███▍      | 18/53 [00:00<00:01, 22.66it/s]
+Epoch 41:  40%|███▉      | 21/53 [00:00<00:01, 22.31it/s]
+Epoch 41:  45%|████▌     | 24/53 [00:01<00:01, 22.68it/s]
+Epoch 41:  51%|█████     | 27/53 [00:01<00:01, 22.89it/s]
+Epoch 41:  57%|█████▋    | 30/53 [00:01<00:01, 22.30it/s]
+Epoch 41:  62%|██████▏   | 33/53 [00:01<00:00, 21.08it/s]
+Epoch 41:  68%|██████▊   | 36/53 [00:01<00:00, 19.11it/s]
+Epoch 41:  72%|███████▏  | 38/53 [00:01<00:00, 18.43it/s]
+Epoch 41:  75%|███████▌  | 40/53 [00:01<00:00, 17.67it/s]
+Epoch 41:  79%|███████▉  | 42/53 [00:02<00:00, 16.38it/s]
+Epoch 41:  83%|████████▎ | 44/53 [00:02<00:00, 17.01it/s]
+Epoch 41:  89%|████████▊ | 47/53 [00:02<00:00, 18.34it/s]
+Epoch 41:  94%|█████████▍| 50/53 [00:02<00:00, 19.66it/s]
+Epoch 41: 100%|██████████| 53/53 [00:02<00:00, 20.80it/s]
+Epoch 41: 100%|██████████| 53/53 [00:02<00:00, 20.59it/s]
+Epoch 41 | Avg Loss: 0.020292
+Epoch 41 | Validation Loss: 0.021072 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=42 epoch_seed=1889966868050589205
+
+Epoch 42:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 42:   4%|▍         | 2/53 [00:00<00:02, 18.42it/s]
+Epoch 42:   8%|▊         | 4/53 [00:00<00:02, 18.49it/s]
+Epoch 42:  11%|█▏        | 6/53 [00:00<00:02, 17.76it/s]
+Epoch 42:  15%|█▌        | 8/53 [00:00<00:02, 16.65it/s]
+Epoch 42:  19%|█▉        | 10/53 [00:00<00:02, 16.30it/s]
+Epoch 42:  23%|██▎       | 12/53 [00:00<00:02, 16.84it/s]
+Epoch 42:  26%|██▋       | 14/53 [00:00<00:02, 17.48it/s]
+Epoch 42:  30%|███       | 16/53 [00:00<00:02, 17.04it/s]
+Epoch 42:  34%|███▍      | 18/53 [00:01<00:02, 17.27it/s]
+Epoch 42:  38%|███▊      | 20/53 [00:01<00:02, 16.34it/s]
+Epoch 42:  42%|████▏     | 22/53 [00:01<00:01, 16.73it/s]
+Epoch 42:  45%|████▌     | 24/53 [00:01<00:01, 16.40it/s]
+Epoch 42:  49%|████▉     | 26/53 [00:01<00:01, 16.38it/s]
+Epoch 42:  53%|█████▎    | 28/53 [00:01<00:01, 16.50it/s]
+Epoch 42:  57%|█████▋    | 30/53 [00:01<00:01, 16.62it/s]
+Epoch 42:  60%|██████    | 32/53 [00:01<00:01, 16.98it/s]
+Epoch 42:  64%|██████▍   | 34/53 [00:02<00:01, 16.73it/s]
+Epoch 42:  68%|██████▊   | 36/53 [00:02<00:01, 16.77it/s]
+Epoch 42:  72%|███████▏  | 38/53 [00:02<00:00, 16.98it/s]
+Epoch 42:  75%|███████▌  | 40/53 [00:02<00:00, 16.71it/s]
+Epoch 42:  79%|███████▉  | 42/53 [00:02<00:00, 16.34it/s]
+Epoch 42:  83%|████████▎ | 44/53 [00:02<00:00, 15.46it/s]
+Epoch 42:  87%|████████▋ | 46/53 [00:02<00:00, 14.98it/s]
+Epoch 42:  91%|█████████ | 48/53 [00:02<00:00, 15.23it/s]
+Epoch 42:  94%|█████████▍| 50/53 [00:03<00:00, 14.99it/s]
+Epoch 42:  98%|█████████▊| 52/53 [00:03<00:00, 14.47it/s]
+Epoch 42: 100%|██████████| 53/53 [00:03<00:00, 16.17it/s]
+Epoch 42 | Avg Loss: 0.019932
+Epoch 42 | Validation Loss: 0.021020 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=43 epoch_seed=3855191061515795587
+
+Epoch 43:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 43:   4%|▍         | 2/53 [00:00<00:03, 13.18it/s]
+Epoch 43:   8%|▊         | 4/53 [00:00<00:03, 13.63it/s]
+Epoch 43:  11%|█▏        | 6/53 [00:00<00:03, 14.43it/s]
+Epoch 43:  15%|█▌        | 8/53 [00:00<00:02, 15.37it/s]
+Epoch 43:  19%|█▉        | 10/53 [00:00<00:02, 15.77it/s]
+Epoch 43:  23%|██▎       | 12/53 [00:00<00:02, 16.34it/s]
+Epoch 43:  26%|██▋       | 14/53 [00:00<00:02, 16.50it/s]
+Epoch 43:  30%|███       | 16/53 [00:01<00:02, 16.12it/s]
+Epoch 43:  34%|███▍      | 18/53 [00:01<00:02, 15.46it/s]
+Epoch 43:  38%|███▊      | 20/53 [00:01<00:02, 15.53it/s]
+Epoch 43:  42%|████▏     | 22/53 [00:01<00:01, 15.54it/s]
+Epoch 43:  45%|████▌     | 24/53 [00:01<00:01, 15.31it/s]
+Epoch 43:  49%|████▉     | 26/53 [00:01<00:01, 15.46it/s]
+Epoch 43:  53%|█████▎    | 28/53 [00:01<00:01, 15.75it/s]
+Epoch 43:  57%|█████▋    | 30/53 [00:01<00:01, 15.96it/s]
+Epoch 43:  60%|██████    | 32/53 [00:02<00:01, 16.04it/s]
+Epoch 43:  64%|██████▍   | 34/53 [00:02<00:01, 15.61it/s]
+Epoch 43:  68%|██████▊   | 36/53 [00:02<00:01, 16.29it/s]
+Epoch 43:  72%|███████▏  | 38/53 [00:02<00:00, 17.15it/s]
+Epoch 43:  75%|███████▌  | 40/53 [00:02<00:00, 15.42it/s]
+Epoch 43:  79%|███████▉  | 42/53 [00:02<00:00, 15.85it/s]
+Epoch 43:  83%|████████▎ | 44/53 [00:02<00:00, 15.39it/s]
+Epoch 43:  87%|████████▋ | 46/53 [00:02<00:00, 15.40it/s]
+Epoch 43:  91%|█████████ | 48/53 [00:03<00:00, 15.70it/s]
+Epoch 43:  94%|█████████▍| 50/53 [00:03<00:00, 16.24it/s]
+Epoch 43:  98%|█████████▊| 52/53 [00:03<00:00, 16.75it/s]
+Epoch 43: 100%|██████████| 53/53 [00:03<00:00, 15.82it/s]
+Epoch 43 | Avg Loss: 0.020556
+Epoch 43 | Validation Loss: 0.022253 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=44 epoch_seed=1347684335704127599
+
+Epoch 44:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 44:   4%|▍         | 2/53 [00:00<00:02, 19.19it/s]
+Epoch 44:   8%|▊         | 4/53 [00:00<00:02, 19.60it/s]
+Epoch 44:  11%|█▏        | 6/53 [00:00<00:02, 19.46it/s]
+Epoch 44:  15%|█▌        | 8/53 [00:00<00:02, 18.84it/s]
+Epoch 44:  21%|██        | 11/53 [00:00<00:02, 19.48it/s]
+Epoch 44:  25%|██▍       | 13/53 [00:00<00:02, 18.77it/s]
+Epoch 44:  28%|██▊       | 15/53 [00:00<00:02, 18.65it/s]
+Epoch 44:  32%|███▏      | 17/53 [00:00<00:02, 15.45it/s]
+Epoch 44:  36%|███▌      | 19/53 [00:01<00:02, 16.17it/s]
+Epoch 44:  40%|███▉      | 21/53 [00:01<00:01, 16.52it/s]
+Epoch 44:  43%|████▎     | 23/53 [00:01<00:01, 16.69it/s]
+Epoch 44:  47%|████▋     | 25/53 [00:01<00:01, 16.54it/s]
+Epoch 44:  51%|█████     | 27/53 [00:01<00:01, 16.94it/s]
+Epoch 44:  55%|█████▍    | 29/53 [00:01<00:01, 17.29it/s]
+Epoch 44:  58%|█████▊    | 31/53 [00:01<00:01, 17.84it/s]
+Epoch 44:  62%|██████▏   | 33/53 [00:01<00:01, 18.37it/s]
+Epoch 44:  66%|██████▌   | 35/53 [00:01<00:00, 18.52it/s]
+Epoch 44:  70%|██████▉   | 37/53 [00:02<00:00, 18.34it/s]
+Epoch 44:  75%|███████▌  | 40/53 [00:02<00:00, 18.83it/s]
+Epoch 44:  79%|███████▉  | 42/53 [00:02<00:00, 18.88it/s]
+Epoch 44:  83%|████████▎ | 44/53 [00:02<00:00, 19.09it/s]
+Epoch 44:  87%|████████▋ | 46/53 [00:02<00:00, 18.79it/s]
+Epoch 44:  91%|█████████ | 48/53 [00:02<00:00, 18.40it/s]
+Epoch 44:  94%|█████████▍| 50/53 [00:02<00:00, 18.29it/s]
+Epoch 44:  98%|█████████▊| 52/53 [00:02<00:00, 17.83it/s]
+Epoch 44: 100%|██████████| 53/53 [00:02<00:00, 17.94it/s]
+Epoch 44 | Avg Loss: 0.020381
+Epoch 44 | Validation Loss: 0.021003 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=45 epoch_seed=7933691941412389500
+
+Epoch 45:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 45:   4%|▍         | 2/53 [00:00<00:03, 15.49it/s]
+Epoch 45:   8%|▊         | 4/53 [00:00<00:03, 15.54it/s]
+Epoch 45:  11%|█▏        | 6/53 [00:00<00:02, 15.72it/s]
+Epoch 45:  15%|█▌        | 8/53 [00:00<00:02, 16.09it/s]
+Epoch 45:  19%|█▉        | 10/53 [00:00<00:02, 15.79it/s]
+Epoch 45:  23%|██▎       | 12/53 [00:00<00:02, 15.90it/s]
+Epoch 45:  26%|██▋       | 14/53 [00:00<00:02, 15.71it/s]
+Epoch 45:  30%|███       | 16/53 [00:01<00:02, 15.75it/s]
+Epoch 45:  34%|███▍      | 18/53 [00:01<00:02, 16.14it/s]
+Epoch 45:  38%|███▊      | 20/53 [00:01<00:01, 16.81it/s]
+Epoch 45:  42%|████▏     | 22/53 [00:01<00:01, 17.61it/s]
+Epoch 45:  45%|████▌     | 24/53 [00:01<00:01, 16.72it/s]
+Epoch 45:  49%|████▉     | 26/53 [00:01<00:01, 16.72it/s]
+Epoch 45:  53%|█████▎    | 28/53 [00:01<00:01, 17.05it/s]
+Epoch 45:  57%|█████▋    | 30/53 [00:01<00:01, 17.51it/s]
+Epoch 45:  60%|██████    | 32/53 [00:01<00:01, 17.55it/s]
+Epoch 45:  64%|██████▍   | 34/53 [00:02<00:01, 17.78it/s]
+Epoch 45:  68%|██████▊   | 36/53 [00:02<00:00, 17.84it/s]
+Epoch 45:  72%|███████▏  | 38/53 [00:02<00:00, 17.62it/s]
+Epoch 45:  75%|███████▌  | 40/53 [00:02<00:00, 17.83it/s]
+Epoch 45:  81%|████████  | 43/53 [00:02<00:00, 17.91it/s]
+Epoch 45:  85%|████████▍ | 45/53 [00:02<00:00, 17.82it/s]
+Epoch 45:  89%|████████▊ | 47/53 [00:02<00:00, 17.96it/s]
+Epoch 45:  94%|█████████▍| 50/53 [00:02<00:00, 18.28it/s]
+Epoch 45:  98%|█████████▊| 52/53 [00:03<00:00, 17.81it/s]
+Epoch 45: 100%|██████████| 53/53 [00:03<00:00, 17.12it/s]
+Epoch 45 | Avg Loss: 0.020156
+Epoch 45 | Validation Loss: 0.022629 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=46 epoch_seed=3184658957303956900
+
+Epoch 46:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 46:   4%|▍         | 2/53 [00:00<00:02, 18.99it/s]
+Epoch 46:   8%|▊         | 4/53 [00:00<00:02, 18.97it/s]
+Epoch 46:  11%|█▏        | 6/53 [00:00<00:02, 18.94it/s]
+Epoch 46:  15%|█▌        | 8/53 [00:00<00:02, 18.12it/s]
+Epoch 46:  19%|█▉        | 10/53 [00:00<00:02, 18.16it/s]
+Epoch 46:  23%|██▎       | 12/53 [00:00<00:02, 18.13it/s]
+Epoch 46:  26%|██▋       | 14/53 [00:00<00:02, 18.35it/s]
+Epoch 46:  30%|███       | 16/53 [00:00<00:02, 18.39it/s]
+Epoch 46:  34%|███▍      | 18/53 [00:00<00:01, 18.40it/s]
+Epoch 46:  40%|███▉      | 21/53 [00:01<00:01, 19.14it/s]
+Epoch 46:  45%|████▌     | 24/53 [00:01<00:01, 18.72it/s]
+Epoch 46:  49%|████▉     | 26/53 [00:01<00:01, 18.03it/s]
+Epoch 46:  53%|█████▎    | 28/53 [00:01<00:01, 17.49it/s]
+Epoch 46:  57%|█████▋    | 30/53 [00:01<00:01, 17.01it/s]
+Epoch 46:  60%|██████    | 32/53 [00:01<00:01, 17.26it/s]
+Epoch 46:  64%|██████▍   | 34/53 [00:01<00:01, 17.02it/s]
+Epoch 46:  68%|██████▊   | 36/53 [00:02<00:01, 16.85it/s]
+Epoch 46:  72%|███████▏  | 38/53 [00:02<00:00, 16.95it/s]
+Epoch 46:  75%|███████▌  | 40/53 [00:02<00:00, 16.77it/s]
+Epoch 46:  79%|███████▉  | 42/53 [00:02<00:00, 16.73it/s]
+Epoch 46:  83%|████████▎ | 44/53 [00:02<00:00, 16.52it/s]
+Epoch 46:  87%|████████▋ | 46/53 [00:02<00:00, 16.01it/s]
+Epoch 46:  91%|█████████ | 48/53 [00:02<00:00, 15.41it/s]
+Epoch 46:  94%|█████████▍| 50/53 [00:02<00:00, 14.43it/s]
+Epoch 46:  98%|█████████▊| 52/53 [00:03<00:00, 14.00it/s]
+Epoch 46: 100%|██████████| 53/53 [00:03<00:00, 16.76it/s]
+Epoch 46 | Avg Loss: 0.020304
+Epoch 46 | Validation Loss: 0.021523 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=47 epoch_seed=704856911333695874
+
+Epoch 47:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 47:   4%|▍         | 2/53 [00:00<00:03, 12.96it/s]
+Epoch 47:   8%|▊         | 4/53 [00:00<00:03, 12.53it/s]
+Epoch 47:  11%|█▏        | 6/53 [00:00<00:03, 13.20it/s]
+Epoch 47:  15%|█▌        | 8/53 [00:00<00:03, 13.11it/s]
+Epoch 47:  19%|█▉        | 10/53 [00:00<00:03, 14.00it/s]
+Epoch 47:  23%|██▎       | 12/53 [00:00<00:02, 14.11it/s]
+Epoch 47:  26%|██▋       | 14/53 [00:01<00:02, 14.17it/s]
+Epoch 47:  30%|███       | 16/53 [00:01<00:02, 14.38it/s]
+Epoch 47:  34%|███▍      | 18/53 [00:01<00:02, 13.86it/s]
+Epoch 47:  38%|███▊      | 20/53 [00:01<00:02, 12.76it/s]
+Epoch 47:  42%|████▏     | 22/53 [00:01<00:02, 11.60it/s]
+Epoch 47:  45%|████▌     | 24/53 [00:01<00:02, 11.43it/s]
+Epoch 47:  49%|████▉     | 26/53 [00:02<00:02, 11.82it/s]
+Epoch 47:  53%|█████▎    | 28/53 [00:02<00:02, 12.37it/s]
+Epoch 47:  57%|█████▋    | 30/53 [00:02<00:01, 12.66it/s]
+Epoch 47:  60%|██████    | 32/53 [00:02<00:01, 12.78it/s]
+Epoch 47:  64%|██████▍   | 34/53 [00:02<00:01, 12.90it/s]
+Epoch 47:  68%|██████▊   | 36/53 [00:02<00:01, 12.86it/s]
+Epoch 47:  72%|███████▏  | 38/53 [00:02<00:01, 13.00it/s]
+Epoch 47:  75%|███████▌  | 40/53 [00:03<00:00, 13.24it/s]
+Epoch 47:  79%|███████▉  | 42/53 [00:03<00:00, 12.03it/s]
+Epoch 47:  83%|████████▎ | 44/53 [00:03<00:00, 12.80it/s]
+Epoch 47:  87%|████████▋ | 46/53 [00:03<00:00, 12.53it/s]
+Epoch 47:  91%|█████████ | 48/53 [00:03<00:00, 12.72it/s]
+Epoch 47:  94%|█████████▍| 50/53 [00:03<00:00, 12.68it/s]
+Epoch 47:  98%|█████████▊| 52/53 [00:04<00:00, 12.62it/s]
+Epoch 47: 100%|██████████| 53/53 [00:04<00:00, 12.77it/s]
+Epoch 47 | Avg Loss: 0.020345
+Epoch 47 | Validation Loss: 0.021021 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=48 epoch_seed=5990688190980543802
+
+Epoch 48:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 48:   4%|▍         | 2/53 [00:00<00:04, 10.94it/s]
+Epoch 48:   8%|▊         | 4/53 [00:00<00:04, 10.99it/s]
+Epoch 48:  11%|█▏        | 6/53 [00:00<00:04, 10.96it/s]
+Epoch 48:  15%|█▌        | 8/53 [00:00<00:04, 11.19it/s]
+Epoch 48:  19%|█▉        | 10/53 [00:00<00:03, 11.13it/s]
+Epoch 48:  23%|██▎       | 12/53 [00:01<00:03, 11.05it/s]
+Epoch 48:  26%|██▋       | 14/53 [00:01<00:03, 11.45it/s]
+Epoch 48:  30%|███       | 16/53 [00:01<00:03, 11.86it/s]
+Epoch 48:  34%|███▍      | 18/53 [00:01<00:02, 11.94it/s]
+Epoch 48:  38%|███▊      | 20/53 [00:01<00:02, 12.21it/s]
+Epoch 48:  42%|████▏     | 22/53 [00:01<00:02, 12.75it/s]
+Epoch 48:  45%|████▌     | 24/53 [00:02<00:02, 12.78it/s]
+Epoch 48:  49%|████▉     | 26/53 [00:02<00:02, 13.11it/s]
+Epoch 48:  53%|█████▎    | 28/53 [00:02<00:01, 12.99it/s]
+Epoch 48:  57%|█████▋    | 30/53 [00:02<00:01, 12.33it/s]
+Epoch 48:  60%|██████    | 32/53 [00:02<00:01, 12.46it/s]
+Epoch 48:  64%|██████▍   | 34/53 [00:02<00:01, 12.89it/s]
+Epoch 48:  68%|██████▊   | 36/53 [00:02<00:01, 13.47it/s]
+Epoch 48:  72%|███████▏  | 38/53 [00:03<00:01, 13.71it/s]
+Epoch 48:  75%|███████▌  | 40/53 [00:03<00:00, 13.67it/s]
+Epoch 48:  79%|███████▉  | 42/53 [00:03<00:00, 14.14it/s]
+Epoch 48:  83%|████████▎ | 44/53 [00:03<00:00, 14.46it/s]
+Epoch 48:  87%|████████▋ | 46/53 [00:03<00:00, 14.78it/s]
+Epoch 48:  91%|█████████ | 48/53 [00:03<00:00, 15.04it/s]
+Epoch 48:  94%|█████████▍| 50/53 [00:03<00:00, 14.71it/s]
+Epoch 48:  98%|█████████▊| 52/53 [00:04<00:00, 14.85it/s]
+Epoch 48: 100%|██████████| 53/53 [00:04<00:00, 12.99it/s]
+Epoch 48 | Avg Loss: 0.019999
+Epoch 48 | Validation Loss: 0.020881 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=49 epoch_seed=3266987235067789497
+
+Epoch 49:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 49:   4%|▍         | 2/53 [00:00<00:03, 13.63it/s]
+Epoch 49:   8%|▊         | 4/53 [00:00<00:03, 13.81it/s]
+Epoch 49:  11%|█▏        | 6/53 [00:00<00:03, 13.97it/s]
+Epoch 49:  15%|█▌        | 8/53 [00:00<00:03, 14.19it/s]
+Epoch 49:  19%|█▉        | 10/53 [00:00<00:02, 14.78it/s]
+Epoch 49:  23%|██▎       | 12/53 [00:00<00:02, 13.69it/s]
+Epoch 49:  26%|██▋       | 14/53 [00:00<00:02, 14.23it/s]
+Epoch 49:  30%|███       | 16/53 [00:01<00:02, 13.25it/s]
+Epoch 49:  34%|███▍      | 18/53 [00:01<00:02, 13.38it/s]
+Epoch 49:  38%|███▊      | 20/53 [00:01<00:02, 13.36it/s]
+Epoch 49:  42%|████▏     | 22/53 [00:01<00:02, 13.01it/s]
+Epoch 49:  45%|████▌     | 24/53 [00:01<00:02, 13.05it/s]
+Epoch 49:  49%|████▉     | 26/53 [00:01<00:02, 12.99it/s]
+Epoch 49:  53%|█████▎    | 28/53 [00:02<00:02, 12.26it/s]
+Epoch 49:  57%|█████▋    | 30/53 [00:02<00:01, 11.67it/s]
+Epoch 49:  60%|██████    | 32/53 [00:02<00:01, 11.94it/s]
+Epoch 49:  64%|██████▍   | 34/53 [00:02<00:01, 11.70it/s]
+Epoch 49:  68%|██████▊   | 36/53 [00:02<00:01, 11.03it/s]
+Epoch 49:  72%|███████▏  | 38/53 [00:03<00:01, 10.83it/s]
+Epoch 49:  75%|███████▌  | 40/53 [00:03<00:01, 10.31it/s]
+Epoch 49:  79%|███████▉  | 42/53 [00:03<00:01, 10.64it/s]
+Epoch 49:  83%|████████▎ | 44/53 [00:03<00:00, 10.69it/s]
+Epoch 49:  87%|████████▋ | 46/53 [00:03<00:00, 10.90it/s]
+Epoch 49:  91%|█████████ | 48/53 [00:03<00:00, 11.63it/s]
+Epoch 49:  94%|█████████▍| 50/53 [00:04<00:00, 12.20it/s]
+Epoch 49:  98%|█████████▊| 52/53 [00:04<00:00, 11.90it/s]
+Epoch 49: 100%|██████████| 53/53 [00:04<00:00, 12.14it/s]
+Epoch 49 | Avg Loss: 0.020175
+Epoch 49 | Validation Loss: 0.020994 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=50 epoch_seed=2170215647299429357
+
+Epoch 50:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 50:   4%|▍         | 2/53 [00:00<00:03, 12.90it/s]
+Epoch 50:   8%|▊         | 4/53 [00:00<00:03, 13.27it/s]
+Epoch 50:  11%|█▏        | 6/53 [00:00<00:03, 13.63it/s]
+Epoch 50:  15%|█▌        | 8/53 [00:00<00:03, 13.54it/s]
+Epoch 50:  19%|█▉        | 10/53 [00:00<00:03, 13.77it/s]
+Epoch 50:  23%|██▎       | 12/53 [00:00<00:02, 14.07it/s]
+Epoch 50:  26%|██▋       | 14/53 [00:01<00:02, 14.37it/s]
+Epoch 50:  30%|███       | 16/53 [00:01<00:02, 14.33it/s]
+Epoch 50:  34%|███▍      | 18/53 [00:01<00:02, 13.95it/s]
+Epoch 50:  38%|███▊      | 20/53 [00:01<00:02, 14.29it/s]
+Epoch 50:  42%|████▏     | 22/53 [00:01<00:02, 14.07it/s]
+Epoch 50:  45%|████▌     | 24/53 [00:01<00:02, 13.26it/s]
+Epoch 50:  49%|████▉     | 26/53 [00:01<00:02, 12.80it/s]
+Epoch 50:  53%|█████▎    | 28/53 [00:02<00:01, 12.68it/s]
+Epoch 50:  57%|█████▋    | 30/53 [00:02<00:01, 12.11it/s]
+Epoch 50:  60%|██████    | 32/53 [00:02<00:01, 11.34it/s]
+Epoch 50:  64%|██████▍   | 34/53 [00:02<00:01, 11.67it/s]
+Epoch 50:  68%|██████▊   | 36/53 [00:02<00:01, 12.16it/s]
+Epoch 50:  72%|███████▏  | 38/53 [00:02<00:01, 12.19it/s]
+Epoch 50:  75%|███████▌  | 40/53 [00:03<00:01, 11.85it/s]
+Epoch 50:  79%|███████▉  | 42/53 [00:03<00:00, 12.23it/s]
+Epoch 50:  83%|████████▎ | 44/53 [00:03<00:00, 11.41it/s]
+Epoch 50:  87%|████████▋ | 46/53 [00:03<00:00, 11.36it/s]
+Epoch 50:  91%|█████████ | 48/53 [00:03<00:00, 11.71it/s]
+Epoch 50:  94%|█████████▍| 50/53 [00:03<00:00, 11.99it/s]
+Epoch 50:  98%|█████████▊| 52/53 [00:04<00:00, 12.82it/s]
+Epoch 50: 100%|██████████| 53/53 [00:04<00:00, 12.75it/s]
+Epoch 50 | Avg Loss: 0.020209
+Epoch 50 | Validation Loss: 0.020941 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=51 epoch_seed=3546511064761128861
+
+Epoch 51:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 51:   4%|▍         | 2/53 [00:00<00:04, 12.71it/s]
+Epoch 51:   8%|▊         | 4/53 [00:00<00:03, 13.57it/s]
+Epoch 51:  11%|█▏        | 6/53 [00:00<00:03, 13.38it/s]
+Epoch 51:  15%|█▌        | 8/53 [00:00<00:03, 13.53it/s]
+Epoch 51:  19%|█▉        | 10/53 [00:00<00:03, 14.22it/s]
+Epoch 51:  23%|██▎       | 12/53 [00:00<00:02, 14.82it/s]
+Epoch 51:  26%|██▋       | 14/53 [00:01<00:02, 14.10it/s]
+Epoch 51:  30%|███       | 16/53 [00:01<00:02, 14.30it/s]
+Epoch 51:  34%|███▍      | 18/53 [00:01<00:02, 13.64it/s]
+Epoch 51:  38%|███▊      | 20/53 [00:01<00:02, 13.36it/s]
+Epoch 51:  42%|████▏     | 22/53 [00:01<00:02, 13.01it/s]
+Epoch 51:  45%|████▌     | 24/53 [00:01<00:02, 12.71it/s]
+Epoch 51:  49%|████▉     | 26/53 [00:01<00:02, 12.83it/s]
+Epoch 51:  53%|█████▎    | 28/53 [00:02<00:01, 13.12it/s]
+Epoch 51:  57%|█████▋    | 30/53 [00:02<00:01, 13.01it/s]
+Epoch 51:  60%|██████    | 32/53 [00:02<00:01, 13.20it/s]
+Epoch 51:  64%|██████▍   | 34/53 [00:02<00:01, 11.71it/s]
+Epoch 51:  68%|██████▊   | 36/53 [00:02<00:01, 12.01it/s]
+Epoch 51:  72%|███████▏  | 38/53 [00:02<00:01, 12.04it/s]
+Epoch 51:  75%|███████▌  | 40/53 [00:03<00:01, 11.51it/s]
+Epoch 51:  79%|███████▉  | 42/53 [00:03<00:01, 10.20it/s]
+Epoch 51:  83%|████████▎ | 44/53 [00:03<00:00,  9.47it/s]
+Epoch 51:  87%|████████▋ | 46/53 [00:03<00:00, 10.22it/s]
+Epoch 51:  91%|█████████ | 48/53 [00:03<00:00, 10.84it/s]
+Epoch 51:  94%|█████████▍| 50/53 [00:04<00:00, 11.07it/s]
+Epoch 51:  98%|█████████▊| 52/53 [00:04<00:00, 11.23it/s]
+Epoch 51: 100%|██████████| 53/53 [00:04<00:00, 12.14it/s]
+Epoch 51 | Avg Loss: 0.019827
+Epoch 51 | Validation Loss: 0.020901 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=52 epoch_seed=8188696690056655435
+
+Epoch 52:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 52:   4%|▍         | 2/53 [00:00<00:03, 13.09it/s]
+Epoch 52:   8%|▊         | 4/53 [00:00<00:03, 13.24it/s]
+Epoch 52:  11%|█▏        | 6/53 [00:00<00:03, 13.13it/s]
+Epoch 52:  15%|█▌        | 8/53 [00:00<00:03, 13.31it/s]
+Epoch 52:  19%|█▉        | 10/53 [00:00<00:03, 13.28it/s]
+Epoch 52:  23%|██▎       | 12/53 [00:00<00:03, 12.51it/s]
+Epoch 52:  26%|██▋       | 14/53 [00:01<00:02, 13.03it/s]
+Epoch 52:  30%|███       | 16/53 [00:01<00:02, 13.12it/s]
+Epoch 52:  34%|███▍      | 18/53 [00:01<00:02, 13.15it/s]
+Epoch 52:  38%|███▊      | 20/53 [00:01<00:02, 13.45it/s]
+Epoch 52:  42%|████▏     | 22/53 [00:01<00:02, 14.03it/s]
+Epoch 52:  45%|████▌     | 24/53 [00:01<00:02, 13.98it/s]
+Epoch 52:  49%|████▉     | 26/53 [00:01<00:01, 14.18it/s]
+Epoch 52:  53%|█████▎    | 28/53 [00:02<00:01, 14.11it/s]
+Epoch 52:  57%|█████▋    | 30/53 [00:02<00:01, 13.91it/s]
+Epoch 52:  60%|██████    | 32/53 [00:02<00:01, 13.86it/s]
+Epoch 52:  64%|██████▍   | 34/53 [00:02<00:01, 14.23it/s]
+Epoch 52:  68%|██████▊   | 36/53 [00:02<00:01, 14.10it/s]
+Epoch 52:  72%|███████▏  | 38/53 [00:02<00:01, 13.89it/s]
+Epoch 52:  75%|███████▌  | 40/53 [00:02<00:00, 14.04it/s]
+Epoch 52:  79%|███████▉  | 42/53 [00:03<00:00, 13.89it/s]
+Epoch 52:  83%|████████▎ | 44/53 [00:03<00:00, 13.97it/s]
+Epoch 52:  87%|████████▋ | 46/53 [00:03<00:00, 13.73it/s]
+Epoch 52:  91%|█████████ | 48/53 [00:03<00:00, 13.47it/s]
+Epoch 52:  94%|█████████▍| 50/53 [00:03<00:00, 12.80it/s]
+Epoch 52:  98%|█████████▊| 52/53 [00:03<00:00, 13.16it/s]
+Epoch 52: 100%|██████████| 53/53 [00:03<00:00, 13.55it/s]
+Epoch 52 | Avg Loss: 0.019833
+Epoch 52 | Validation Loss: 0.020866 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=53 epoch_seed=4506332408891970779
+
+Epoch 53:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 53:   4%|▍         | 2/53 [00:00<00:05,  9.47it/s]
+Epoch 53:   6%|▌         | 3/53 [00:00<00:06,  8.17it/s]
+Epoch 53:   9%|▉         | 5/53 [00:00<00:05,  9.14it/s]
+Epoch 53:  11%|█▏        | 6/53 [00:00<00:05,  9.15it/s]
+Epoch 53:  15%|█▌        | 8/53 [00:00<00:04,  9.69it/s]
+Epoch 53:  19%|█▉        | 10/53 [00:01<00:04, 10.27it/s]
+Epoch 53:  23%|██▎       | 12/53 [00:01<00:03, 10.33it/s]
+Epoch 53:  26%|██▋       | 14/53 [00:01<00:03, 10.18it/s]
+Epoch 53:  30%|███       | 16/53 [00:01<00:03, 10.89it/s]
+Epoch 53:  34%|███▍      | 18/53 [00:01<00:03, 11.61it/s]
+Epoch 53:  38%|███▊      | 20/53 [00:01<00:03, 10.54it/s]
+Epoch 53:  42%|████▏     | 22/53 [00:02<00:02, 10.99it/s]
+Epoch 53:  45%|████▌     | 24/53 [00:02<00:02, 10.94it/s]
+Epoch 53:  49%|████▉     | 26/53 [00:02<00:02, 10.66it/s]
+Epoch 53:  53%|█████▎    | 28/53 [00:02<00:02, 10.86it/s]
+Epoch 53:  57%|█████▋    | 30/53 [00:02<00:01, 11.75it/s]
+Epoch 53:  60%|██████    | 32/53 [00:02<00:01, 12.00it/s]
+Epoch 53:  64%|██████▍   | 34/53 [00:03<00:01, 12.55it/s]
+Epoch 53:  68%|██████▊   | 36/53 [00:03<00:01, 12.19it/s]
+Epoch 53:  72%|███████▏  | 38/53 [00:03<00:01, 10.73it/s]
+Epoch 53:  75%|███████▌  | 40/53 [00:03<00:01, 11.03it/s]
+Epoch 53:  79%|███████▉  | 42/53 [00:03<00:01, 10.68it/s]
+Epoch 53:  83%|████████▎ | 44/53 [00:04<00:00,  9.43it/s]
+Epoch 53:  85%|████████▍ | 45/53 [00:04<00:00,  8.62it/s]
+Epoch 53:  87%|████████▋ | 46/53 [00:04<00:00,  8.83it/s]
+Epoch 53:  89%|████████▊ | 47/53 [00:04<00:00,  8.91it/s]
+Epoch 53:  92%|█████████▏| 49/53 [00:04<00:00,  9.56it/s]
+Epoch 53:  96%|█████████▌| 51/53 [00:04<00:00, 10.42it/s]
+Epoch 53: 100%|██████████| 53/53 [00:05<00:00, 10.76it/s]
+Epoch 53: 100%|██████████| 53/53 [00:05<00:00, 10.45it/s]
+Epoch 53 | Avg Loss: 0.020007
+Epoch 53 | Validation Loss: 0.020910 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=54 epoch_seed=5410875039867869885
+
+Epoch 54:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 54:   4%|▍         | 2/53 [00:00<00:04, 12.38it/s]
+Epoch 54:   8%|▊         | 4/53 [00:00<00:03, 12.56it/s]
+Epoch 54:  11%|█▏        | 6/53 [00:00<00:03, 14.19it/s]
+Epoch 54:  15%|█▌        | 8/53 [00:00<00:03, 13.90it/s]
+Epoch 54:  19%|█▉        | 10/53 [00:00<00:03, 10.87it/s]
+Epoch 54:  23%|██▎       | 12/53 [00:01<00:03, 11.31it/s]
+Epoch 54:  26%|██▋       | 14/53 [00:01<00:03, 12.25it/s]
+Epoch 54:  30%|███       | 16/53 [00:01<00:02, 13.07it/s]
+Epoch 54:  34%|███▍      | 18/53 [00:01<00:02, 13.97it/s]
+Epoch 54:  38%|███▊      | 20/53 [00:01<00:02, 14.02it/s]
+Epoch 54:  42%|████▏     | 22/53 [00:01<00:02, 14.04it/s]
+Epoch 54:  45%|████▌     | 24/53 [00:01<00:02, 13.82it/s]
+Epoch 54:  49%|████▉     | 26/53 [00:01<00:01, 14.26it/s]
+Epoch 54:  53%|█████▎    | 28/53 [00:02<00:01, 13.76it/s]
+Epoch 54:  57%|█████▋    | 30/53 [00:02<00:01, 13.50it/s]
+Epoch 54:  60%|██████    | 32/53 [00:02<00:01, 13.65it/s]
+Epoch 54:  64%|██████▍   | 34/53 [00:02<00:01, 12.54it/s]
+Epoch 54:  68%|██████▊   | 36/53 [00:02<00:01, 13.37it/s]
+Epoch 54:  72%|███████▏  | 38/53 [00:02<00:01, 11.66it/s]
+Epoch 54:  75%|███████▌  | 40/53 [00:03<00:01, 12.22it/s]
+Epoch 54:  79%|███████▉  | 42/53 [00:03<00:00, 12.46it/s]
+Epoch 54:  83%|████████▎ | 44/53 [00:03<00:00, 13.10it/s]
+Epoch 54:  87%|████████▋ | 46/53 [00:03<00:00, 13.52it/s]
+Epoch 54:  91%|█████████ | 48/53 [00:03<00:00, 14.08it/s]
+Epoch 54:  94%|█████████▍| 50/53 [00:03<00:00, 13.88it/s]
+Epoch 54:  98%|█████████▊| 52/53 [00:03<00:00, 13.48it/s]
+Epoch 54: 100%|██████████| 53/53 [00:04<00:00, 13.19it/s]
+Epoch 54 | Avg Loss: 0.020111
+Epoch 54 | Validation Loss: 0.020853 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=55 epoch_seed=6265240241152164258
+
+Epoch 55:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 55:   4%|▍         | 2/53 [00:00<00:02, 17.32it/s]
+Epoch 55:   8%|▊         | 4/53 [00:00<00:02, 17.70it/s]
+Epoch 55:  11%|█▏        | 6/53 [00:00<00:02, 17.51it/s]
+Epoch 55:  15%|█▌        | 8/53 [00:00<00:02, 16.43it/s]
+Epoch 55:  19%|█▉        | 10/53 [00:00<00:02, 16.53it/s]
+Epoch 55:  23%|██▎       | 12/53 [00:00<00:02, 17.34it/s]
+Epoch 55:  26%|██▋       | 14/53 [00:00<00:02, 17.21it/s]
+Epoch 55:  30%|███       | 16/53 [00:00<00:02, 18.00it/s]
+Epoch 55:  34%|███▍      | 18/53 [00:01<00:01, 17.86it/s]
+Epoch 55:  38%|███▊      | 20/53 [00:01<00:01, 17.77it/s]
+Epoch 55:  42%|████▏     | 22/53 [00:01<00:01, 18.02it/s]
+Epoch 55:  45%|████▌     | 24/53 [00:01<00:01, 18.58it/s]
+Epoch 55:  49%|████▉     | 26/53 [00:01<00:01, 18.44it/s]
+Epoch 55:  53%|█████▎    | 28/53 [00:01<00:01, 18.14it/s]
+Epoch 55:  57%|█████▋    | 30/53 [00:01<00:01, 18.36it/s]
+Epoch 55:  60%|██████    | 32/53 [00:01<00:01, 18.23it/s]
+Epoch 55:  64%|██████▍   | 34/53 [00:01<00:01, 18.37it/s]
+Epoch 55:  68%|██████▊   | 36/53 [00:02<00:00, 18.79it/s]
+Epoch 55:  72%|███████▏  | 38/53 [00:02<00:00, 19.12it/s]
+Epoch 55:  75%|███████▌  | 40/53 [00:02<00:00, 19.21it/s]
+Epoch 55:  79%|███████▉  | 42/53 [00:02<00:00, 19.26it/s]
+Epoch 55:  83%|████████▎ | 44/53 [00:02<00:00, 19.19it/s]
+Epoch 55:  87%|████████▋ | 46/53 [00:02<00:00, 19.06it/s]
+Epoch 55:  91%|█████████ | 48/53 [00:02<00:00, 18.73it/s]
+Epoch 55:  94%|█████████▍| 50/53 [00:02<00:00, 19.08it/s]
+Epoch 55:  98%|█████████▊| 52/53 [00:02<00:00, 18.81it/s]
+Epoch 55: 100%|██████████| 53/53 [00:02<00:00, 18.23it/s]
+Epoch 55 | Avg Loss: 0.020078
+Epoch 55 | Validation Loss: 0.020950 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=56 epoch_seed=554323009892049533
+
+Epoch 56:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 56:   4%|▍         | 2/53 [00:00<00:02, 19.36it/s]
+Epoch 56:   8%|▊         | 4/53 [00:00<00:02, 19.03it/s]
+Epoch 56:  11%|█▏        | 6/53 [00:00<00:02, 19.40it/s]
+Epoch 56:  15%|█▌        | 8/53 [00:00<00:02, 18.52it/s]
+Epoch 56:  19%|█▉        | 10/53 [00:00<00:02, 18.07it/s]
+Epoch 56:  23%|██▎       | 12/53 [00:00<00:02, 18.24it/s]
+Epoch 56:  26%|██▋       | 14/53 [00:00<00:02, 17.79it/s]
+Epoch 56:  30%|███       | 16/53 [00:00<00:02, 17.14it/s]
+Epoch 56:  34%|███▍      | 18/53 [00:01<00:01, 17.57it/s]
+Epoch 56:  38%|███▊      | 20/53 [00:01<00:01, 17.95it/s]
+Epoch 56:  42%|████▏     | 22/53 [00:01<00:01, 18.28it/s]
+Epoch 56:  45%|████▌     | 24/53 [00:01<00:01, 18.44it/s]
+Epoch 56:  51%|█████     | 27/53 [00:01<00:01, 18.73it/s]
+Epoch 56:  55%|█████▍    | 29/53 [00:01<00:01, 18.97it/s]
+Epoch 56:  58%|█████▊    | 31/53 [00:01<00:01, 18.98it/s]
+Epoch 56:  62%|██████▏   | 33/53 [00:01<00:01, 19.04it/s]
+Epoch 56:  66%|██████▌   | 35/53 [00:01<00:00, 18.96it/s]
+Epoch 56:  70%|██████▉   | 37/53 [00:01<00:00, 19.06it/s]
+Epoch 56:  74%|███████▎  | 39/53 [00:02<00:00, 18.84it/s]
+Epoch 56:  77%|███████▋  | 41/53 [00:02<00:00, 18.82it/s]
+Epoch 56:  81%|████████  | 43/53 [00:02<00:00, 19.02it/s]
+Epoch 56:  87%|████████▋ | 46/53 [00:02<00:00, 19.29it/s]
+Epoch 56:  91%|█████████ | 48/53 [00:02<00:00, 19.20it/s]
+Epoch 56:  94%|█████████▍| 50/53 [00:02<00:00, 19.18it/s]
+Epoch 56:  98%|█████████▊| 52/53 [00:02<00:00, 19.35it/s]
+Epoch 56: 100%|██████████| 53/53 [00:02<00:00, 18.75it/s]
+Epoch 56 | Avg Loss: 0.019761
+Epoch 56 | Validation Loss: 0.021033 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=57 epoch_seed=6065530221199246055
+
+Epoch 57:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 57:   4%|▍         | 2/53 [00:00<00:03, 15.26it/s]
+Epoch 57:   8%|▊         | 4/53 [00:00<00:03, 15.19it/s]
+Epoch 57:  11%|█▏        | 6/53 [00:00<00:03, 15.45it/s]
+Epoch 57:  15%|█▌        | 8/53 [00:00<00:03, 14.67it/s]
+Epoch 57:  19%|█▉        | 10/53 [00:00<00:02, 14.93it/s]
+Epoch 57:  23%|██▎       | 12/53 [00:00<00:02, 15.50it/s]
+Epoch 57:  26%|██▋       | 14/53 [00:00<00:02, 15.31it/s]
+Epoch 57:  30%|███       | 16/53 [00:01<00:02, 15.54it/s]
+Epoch 57:  34%|███▍      | 18/53 [00:01<00:02, 15.90it/s]
+Epoch 57:  38%|███▊      | 20/53 [00:01<00:01, 16.59it/s]
+Epoch 57:  42%|████▏     | 22/53 [00:01<00:01, 17.31it/s]
+Epoch 57:  45%|████▌     | 24/53 [00:01<00:01, 17.90it/s]
+Epoch 57:  49%|████▉     | 26/53 [00:01<00:01, 18.05it/s]
+Epoch 57:  53%|█████▎    | 28/53 [00:01<00:01, 18.41it/s]
+Epoch 57:  58%|█████▊    | 31/53 [00:01<00:01, 18.96it/s]
+Epoch 57:  64%|██████▍   | 34/53 [00:01<00:00, 19.41it/s]
+Epoch 57:  68%|██████▊   | 36/53 [00:02<00:00, 18.78it/s]
+Epoch 57:  72%|███████▏  | 38/53 [00:02<00:00, 17.84it/s]
+Epoch 57:  75%|███████▌  | 40/53 [00:02<00:00, 16.76it/s]
+Epoch 57:  79%|███████▉  | 42/53 [00:02<00:00, 16.43it/s]
+Epoch 57:  83%|████████▎ | 44/53 [00:02<00:00, 16.08it/s]
+Epoch 57:  87%|████████▋ | 46/53 [00:02<00:00, 15.55it/s]
+Epoch 57:  91%|█████████ | 48/53 [00:02<00:00, 16.19it/s]
+Epoch 57:  94%|█████████▍| 50/53 [00:02<00:00, 16.67it/s]
+Epoch 57:  98%|█████████▊| 52/53 [00:03<00:00, 14.36it/s]
+Epoch 57: 100%|██████████| 53/53 [00:03<00:00, 16.34it/s]
+Epoch 57 | Avg Loss: 0.020099
+Epoch 57 | Validation Loss: 0.022146 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=58 epoch_seed=8845572954335812116
+
+Epoch 58:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 58:   2%|▏         | 1/53 [00:01<00:55,  1.08s/it]
+Epoch 58:   4%|▍         | 2/53 [00:02<00:50,  1.00it/s]
+Epoch 58:   6%|▌         | 3/53 [00:03<00:52,  1.04s/it]
+Epoch 58:   8%|▊         | 4/53 [00:04<00:56,  1.15s/it]
+Epoch 58:   9%|▉         | 5/53 [00:05<00:52,  1.10s/it]
+Epoch 58:  11%|█▏        | 6/53 [00:06<00:53,  1.14s/it]
+Epoch 58:  13%|█▎        | 7/53 [00:08<00:58,  1.26s/it]
+Epoch 58:  15%|█▌        | 8/53 [00:09<00:58,  1.30s/it]
+Epoch 58:  17%|█▋        | 9/53 [00:10<00:56,  1.29s/it]
+Epoch 58:  19%|█▉        | 10/53 [00:12<00:57,  1.33s/it]
+Epoch 58:  21%|██        | 11/53 [00:13<00:49,  1.19s/it]
+Epoch 58:  23%|██▎       | 12/53 [00:13<00:44,  1.07s/it]
+Epoch 58:  25%|██▍       | 13/53 [00:15<00:45,  1.14s/it]
+Epoch 58:  26%|██▋       | 14/53 [00:15<00:36,  1.07it/s]
+Epoch 58:  28%|██▊       | 15/53 [00:17<00:43,  1.16s/it]
+Epoch 58:  30%|███       | 16/53 [00:18<00:43,  1.16s/it]
+Epoch 58:  32%|███▏      | 17/53 [00:19<00:39,  1.10s/it]
+Epoch 58:  34%|███▍      | 18/53 [00:20<00:40,  1.15s/it]
+Epoch 58:  36%|███▌      | 19/53 [00:21<00:39,  1.17s/it]
+Epoch 58:  38%|███▊      | 20/53 [00:22<00:28,  1.16it/s]
+Epoch 58:  40%|███▉      | 21/53 [00:22<00:21,  1.46it/s]
+Epoch 58:  42%|████▏     | 22/53 [00:22<00:20,  1.54it/s]
+Epoch 58:  43%|████▎     | 23/53 [00:23<00:20,  1.44it/s]
+Epoch 58:  45%|████▌     | 24/53 [00:24<00:23,  1.23it/s]
+Epoch 58:  47%|████▋     | 25/53 [00:26<00:28,  1.00s/it]
+Epoch 58:  49%|████▉     | 26/53 [00:27<00:30,  1.11s/it]
+Epoch 58:  51%|█████     | 27/53 [00:28<00:29,  1.14s/it]
+Epoch 58:  53%|█████▎    | 28/53 [00:30<00:31,  1.25s/it]
+Epoch 58:  55%|█████▍    | 29/53 [00:31<00:32,  1.34s/it]
+Epoch 58:  57%|█████▋    | 30/53 [00:33<00:31,  1.35s/it]
+Epoch 58:  58%|█████▊    | 31/53 [00:34<00:29,  1.33s/it]
+Epoch 58:  60%|██████    | 32/53 [00:35<00:28,  1.34s/it]
+Epoch 58:  62%|██████▏   | 33/53 [00:37<00:26,  1.33s/it]
+Epoch 58:  64%|██████▍   | 34/53 [00:37<00:21,  1.14s/it]
+Epoch 58:  66%|██████▌   | 35/53 [00:38<00:15,  1.17it/s]
+Epoch 58:  68%|██████▊   | 36/53 [00:38<00:13,  1.24it/s]
+Epoch 58:  70%|██████▉   | 37/53 [00:40<00:15,  1.01it/s]
+Epoch 58:  72%|███████▏  | 38/53 [00:41<00:16,  1.08s/it]
+Epoch 58:  74%|███████▎  | 39/53 [00:42<00:15,  1.12s/it]
+Epoch 58:  75%|███████▌  | 40/53 [00:43<00:15,  1.16s/it]
+Epoch 58:  77%|███████▋  | 41/53 [00:45<00:15,  1.27s/it]
+Epoch 58:  79%|███████▉  | 42/53 [00:46<00:14,  1.29s/it]
+Epoch 58:  81%|████████  | 43/53 [00:48<00:13,  1.37s/it]
+Epoch 58:  83%|████████▎ | 44/53 [00:49<00:11,  1.26s/it]
+Epoch 58:  85%|████████▍ | 45/53 [00:50<00:10,  1.31s/it]
+Epoch 58:  87%|████████▋ | 46/53 [00:52<00:08,  1.28s/it]
+Epoch 58:  89%|████████▊ | 47/53 [00:54<00:08,  1.50s/it]
+Epoch 58:  91%|█████████ | 48/53 [00:55<00:07,  1.47s/it]
+Epoch 58:  92%|█████████▏| 49/53 [00:57<00:06,  1.52s/it]
+Epoch 58:  94%|█████████▍| 50/53 [00:58<00:04,  1.50s/it]
+Epoch 58:  96%|█████████▌| 51/53 [00:59<00:02,  1.45s/it]
+Epoch 58:  98%|█████████▊| 52/53 [01:01<00:01,  1.45s/it]
+Epoch 58: 100%|██████████| 53/53 [01:03<00:00,  1.53s/it]
+Epoch 58: 100%|██████████| 53/53 [01:03<00:00,  1.19s/it]
+Epoch 58 | Avg Loss: 0.020001
+Epoch 58 | Validation Loss: 0.021004 (2214 ML segments)
+[data_order] resolved=shuffle file_order=none epoch=59 epoch_seed=2198714101686303410
+
+Epoch 59:   0%|          | 0/53 [00:00<?, ?it/s]
+Epoch 59:   2%|▏         | 1/53 [00:00<00:47,  1.10it/s]
+Epoch 59:   4%|▍         | 2/53 [00:02<01:00,  1.19s/it]
+Epoch 59:   6%|▌         | 3/53 [00:03<00:57,  1.14s/it]
+Epoch 59:   8%|▊         | 4/53 [00:04<00:56,  1.16s/it]
+Epoch 59:   9%|▉         | 5/53 [00:05<00:55,  1.16s/it]
+Epoch 59:  11%|█▏        | 6/53 [00:06<00:49,  1.06s/it]
+Epoch 59:  13%|█▎        | 7/53 [00:07<00:49,  1.07s/it]
+Epoch 59:  15%|█▌        | 8/53 [00:08<00:50,  1.12s/it]
+Epoch 59:  17%|█▋        | 9/53 [00:10<00:52,  1.19s/it]
+Epoch 59:  19%|█▉        | 10/53 [00:11<00:52,  1.23s/it]
+Epoch 59:  21%|██        | 11/53 [00:12<00:48,  1.15s/it]
+Epoch 59:  23%|██▎       | 12/53 [00:13<00:46,  1.13s/it]
+Epoch 59:  25%|██▍       | 13/53 [00:15<00:49,  1.24s/it]
+Epoch 59:  26%|██▋       | 14/53 [00:16<00:46,  1.20s/it]
+Epoch 59:  28%|██▊       | 15/53 [00:17<00:48,  1.27s/it]
+Epoch 59:  30%|███       | 16/53 [00:18<00:46,  1.27s/it]
+Epoch 59:  32%|███▏      | 17/53 [00:20<00:46,  1.30s/it]
+Epoch 59:  34%|███▍      | 18/53 [00:20<00:38,  1.09s/it]
+Epoch 59:  36%|███▌      | 19/53 [00:21<00:36,  1.08s/it]
+Epoch 59:  38%|███▊      | 20/53 [00:23<00:36,  1.10s/it]
+Epoch 59:  40%|███▉      | 21/53 [00:24<00:37,  1.17s/it]
+Epoch 59:  42%|████▏     | 22/53 [00:24<00:28,  1.08it/s]
+Epoch 59:  43%|████▎     | 23/53 [00:27<00:43,  1.45s/it]
+Epoch 59:  45%|████▌     | 24/53 [00:28<00:40,  1.41s/it]
+Epoch 59:  47%|████▋     | 25/53 [00:29<00:36,  1.29s/it]
+Epoch 59:  49%|████▉     | 26/53 [00:30<00:32,  1.19s/it]
+Epoch 59:  51%|█████     | 27/53 [00:31<00:27,  1.07s/it]
+Epoch 59:  53%|█████▎    | 28/53 [00:32<00:26,  1.06s/it]
+Epoch 59:  55%|█████▍    | 29/53 [00:33<00:25,  1.06s/it]
+Epoch 59:  57%|█████▋    | 30/53 [00:34<00:24,  1.08s/it]
+Epoch 59:  58%|█████▊    | 31/53 [00:35<00:22,  1.05s/it]
+Epoch 59:  60%|██████    | 32/53 [00:36<00:21,  1.00s/it]
+Epoch 59:  62%|██████▏   | 33/53 [00:37<00:19,  1.05it/s]
+Epoch 59:  64%|██████▍   | 34/53 [00:38<00:18,  1.04it/s]
+Epoch 59:  66%|██████▌   | 35/53 [00:39<00:15,  1.17it/s]
+Epoch 59:  68%|██████▊   | 36/53 [00:39<00:12,  1.34it/s]
+Epoch 59:  70%|██████▉   | 37/53 [00:40<00:10,  1.50it/s]
+Epoch 59:  72%|███████▏  | 38/53 [00:41<00:13,  1.11it/s]
+Epoch 59:  74%|███████▎  | 39/53 [00:42<00:14,  1.06s/it]
+Epoch 59:  75%|███████▌  | 40/53 [00:43<00:13,  1.04s/it]
+Epoch 59:  77%|███████▋  | 41/53 [00:44<00:11,  1.03it/s]
+Epoch 59:  79%|███████▉  | 42/53 [00:46<00:12,  1.12s/it]
+Epoch 59:  81%|████████  | 43/53 [00:48<00:13,  1.35s/it]
+Epoch 59:  83%|████████▎ | 44/53 [00:49<00:12,  1.39s/it]
+Epoch 59:  85%|████████▍ | 45/53 [00:51<00:11,  1.43s/it]
+Epoch 59:  87%|████████▋ | 46/53 [00:52<00:09,  1.36s/it]
+Epoch 59:  89%|████████▊ | 47/53 [00:53<00:07,  1.32s/it]
+Epoch 59:  91%|█████████ | 48/53 [00:54<00:06,  1.23s/it]
+Epoch 59:  92%|█████████▏| 49/53 [00:55<00:04,  1.14s/it]
+Epoch 59:  94%|█████████▍| 50/53 [00:56<00:03,  1.12s/it]
+Epoch 59:  96%|█████████▌| 51/53 [00:57<00:02,  1.13s/it]
+Epoch 59:  98%|█████████▊| 52/53 [00:59<00:01,  1.19s/it]
+Epoch 59: 100%|██████████| 53/53 [01:00<00:00,  1.17s/it]
+Epoch 59: 100%|██████████| 53/53 [01:00<00:00,  1.13s/it]
+Epoch 59 | Avg Loss: 0.019979
+Epoch 59 | Validation Loss: 0.020946 (2214 ML segments)
+Model saved to: /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/train/iteration_001/attempt_001/cached_models/model_lr_contact_contrast_gbm_head_lr_contact_contrast_gbm_head_explore2_002_agent.pth
+Results saved to: /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/train/iteration_001/attempt_001/records/explore2/experiment_results_lr_contact_contrast_gbm_head_lr_contact_contrast_gbm_head_explore2_002.json
+
+[Step 2/3] Inference...
+
+>>> [Skill: Inference] Running inference for lr_contact_contrast_gbm_head_explore2_002...
+>>> [Executor] Running inference for lr_contact_contrast_gbm_head_explore2_002...
+--- [Admission] inference WOULD BE REFUSED (observe_only, policy_unavailable): device occupancy was measured, but no applicable measured GPU memory requirement is available for this phase; a predicted estimate cannot establish the required memory. Proceeding because enforcement_observe_only; the phase posture remains 'formal'.
+--- Inference Output ---
+[PluginLoader] Loaded plugin: 'lr_contact_contrast_gbm_head' from lr_contact_contrast_gbm_head.py
+[generic_inference] 2214 sample(s) in 35 batch(es) -> lr_coupling_scores_lr_contact_contrast_gbm_head_explore2_lr_contact_contrast_gbm_head_explore2_002_0000.json (46.50s)
+
+[Step 3/3] Scoring...
+[MEM] scope=tuner iter=2 phase=pre_score rss=0.78 GB vms=47.13 GB
+
+>>> [Skill: Scoring] Calculating scores for lr_contact_contrast_gbm_head_explore2_002...
+>>> [Executor] Running scoring for lr_contact_contrast_gbm_head_explore2_002...
+[MEM] scope=tuner iter=2 phase=post_score rss=0.78 GB vms=47.13 GB
+
+Generating Research Memory...
+------------------------------
+RESEARCH REFLECTION for lr_contact_contrast_gbm_head_explore2_002:
+Conclusion  : Good, but modest: lr_auprc 0.5919 beats the prior best of 0.5835 (+1.4%, about 0.008). It lands inside the hypothesised 0.59-0.61 range, at its low end. Training ran at full formal scope, so this is not a low-data result. There is no baseline score for comparison. The gain is small and comes from a single run with no seed repeats, so treat it as a modest improvement and not a confirmed one.
+Key Factor  : Doubling epochs from 30 to 60 (with the slightly larger and less regularised config described in the hypothesis). Optimizer and loss stayed the same, adamw with smooth_l1. Training loss was still falling at epoch 60.
+Discovery   : Longer training lowered both objectives. Train smooth_l1 fell from 0.0264 to 0.01998, below the earlier best of 0.02064 for the same loss type. Validation fell from 0.0241 to 0.02095, with the best checkpoint at epoch 54-55 (val 0.02085, below the 0.0212 target). The final train-val gap is small at +0.00097, and validation rose only 9e-5 after its best epoch. That shows no clear overfitting after 60 epochs. Validation is noisy, with occasional spikes to 0.022-0.024 in single epochs, so the checkpoint choice matters. A 0.0003 drop in val loss came with only +0.008 in AUPRC, so loss gains convert to AUPRC weakly. The model is small at 16k params. AUROC is 0.899 and direction accuracy is 0.811. This is not a high-efficiency discovery: it uses 2x the epochs and the params are similar.
+Memory Update: Keep the gbm_head architecture and smooth_l1 loss, adamw, lr 1e-3. Epoch count is still a productive lever, since loss was still decreasing at 60 epochs and the gap is small. Next, try 90-120 epochs, or add a cosine or step LR decay to damp the validation spikes. Raise capacity moderately, for example hidden_dim 96-128 or d_phi/d_set 48-64, and keep dropout at or below 0.1. Change one factor at a time. Because the gain is only +0.008, repeat the run with another seed or run a neighbouring config before treating 0.59 as a plateau. Do not raise formal_portion; it is operator-fixed at 1.0. If AUPRC saturates near 0.59-0.60 while val loss keeps falling, look at the head or feature side (shrink_n0, lambda_ridge, skip_spearman) or a different loss, not just more epochs.
+------------------------------
+[runtime_control] calibration training: bucket promoted to provisional on 2 observation(s)
+[runtime_control] calibration inference: not authoritative — 2 observation(s): below the minimum (2) or outside the consistency ratio (1.5)
+Round 2/2 Complete. Score: 0.5918592175724119
+Output validated and saved -> /home/andre/work/cell-signalling/project/results/runs/0759a6f3-4564-4865-a9d8-0d39b4c00bdf/workspace/explore2/graph_instances/train/iteration_001/attempt_001/run_output_explore2.json
+
+Completed 2 tuning rounds. Loop terminated.

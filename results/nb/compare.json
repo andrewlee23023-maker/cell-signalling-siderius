@@ -1,0 +1,92 @@
+[
+  {
+    "candidate": "baseline (contact Spearman)",
+    "val": {
+      "lr_auprc": 0.5603341513854212,
+      "direction_accuracy": 0.8265873015873014,
+      "lr_auroc": 0.887084724563214
+    },
+    "train": {
+      "lr_auprc": 0.5287711719090227,
+      "direction_accuracy": 0.8630064842564843,
+      "lr_auroc": 0.869867379004767
+    },
+    "val_minus_baseline_ci95": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "train_minus_baseline_ci95": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "recall_topk_by_beta": {
+      "0.5": 0.2,
+      "1.0": 0.4883720930232558,
+      "2.0": 0.7358490566037735
+    },
+    "health": true,
+    "val_seconds": 0.0
+  },
+  {
+    "candidate": "NB \u0394dev, exposure z-clipped \u00b14",
+    "val": {
+      "lr_auprc": 0.4017183568243284,
+      "direction_accuracy": 0.7415721844293273,
+      "lr_auroc": 0.7875946233690447
+    },
+    "train": {
+      "lr_auprc": 0.3772837709795763,
+      "direction_accuracy": 0.8082097069597068,
+      "lr_auroc": 0.7930573463982625
+    },
+    "val_minus_baseline_ci95": [
+      -0.15861579456109276,
+      -0.22069999170545976,
+      -0.09211028838401612
+    ],
+    "train_minus_baseline_ci95": [
+      -0.15148740092944632,
+      -0.1876803541390839,
+      -0.11978353537160431
+    ],
+    "recall_topk_by_beta": {
+      "0.5": 0.14545454545454545,
+      "1.0": 0.46511627906976744,
+      "2.0": 0.5471698113207547
+    },
+    "health": true,
+    "val_seconds": 2.4
+  },
+  {
+    "candidate": "NB \u0394dev, exposure raw",
+    "val": {
+      "lr_auprc": 0.4017402923207259,
+      "direction_accuracy": 0.7415721844293273,
+      "lr_auroc": 0.7875284858029074
+    },
+    "train": {
+      "lr_auprc": 0.37695941104166647,
+      "direction_accuracy": 0.8082097069597068,
+      "lr_auroc": 0.7931444125187468
+    },
+    "val_minus_baseline_ci95": [
+      -0.15859385906469525,
+      -0.22070365288149624,
+      -0.09196721104201475
+    ],
+    "train_minus_baseline_ci95": [
+      -0.15181176086735626,
+      -0.18793264696439374,
+      -0.11984639913453264
+    ],
+    "recall_topk_by_beta": {
+      "0.5": 0.14545454545454545,
+      "1.0": 0.46511627906976744,
+      "2.0": 0.5471698113207547
+    },
+    "health": true,
+    "val_seconds": 2.5
+  }
+]
