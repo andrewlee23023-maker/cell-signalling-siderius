@@ -3,7 +3,7 @@
 ## Final submission: R7 ensemble (v2)
 
 - `submissions/ensemble-noskip-explore2-v2/` — fixed-weight score ensemble 0.7 m1 + 0.3 m2. Validation
-  lr_auprc 0.607 (0.607 ± 0.001 over 3 seeds). Zip `submission_zip/cell-signalling-ensemble-noskip-explore2-v2.zip`,
+  lr_auprc 0.607 (0.607 ± 0.001 over 3 seeds); official track scorer 0.6058 (submission 200). Zip `submission_zip/cell-signalling-ensemble-noskip-explore2-v2.zip`,
   SHA-256 `6e0cbef3a543b5fbb0eb0f6aa88c0e84809e1d1ffef662eab898f717c2568f27`.
 - `submissions/ensemble-aug-both/` — R8, with m2 also trained on generator data: 0.610 (0.609 ± 0.001 over 3 seeds).
   Packaged and checked, not submitted. SHA-256 `28d94279ebff5a7a88a32b2e76a954ecfe1cf03b938494c69e207fd3b568e73c`.

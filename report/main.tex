@@ -96,7 +96,7 @@ but was finished too late to submit.
 Final model (R7): a fixed-weight score average, $0.7\,m_1(x) + 0.3\,m_2(x)$. $m_1$ is the R5 model: the
 SIDERIUS-generated \texttt{lr\_coupling\_mlp} (15.9k parameters) without the partial-correlation skip connection,
 trained on the 60 train datasets plus 60 new realisations of the 10 train tiles produced by the task's public
-generator (\texttt{build\_dataset.py}, unchanged; it regenerates a released train dataset exactly), with smooth-L1
+generator (\texttt{build\_dataset.py}, unchanged), with smooth-L1
 loss, AdamW (lr 0.002, weight decay 0.001), batch 32, cosine schedule, fixed 24 epochs. $m_2$ is a second
 SIDERIUS model (\texttt{lr\_contact\_contrast\_gbm\_head}, 9.3k parameters): closed-form dependence statistics
 between the receptor and the neighbour ligand over the masked contact cells (Spearman, Pearson, partial
@@ -104,34 +104,36 @@ correlation after regressing out rows 2--3, slope, a high- vs low-ligand contras
 a small masked DeepSets embedding and a two-layer head, trained on \texttt{train.npz} only with smooth-L1, AdamW
 (lr 0.001, weight decay $10^{-4}$), batch 128, fixed 60 epochs. The two are trained separately and their weights
 are fixed, not learned; the weights and the choice of $m_2$ were picked by comparing about six combinations on
-validation. R8 (not submitted) scores 0.610 and passes the same reproduction check. Submission ID \TEAM{from portal receipt}; artifact
+validation. R8 (not submitted) scores 0.610 and passes the same reproduction check. Submission ID 200; artifact
 \texttt{cell-signalling-ensemble-noskip-explore2-v2.zip}, SHA-256
-\texttt{6e0cbef3a543b5fbb0eb0f6aa88c0e84809e1d1ffef662eab898f717c2568f27}. Evaluation split: public validation
-(21 datasets); metric \texttt{lr\_auprc}, higher is better. Health gate \texttt{scores\_rank\_triples} (blocking):
-passed for every model below. Neither the generator nor training reads validation or test data. Controls on
+\texttt{6e0cbef3a543b5fbb0eb0f6aa88c0e84809e1d1ffef662eab898f717c2568f27}. On the track's official scorer it
+scored 0.6058, our best, above the earlier uploads R5 (0.5900), (b) (0.5773) and the M1 statistic (0.5190).
+Metric \texttt{lr\_auprc}, higher is better; Health gate \texttt{scores\_rank\_triples} (blocking) passed for
+every model below. Controls on
 validation: permuting the receptor (or ligand) row across each triple's contact cells, which keeps every marginal,
-lowers the final model to 0.120$\pm$0.010 (0.112$\pm$0.013), the random level, with direction accuracy at chance
-(0.52 / 0.49); zeroing rows 2--3 lowers it to 0.561; reading padding as cells lowers it to 0.144. The aug-both
+lowers the final model to 0.120$\pm$0.010 (0.112$\pm$0.013), the random level, with direction accuracy at chance;
+zeroing rows 2--3 lowers it to 0.561; reading padding as cells lowers it to 0.144. The aug-both
 variant behaves the same (0.118 / 0.112 / 0.565 / 0.143).
 
 \begin{table}[ht]
-\caption{Comparable measurements on the public validation split. Intervals: 95\% bootstrap resampling
-the 7 validation tiles (submission seed). Seed SD over 3 training seeds where the method is trained.}
+\caption{Comparable measurements on the public validation split (21 datasets). Intervals: 95\% bootstrap
+resampling the 7 validation tiles (submission seed). Seeds: mean$\pm$SD over 3 training seeds. Official: the
+track's official scorer, for uploaded models.}
 \label{tab:comparison}
 \centering\scriptsize
-\begin{tabularx}{\textwidth}{@{}Xllll@{}}
+\begin{tabularx}{\textwidth}{@{}Xlllll@{}}
 \toprule
-Method & lr\_auprc [95\% tile CI] & $\Delta$ vs baseline [95\% tile CI] & Seeds (mean$\pm$SD) & Cost \\
+Method & lr\_auprc [95\% tile CI] & $\Delta$ vs baseline [95\% tile CI] & Seeds & Official & Cost \\
 \midrule
-Official baseline & 0.560 [0.509, 0.619] & --- & deterministic & 18\,s eval, CPU \\
-Final: R7 ensemble & 0.607 [0.539, 0.695] & $+$0.046 [$-$0.002, $+$0.086] & 0.607$\pm$0.001 & 493\,s gen.+train, RTX 5060 \\
-R8 ensemble (not submitted) & 0.610 [0.544, 0.699] & $+$0.050 [$-$0.001, $+$0.089] & 0.609$\pm$0.001 & 547\,s gen.+train \\
-$m_2$ alone (in R7) & 0.590 [0.509, 0.679] & $+$0.029 [$-$0.021, $+$0.074] & --- & component of R7 \\
-$m_2$ + gen.\ data (in R8) & 0.599 [0.534, 0.675] & $+$0.039 [$-$0.004, $+$0.070] & --- & component of R8 \\
-$m_1$ = (b) + gen.\ data (R5) & 0.603 [0.540, 0.687] & $+$0.043 [$-$0.001, $+$0.079] & 0.601$\pm$0.003 & 684\,s gen.+train \\
-(b) iter1 without skip & 0.589 [0.526, 0.667] & $+$0.029 [$-$0.014, $+$0.065] & 0.593$\pm$0.003 & 59\,s train \\
-(c) iter1 as is & 0.588 [0.523, 0.688] & $+$0.028 [$-$0.023, $+$0.078] & 0.583$\pm$0.004 & 88\,s train \\
-(a) z-score alone & 0.563 [0.490, 0.677] & $+$0.003 [$-$0.041, $+$0.062] & deterministic & CPU, $<$1\,s \\
+Official baseline & 0.560 [0.509, 0.619] & --- & determ. & --- & 18\,s eval, CPU \\
+Final: R7 ensemble & 0.607 [0.539, 0.695] & $+$0.046 [$-$0.002, $+$0.086] & 0.607$\pm$0.001 & \textbf{0.606} & 493\,s, RTX 5060 \\
+R8 ensemble (not submitted) & 0.610 [0.544, 0.699] & $+$0.050 [$-$0.001, $+$0.089] & 0.609$\pm$0.001 & --- & 547\,s \\
+$m_2$ alone (in R7) & 0.590 [0.509, 0.679] & $+$0.029 [$-$0.021, $+$0.074] & --- & --- & in R7 \\
+$m_2$ + gen.\ data (in R8) & 0.599 [0.534, 0.675] & $+$0.039 [$-$0.004, $+$0.070] & --- & --- & in R8 \\
+$m_1$ = (b) + gen.\ data (R5) & 0.603 [0.540, 0.687] & $+$0.043 [$-$0.001, $+$0.079] & 0.601$\pm$0.003 & 0.590 & 684\,s \\
+(b) iter1 without skip & 0.589 [0.526, 0.667] & $+$0.029 [$-$0.014, $+$0.065] & 0.593$\pm$0.003 & 0.577 & 59\,s \\
+(c) iter1 as is & 0.588 [0.523, 0.688] & $+$0.028 [$-$0.023, $+$0.078] & 0.583$\pm$0.004 & --- & 88\,s \\
+(a) z-score alone & 0.563 [0.490, 0.677] & $+$0.003 [$-$0.041, $+$0.062] & determ. & --- & $<$1\,s, CPU \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -157,7 +159,7 @@ against all negatives, per dataset, averaged (task-card convention); final = R7 
 (Fig.~\ref{fig:results}, right, final model): $\beta{=}0.5$ 0.207$\to$0.309, $\beta{=}1$ 0.510$\to$0.645,
 $\beta{=}2$ 0.642$\to$0.651; shuffling the receptor drops the score to 0.120 (random); with the padding mask off,
 0.144; with covariates off, 0.561 (R6, repeated on R7). \emph{Limitation:} the $\beta$ breakdowns come from small subsets and have no
-intervals; covariate adjustment held only for rank statistics, not parametric ones.
+intervals; covariate adjustment held only for rank statistics.
 
 \paragraph{2. On sparse counts, rank statistics carry the signal and model-based count statistics don't; a learned
 network on top adds a little.} \emph{Claim:} we interpret this as robustness to zeros mattering more than the noise
@@ -188,9 +190,7 @@ whether the model separates sender from receiver or only detects co-expression.
 
 \section{Reproducibility, contributions \& AI use}
 \textbf{Code and environment.} SIDERIUS v1.1.0 (official checkout \texttt{5ccb436f}) for all evaluation;
-local GPU runs used a WSL-only patch of SIDERIUS's GPU-memory accounting (branch
-\texttt{wsl-gpu-accounting}, commit \texttt{1f9e28b6}; Windows Subsystem for Linux cannot list per-process GPU
-memory). The submitted model does not depend on SIDERIUS. Python 3.12, PyTorch 2.10, NumPy 2.4,
+local GPU runs used a WSL-only patch of its GPU-memory accounting (commit \texttt{1f9e28b6}). The submitted model does not depend on SIDERIUS. Python 3.12, PyTorch 2.10, NumPy 2.4,
 scikit-learn 1.9.1. \textbf{Data.} Zenodo 10.5281/zenodo.24095146, fetched and md5-verified with the task's
 \texttt{fetch\_data.py}; training used \texttt{train.npz} only; validation was used for comparison and model
 choice (no test data). \textbf{Training.} \texttt{python train/train.py --data\_dir \$DATA\_DIR --seed 20261121
@@ -202,13 +202,14 @@ byte-identically (493\,s on the laptop; 547\,s for R8).
 \url{https://github.com/andrewlee23023-maker/cell-signalling-siderius}.
 \textbf{Contributions.} Andrew Lee (sole member): all research decisions, advice files, analysis judgments and
 writing; Claude Code assisted as described under AI use.
-\textbf{AI use.} \TEAM{review and confirm} Claude Code (Anthropic) set up the environment, wrote the analysis,
+\textbf{AI use.} AI was used to help research and draft ideas. Claude Code (Anthropic) set up the environment, wrote the analysis,
 packaging and reproduction scripts, ran the SIDERIUS experiments and local ablations, and organized logs into
 the tables and figures; outputs were verified by re-running the official baseline to 1e-10, by
 byte-identical retraining, and by the official metric and Health code. SIDERIUS's own agents (OpenAI
 gpt-5.6-luna for the implementation step of later runs, including $m_2$; Claude Sonnet 5.5,
-Gemini 3.1 Flash-Lite) proposed and implemented the trained models. The research judgments, insights,
-limitations and loophole explanations were written by the team.
+Gemini 3.1 Flash-Lite) proposed and implemented the trained models. The team set the research direction and
+gave the core arguments for the judgments, insights and limitations; Claude Code turned them into prose and drafted
+the title, abstract and loophole write-up from the team's results, all reviewed by the team.
 
 % OPTIONAL — delete if not used. Evidence: reward_hacking_part2_results.md (L8: binary score refused by the
 % blocking Health gate, passes after 1e-17 jitter); selection_optimism.json.
@@ -222,8 +223,8 @@ at random, occupies 6 deciles and passes. \textbf{Evidence} (\texttt{runs/loopho
 0.117 (refused) vs 0.118 (passes), both at the random level; only the non-blocking dominant-fraction check flags it
 (0.41 of scores tied). It evades a check without gaining score; across 27 leads we found no way to raise the score
 without the coupling signal. \textbf{Proposed fix.} Count deciles after rounding scores to float32, or make the
-dominant-fraction check blocking. \textbf{False positives.} Honest models with many genuine ties could be refused;
-a dominant-fraction threshold near 0.4 leaves continuous predictors untouched (the baseline has no ties).
+dominant-fraction check blocking. \textbf{False positives.} Honest models with many genuine ties could be refused
+(the baseline has none).
 
 \clearpage
 \begin{thebibliography}{9}
