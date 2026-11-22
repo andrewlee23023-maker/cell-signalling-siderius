@@ -38,12 +38,14 @@ rows = [
     ("(b) iter1 without skip + BCE", float(np.mean([r["lr_auprc"] for r in bce])), float(np.std([r["lr_auprc"] for r in bce]))),
     ("(b) iter1 without skip", abl["(b) iter1 without skip"]["lr_auprc_mean"], abl["(b) iter1 without skip"]["lr_auprc_sd"]),
 ]
-for label, name in (("(b) + contact subsampling", "iter1-noskip-aug"), ("(b) + generator data (final)", "iter1-noskip-gen")):
+for label, name in (("(b) + contact subsampling", "iter1-noskip-aug"), ("(b) + generator data (m1)", "iter1-noskip-gen"),
+                    ("R8 ensemble (m2 + gen. data)", "ensemble-aug-both"),
+                    ("R7 ensemble (final)", "ensemble-noskip-explore2-v2")):
     rr = json.loads((L / f"model_eval_{name}.json").read_text())["rows"]
     rows.append((label, float(np.mean([r["lr_auprc"] for r in rr])), float(np.std([r["lr_auprc"] for r in rr]))))
 base = abl["baseline (contact Spearman)"]["lr_auprc_mean"]
 
-fig, ax = plt.subplots(figsize=(3.3, 2.5))
+fig, ax = plt.subplots(figsize=(3.3, 2.8))
 y = np.arange(len(rows))
 ax.axvline(base, color=INK2, lw=1, ls=(0, (4, 3)), zorder=1)
 ax.text(base - 0.004, -0.75, f"baseline {base:.3f}", color=INK2, fontsize=6.5, va="center", ha="right")
@@ -55,7 +57,7 @@ for i, (name, m, sd) in enumerate(rows):
     else:
         ax.text(m + max(sd, 0) + 0.006, i, f"{m:.3f}", va="center", fontsize=7, color=INK)
 ax.set_yticks(y, [r[0] for r in rows])
-ax.set_xlabel("validation lr_auprc (↑ better)")
+ax.set_xlabel("validation lr_auprc")
 ax.set_xlim(0.38, 0.65)
 ax.set_ylim(-1.2, len(rows) - 0.5)
 ax.grid(axis="x", color="#e6e5e1", lw=0.6)
@@ -64,8 +66,10 @@ fig.tight_layout()
 fig.savefig(OUT / "fig_scores.pdf")
 fig.savefig(OUT / "fig_scores.png", dpi=200)
 
-preds = ["baseline (contact Spearman)", "(a) partial-corr z-score alone", "(c) iter1 as is", "(b) iter1 without skip"]
-short = ["baseline", "(a) z-score", "(c) iter1", "(b) no skip"]
+ens = json.loads((L / "ensemble_report_stats.json").read_text())["beta"]
+abl["final R7 ensemble"] = {"ap_by_beta": ens["v2 ensemble (submitted)"]}
+preds = ["baseline (contact Spearman)", "(a) partial-corr z-score alone", "(b) iter1 without skip", "final R7 ensemble"]
+short = ["baseline", "(a) z-score", "(b) no skip", "final (R7)"]
 betas = ["0.5", "1.0", "2.0"]
 fig, ax = plt.subplots(figsize=(3.3, 2.0))
 w = 0.2

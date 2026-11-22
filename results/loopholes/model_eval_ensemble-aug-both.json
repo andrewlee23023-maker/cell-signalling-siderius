@@ -1,0 +1,50 @@
+{
+  "submission": "/home/andre/work/cell-signalling/submissions/ensemble-aug-both",
+  "rows": [
+    {
+      "seed": 20261121,
+      "lr_auprc": 0.6103885050310142,
+      "ci95": [
+        0.5285323957165234,
+        0.687622024449015
+      ],
+      "delta_vs_baseline": 0.05005435364559301,
+      "delta_ci95": [
+        0.0036642390462464946,
+        0.09270379311966882
+      ],
+      "datasets_better": 14,
+      "work_dir": "/tmp/seed20261121-t8_1aa55"
+    },
+    {
+      "seed": 1,
+      "lr_auprc": 0.6082256093075384,
+      "ci95": [
+        0.5280846941997955,
+        0.6872239627430987
+      ],
+      "delta_vs_baseline": 0.047891457922117256,
+      "delta_ci95": [
+        -0.0005750827505396057,
+        0.09354620060878888
+      ],
+      "datasets_better": 13,
+      "work_dir": "/tmp/seed1-lxorl5e_"
+    },
+    {
+      "seed": 2,
+      "lr_auprc": 0.607789914669906,
+      "ci95": [
+        0.5264979469593398,
+        0.6865491182267504
+      ],
+      "delta_vs_baseline": 0.04745576328448472,
+      "delta_ci95": [
+        0.0025396071889884184,
+        0.08773633833972784
+      ],
+      "datasets_better": 14,
+      "work_dir": "/tmp/seed2-ii4kaypn"
+    }
+  ]
+}

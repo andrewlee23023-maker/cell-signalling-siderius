@@ -1,0 +1,50 @@
+{
+  "submission": "/home/andre/work/cell-signalling/submissions/ensemble-noskip-explore2-v2",
+  "rows": [
+    {
+      "seed": 20261121,
+      "lr_auprc": 0.6065701642451993,
+      "ci95": [
+        0.525944657806781,
+        0.6829854558462239
+      ],
+      "delta_vs_baseline": 0.04623601285977805,
+      "delta_ci95": [
+        0.0019304371172367315,
+        0.08556211697761291
+      ],
+      "datasets_better": 14,
+      "work_dir": "/tmp/seed20261121-aqjjjjmv"
+    },
+    {
+      "seed": 1,
+      "lr_auprc": 0.6059698413010592,
+      "ci95": [
+        0.5261281796549749,
+        0.6843290096377255
+      ],
+      "delta_vs_baseline": 0.04563568991563806,
+      "delta_ci95": [
+        -0.003154021611897721,
+        0.08993630370437891
+      ],
+      "datasets_better": 13,
+      "work_dir": "/tmp/seed1-ufnqnmna"
+    },
+    {
+      "seed": 2,
+      "lr_auprc": 0.6071917434491904,
+      "ci95": [
+        0.524991439024898,
+        0.6857806605394008
+      ],
+      "delta_vs_baseline": 0.04685759206376914,
+      "delta_ci95": [
+        -0.0002817952829513442,
+        0.09147202598974641
+      ],
+      "datasets_better": 15,
+      "work_dir": "/tmp/seed2-ks9wcfrj"
+    }
+  ]
+}

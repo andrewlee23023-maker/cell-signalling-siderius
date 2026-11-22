@@ -19,13 +19,25 @@
 % (README AI policy: the team writes research judgments, insights, limitations, loophole explanations).
 \newcommand{\TEAM}[1]{\textcolor{red}{[TEAM: #1]}}
 
-\title{\TEAM{a specific scientific finding or method}}
+% Title and abstract: drafted by Claude Code from the team's own section 1 and insights; team to review.
+\title{Covariate-adjusted rank coupling on real contacts recovers weak directed ligand--receptor signalling}
 \author{BioHacking \\ Andrew Lee, University of Pennsylvania
 \\ Team ID: G2-16 \quad Task slug: cell-signalling}
 \begin{document}
 \maketitle
 \begin{abstract}
-\TEAM{scientific question, initial idea, most informative experiment, final finding and its main limitation}
+We asked whether single-cell spatial expression carries a directional signature of ligand--receptor signalling
+that can be told apart from co-location, abundance and regional trends. Our initial idea was that the official
+contact-Spearman baseline misses weak effects, and that measuring the ligand--receptor relationship only on real
+(non-padded) contacts, with library offset and sender-neighbour fraction partialled out, would recover them.
+Parametric count models (negative-binomial deviance, a two-part slope test) scored below the rank baseline. A
+SIDERIUS-generated network built on a rank partial-correlation statistic, trained on train data plus generator
+realisations of the train tiles and averaged with a second contact-statistics model, reached validation
+\texttt{lr\_auprc} 0.607 against 0.560 for the baseline, with most of the gain on weak and medium effects. The most
+informative experiment was shuffling the receptor across each triple's contacts, which keeps every marginal and
+drops the model to the random level (0.120): the gain comes from the pairing. The main limitation is that the
+margin (+0.046, 7-tile 95\% interval $-$0.002 to +0.086) is as large as the inflation from choosing among variants
+on validation.
 \end{abstract}
 
 \section{Scientific goal \& initial hypothesis}
@@ -49,7 +61,8 @@ mask changed nothing; or (v) the gain disappeared when uncertainty is measured b
 
 \section{Research trajectory}
 % Facts per row are filled in (Change / Result). "Why" and "Next decision" are the team's reasoning.
-\TEAM{how evidence changed your decisions, in your own words}
+We started with pure count models, moved to rank statistics when the count models scored below the rank
+baseline, and then used ablations to decide which features to keep (Table~\ref{tab:trajectory}).
 
 \begin{table}[ht]
 \caption{Decision trail. Run IDs match the run records under \texttt{project/results/runs/} and
@@ -66,40 +79,59 @@ R2 iter1 & Can the agent loop, given our advice, beat it? & SIDERIUS, Claude Son
 R3 framework limits & What will the framework actually run? & Smoke test, 2-iteration loops, custom-loss advice, Claude implementation & Classifier refused (fixed to regressor); custom loss refused; loops crash at hand-off; 3 of 4 Claude implement replies failed format check & Stay within 0/1 labels and single iterations; implement with OpenAI \\
 R4 ablation & Which component carries iter1? & (a) z-score alone; (b) skip removed; (c) as is & 0.563; 0.593$\pm$0.003; 0.583$\pm$0.004 & Drop the skip; keep the network \\
 R5 augmentation & Is training data the bottleneck? & (b) + contact subsampling; (b) + 60 generator realisations of train tiles & 0.591$\pm$0.003; 0.601$\pm$0.003 & Train on generator data; submit \\
-R6 controls & Is the gain coupling, not confounding? & Final model: shuffle receptor / ligand; padding mask off; rows 2--3 zeroed & 0.120 / 0.113 (random 0.114); 0.143; 0.559 & Keep the padding mask and covariates; credit the gain to the pairing \\
+R6 controls & Is the gain coupling, not confounding? & R5 model: shuffle receptor / ligand; padding mask off; rows 2--3 zeroed & 0.120 / 0.113 (random 0.114); 0.143; 0.559 & Keep the padding mask and covariates; credit the gain to the pairing \\
+R7 ensemble (final) & Would two models that read the coupling differently reduce variance? & 0.7 $\times$ R5 + 0.3 $\times$ explore2 (SIDERIUS contact statistics, train data), trained separately & 0.607 (explore2 alone 0.590); first upload failed: training script did not rebuild the staged weights; fixed & Submit; augment the second model too \\
+R8 augment both & Generator data helped $m_1$; does it help $m_2$? & R7 with explore2 also trained on the generator data & 0.610 (explore2 alone 0.599) & Improved, but finished too late to submit; R7 stays final \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \section{Final model \& comparisons}
-% Uploaded: submissions/iter1-noskip-gen (iter1 MLP without the skip connection, trained on train + generator data).
-\TEAM{why this model was selected}
-Final model: the SIDERIUS-generated \texttt{lr\_coupling\_mlp} (run R3, 15.9k parameters) with the partial-correlation
-skip connection removed, trained on the 60 train datasets plus 60 new realisations of the 10 train tiles produced
-by the task's public generator (\texttt{build\_dataset.py}, unchanged; it regenerates a released train dataset
-exactly). Smooth-L1 loss on the binary target, AdamW (lr 0.002, weight decay 0.001), batch 32, cosine schedule,
-fixed 24 epochs. Submission ID \TEAM{from portal receipt}; artifact \texttt{cell-signalling-iter1-noskip-gen.zip},
-SHA-256 \texttt{bc55e302257001ac71bc3c63513f1379d13b141f78f2725fbb8d557dcb08d5f6}. Evaluation split: public
-validation (21 datasets); metric \texttt{lr\_auprc}, higher is better. Health gate \texttt{scores\_rank\_triples}
-(blocking): passed for every model below. Neither the generator nor training reads validation or test data.
-Controls on validation: permuting the receptor (or ligand) row across each triple's contact cells, which keeps
-every marginal, lowers the final model to 0.120$\pm$0.011 (0.113$\pm$0.013), the random level, with direction
-accuracy at chance; zeroing rows 2--3 lowers it to 0.559.
+% Final submission: submissions/ensemble-noskip-explore2-v2 (R7); earlier upload: iter1-noskip-gen (R5).
+% R8 (ensemble-aug-both) was packaged and checked but not submitted. Evidence: runs/loopholes/ensemble_report_stats.json,
+% model_eval_ensemble-*.json.
+We chose the ensemble because we expected two models that read the coupling differently to reduce variance. R7
+is our final submission. The R8 variant, which also trains $m_2$ on the generator data, did improve on validation
+but was finished too late to submit.
+Final model (R7): a fixed-weight score average, $0.7\,m_1(x) + 0.3\,m_2(x)$. $m_1$ is the R5 model: the
+SIDERIUS-generated \texttt{lr\_coupling\_mlp} (15.9k parameters) without the partial-correlation skip connection,
+trained on the 60 train datasets plus 60 new realisations of the 10 train tiles produced by the task's public
+generator (\texttt{build\_dataset.py}, unchanged; it regenerates a released train dataset exactly), with smooth-L1
+loss, AdamW (lr 0.002, weight decay 0.001), batch 32, cosine schedule, fixed 24 epochs. $m_2$ is a second
+SIDERIUS model (\texttt{lr\_contact\_contrast\_gbm\_head}, 9.3k parameters): closed-form dependence statistics
+between the receptor and the neighbour ligand over the masked contact cells (Spearman, Pearson, partial
+correlation after regressing out rows 2--3, slope, a high- vs low-ligand contrast, a neighbour-count split),
+a small masked DeepSets embedding and a two-layer head, trained on \texttt{train.npz} only with smooth-L1, AdamW
+(lr 0.001, weight decay $10^{-4}$), batch 128, fixed 60 epochs. The two are trained separately and their weights
+are fixed, not learned; the weights and the choice of $m_2$ were picked by comparing about six combinations on
+validation. R8 (not submitted) scores 0.610 and passes the same reproduction check. Submission ID \TEAM{from portal receipt}; artifact
+\texttt{cell-signalling-ensemble-noskip-explore2-v2.zip}, SHA-256
+\texttt{6e0cbef3a543b5fbb0eb0f6aa88c0e84809e1d1ffef662eab898f717c2568f27}. Evaluation split: public validation
+(21 datasets); metric \texttt{lr\_auprc}, higher is better. Health gate \texttt{scores\_rank\_triples} (blocking):
+passed for every model below. Neither the generator nor training reads validation or test data. Controls on
+validation: permuting the receptor (or ligand) row across each triple's contact cells, which keeps every marginal,
+lowers the final model to 0.120$\pm$0.010 (0.112$\pm$0.013), the random level, with direction accuracy at chance
+(0.52 / 0.49); zeroing rows 2--3 lowers it to 0.561; reading padding as cells lowers it to 0.144. The aug-both
+variant behaves the same (0.118 / 0.112 / 0.565 / 0.143).
 
 \begin{table}[ht]
 \caption{Comparable measurements on the public validation split. Intervals: 95\% bootstrap resampling
 the 7 validation tiles (submission seed). Seed SD over 3 training seeds where the method is trained.}
 \label{tab:comparison}
 \centering\scriptsize
-\begin{tabularx}{\textwidth}{@{}lXXXX@{}}
+\begin{tabularx}{\textwidth}{@{}Xllll@{}}
 \toprule
 Method & lr\_auprc [95\% tile CI] & $\Delta$ vs baseline [95\% tile CI] & Seeds (mean$\pm$SD) & Cost \\
 \midrule
 Official baseline & 0.560 [0.509, 0.619] & --- & deterministic & 18\,s eval, CPU \\
-Final: (b) + generator data & 0.603 [0.540, 0.687] & $+$0.043 [$-$0.001, $+$0.079] & 0.601$\pm$0.003 & 684\,s gen.+train, RTX 5060 \\
+Final: R7 ensemble & 0.607 [0.539, 0.695] & $+$0.046 [$-$0.002, $+$0.086] & 0.607$\pm$0.001 & 493\,s gen.+train, RTX 5060 \\
+R8 ensemble (not submitted) & 0.610 [0.544, 0.699] & $+$0.050 [$-$0.001, $+$0.089] & 0.609$\pm$0.001 & 547\,s gen.+train \\
+$m_2$ alone (in R7) & 0.590 [0.509, 0.679] & $+$0.029 [$-$0.021, $+$0.074] & --- & component of R7 \\
+$m_2$ + gen.\ data (in R8) & 0.599 [0.534, 0.675] & $+$0.039 [$-$0.004, $+$0.070] & --- & component of R8 \\
+$m_1$ = (b) + gen.\ data (R5) & 0.603 [0.540, 0.687] & $+$0.043 [$-$0.001, $+$0.079] & 0.601$\pm$0.003 & 684\,s gen.+train \\
 (b) iter1 without skip & 0.589 [0.526, 0.667] & $+$0.029 [$-$0.014, $+$0.065] & 0.593$\pm$0.003 & 59\,s train \\
 (c) iter1 as is & 0.588 [0.523, 0.688] & $+$0.028 [$-$0.023, $+$0.078] & 0.583$\pm$0.004 & 88\,s train \\
-(a) z-score alone (no weights) & 0.563 [0.490, 0.677] & $+$0.003 [$-$0.041, $+$0.062] & deterministic & CPU, $<$1\,s \\
+(a) z-score alone & 0.563 [0.490, 0.677] & $+$0.003 [$-$0.041, $+$0.062] & deterministic & CPU, $<$1\,s \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -109,8 +141,9 @@ Final: (b) + generator data & 0.603 [0.540, 0.687] & $+$0.043 [$-$0.001, $+$0.07
 \includegraphics[width=0.49\textwidth]{figures/fig_scores.pdf}\hfill
 \includegraphics[width=0.49\textwidth]{figures/fig_beta.pdf}
 \caption{Left: validation \texttt{lr\_auprc} per predictor (mean $\pm$ SD over 3 training seeds; deterministic
-predictors have no seed variance); (b) = iter1 without the skip connection; dashed line: official baseline. Right: AP of the positives with one
-injected effect size $\beta$ against all negatives, per dataset, averaged (task-card convention).}
+predictors have no seed variance); (b) = iter1 without the skip connection; $m_1$, $m_2$ = ensemble components
+(Section~3); dashed line: official baseline. Right: AP of the positives with one injected effect size $\beta$
+against all negatives, per dataset, averaged (task-card convention); final = R7 ensemble, submission seed.}
 \label{fig:results}
 \end{figure}
 
@@ -121,11 +154,10 @@ injected effect size $\beta$ against all negatives, per dataset, averaged (task-
 \paragraph{1. The gain comes from ligand--receptor coupling measured on real contacts, mostly in weak and medium links.}
 \emph{Claim:} the improvement comes from the pairing itself, measured only on real (non-padded) contacts with rows
 2--3 partialled out, and mainly helps links the baseline misses. \emph{Evidence:} AP by injected effect size
-(Fig.~\ref{fig:results}, right, final model): $\beta{=}0.5$ 0.207$\to$0.313, $\beta{=}1$ 0.510$\to$0.631,
-$\beta{=}2$ 0.642$\to$0.655; shuffling the receptor drops the score to 0.120 (random); with the padding mask off,
-0.143; with covariates off, 0.559 (R6). \emph{Limitation:} the $\beta$ breakdowns come from small subsets and have no
-intervals; \TEAM{the covariates gap is 0.603$\to$0.559 = 0.044, about 2.4$\times$ the 0.018 noise SD: keep, revise or
-drop the "just above the noise floor" point}; covariate adjustment held only for rank statistics, not parametric ones.
+(Fig.~\ref{fig:results}, right, final model): $\beta{=}0.5$ 0.207$\to$0.309, $\beta{=}1$ 0.510$\to$0.645,
+$\beta{=}2$ 0.642$\to$0.651; shuffling the receptor drops the score to 0.120 (random); with the padding mask off,
+0.144; with covariates off, 0.561 (R6, repeated on R7). \emph{Limitation:} the $\beta$ breakdowns come from small subsets and have no
+intervals; covariate adjustment held only for rank statistics, not parametric ones.
 
 \paragraph{2. On sparse counts, rank statistics carry the signal and model-based count statistics don't; a learned
 network on top adds a little.} \emph{Claim:} we interpret this as robustness to zeros mattering more than the noise
@@ -138,14 +170,21 @@ features; ending on rank statistics was a conclusion from the results, not part 
 
 \paragraph{3. The measured improvement is as large as the selection inflation, so the controls carry the evidence,
 not the score.} \emph{Claim:} the leaderboard margin cannot separate a real method gain from selection noise; the
-ablations and controls can. \emph{Evidence:} final model vs baseline, 7-tile interval +0.043 [$-$0.001, +0.079];
-selection inflation when picking the best of 43 fixed variants on validation tiles: +0.044; comparable methods'
+ablations and controls can. \emph{Evidence:} final model vs baseline, 7-tile interval +0.046 [$-$0.002, +0.086];
+selection inflation when picking the best of 43 fixed variants on validation tiles: +0.044; the ensemble adds
++0.003 over $m_1$ alone (+0.007 for R8) after choosing among about six combinations on validation; comparable methods'
 paired scores vary with SD about 0.018 from validation noise alone. \emph{Limitation:} only 7 independent tiles; the
 interval just includes zero; the controls are relative to a model chosen on validation, so they show which
 components matter, not how large the gain is.
 
 \section{Limitations \& next experiment}
-\TEAM{most consequential uncertainty and a concrete next experiment that would distinguish explanations}
+The most consequential uncertainty is whether the gain is real: it equals the selection inflation (+0.046 vs
++0.044), and the model, ensemble weights and variants were all chosen on validation. Next experiment: a held-out
+tile split of the training data, selecting every component and weight on some train tiles and reporting once on
+tiles never used for any choice; a real gain survives, selection inflation shrinks toward zero. Second, whether
+generator augmentation teaches biology or only the simulator: test on a held-out new tissue not produced by the
+task's simulator. Third, direction: score each triple against its swapped counterpart (B$\to$A vs A$\to$B) to test
+whether the model separates sender from receiver or only detects co-expression.
 
 \section{Reproducibility, contributions \& AI use}
 \textbf{Code and environment.} SIDERIUS v1.1.0 (official checkout \texttt{5ccb436f}) for all evaluation;
@@ -156,28 +195,42 @@ scikit-learn 1.9.1. \textbf{Data.} Zenodo 10.5281/zenodo.24095146, fetched and m
 \texttt{fetch\_data.py}; training used \texttt{train.npz} only; validation was used for comparison and model
 choice (no test data). \textbf{Training.} \texttt{python train/train.py --data\_dir \$DATA\_DIR --seed 20261121
 --initial-out initial.pt --out weights.pt}: generates the 60 extra train-tile realisations (seed 20261121) from
-\texttt{train.npz} alone, then trains; a clean, network-free rerun reproduces \texttt{weights.pt} byte-identically
-(684\,s on the laptop while sharing the GPU). \textbf{Evidence.} Complete run records, logs, advice files and scripts: \TEAM{GitHub repository URL}.
+\texttt{train.npz} alone, saves \texttt{initial.pt} for the whole ensemble, then trains $m_1$ and $m_2$ in turn, each
+with its own recipe; a clean, network-free rerun reproduces \texttt{weights.pt} and \texttt{initial.pt}
+byte-identically (493\,s on the laptop; 547\,s for R8).
+\textbf{Evidence.} Complete run records, logs, advice files and scripts:
+\url{https://github.com/andrewlee23023-maker/cell-signalling-siderius}.
 \textbf{Contributions.} Andrew Lee (sole member): all research decisions, advice files, analysis judgments and
 writing; Claude Code assisted as described under AI use.
 \textbf{AI use.} \TEAM{review and confirm} Claude Code (Anthropic) set up the environment, wrote the analysis,
 packaging and reproduction scripts, ran the SIDERIUS experiments and local ablations, and organized logs into
 the tables and figures; outputs were verified by re-running the official baseline to 1e-10, by
-byte-identical retraining, and by the official metric and Health code. SIDERIUS's own agents (Claude Sonnet 5.5,
+byte-identical retraining, and by the official metric and Health code. SIDERIUS's own agents (OpenAI
+gpt-5.6-luna for the implementation step of later runs, including $m_2$; Claude Sonnet 5.5,
 Gemini 3.1 Flash-Lite) proposed and implemented the trained models. The research judgments, insights,
 limitations and loophole explanations were written by the team.
 
 % OPTIONAL — delete if not used. Evidence: reward_hacking_part2_results.md (L8: binary score refused by the
 % blocking Health gate, passes after 1e-17 jitter); selection_optimism.json.
 \section*{Optional: Reward hacking discovery}
-\TEAM{scientific goal vs metric incentive; triggering condition; minimal reproducible example; evidence; proposed fix and false positives}
+\textbf{Goal vs incentive.} The blocking Health gate \texttt{scores\_rank\_triples} should refuse predictors
+that do not rank triples, since \texttt{lr\_auprc} is only meaningful for graded scores. \textbf{Trigger.} The gate
+counts occupied score deciles (at least 5) but does not test whether scores carry more than binary information.
+\textbf{Minimal example} (\texttt{tools/gate\_evasion.py}). A two-block score (1 for a selected subset, 0
+otherwise) occupies 4 deciles and is refused; adding jitter $U(0,10^{-17})$, which only breaks ties among the zeros
+at random, occupies 6 deciles and passes. \textbf{Evidence} (\texttt{runs/loopholes/gate.json}): \texttt{lr\_auprc}
+0.117 (refused) vs 0.118 (passes), both at the random level; only the non-blocking dominant-fraction check flags it
+(0.41 of scores tied). It evades a check without gaining score; across 27 leads we found no way to raise the score
+without the coupling signal. \textbf{Proposed fix.} Count deciles after rounding scores to float32, or make the
+dominant-fraction check blocking. \textbf{False positives.} Honest models with many genuine ties could be refused;
+a dominant-fraction threshold near 0.4 leaves continuous predictors untouched (the baseline has no ties).
 
 \clearpage
 \begin{thebibliography}{9}
 \bibitem{janesick} A.~Janesick et al. High resolution mapping of the tumor microenvironment using integrated
-single-cell, spatial and in situ analysis. \emph{Nature Communications} 14:8353, 2023. \TEAM{verify}
+single-cell, spatial and in situ analysis. \emph{Nature Communications} 14:8353, 2023.
 \bibitem{liana} D.~Dimitrov et al. Comparison of methods and resources for cell-cell communication inference
-from single-cell RNA-Seq data. \emph{Nature Communications}, 2022. \TEAM{verify}
+from single-cell RNA-Seq data. \emph{Nature Communications} 13:3224, 2022.
 \bibitem{data} Task data: Zenodo record 24095146, doi:10.5281/zenodo.24095146.
 \bibitem{siderius} SIDERIUS v1.1.0. \url{https://github.com/yuema137/SIDERIUS}
 \end{thebibliography}

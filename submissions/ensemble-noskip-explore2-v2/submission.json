@@ -1,0 +1,11 @@
+{
+  "kind": "model",
+  "seed": 20261121,
+  "initial_weights": "initial.pt",
+  "plugin": "model.py",
+  "symbol": "CellSignalModel",
+  "weights": "weights.pt",
+  "plugin_config": "cfg.json",
+  "train_command": "python train/train.py --data_dir $DATA_DIR --seed $SEED --initial-out initial.pt --out weights.pt",
+  "train_dir": "train/"
+}

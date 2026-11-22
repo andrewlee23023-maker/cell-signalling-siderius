@@ -1,0 +1,169 @@
+{
+  "tile_bootstrap": {
+    "baseline": {
+      "lr_auprc": 0.5603341513854212,
+      "ci95_tile": [
+        0.509147980786391,
+        0.6193342276169231
+      ],
+      "delta": 0.0,
+      "delta_ci95_tile": [
+        0.0,
+        0.0
+      ],
+      "datasets_above_baseline": 0,
+      "direction_accuracy": 0.8265873015873014
+    },
+    "v2 ensemble (submitted)": {
+      "lr_auprc": 0.6065701642451993,
+      "ci95_tile": [
+        0.5388510839316295,
+        0.6953421831088924
+      ],
+      "delta": 0.04623601285977805,
+      "delta_ci95_tile": [
+        -0.002380467761666922,
+        0.08585915476955301
+      ],
+      "datasets_above_baseline": 14,
+      "direction_accuracy": 0.8176114890400605
+    },
+    "v2 ensemble (submitted) | m1 alone": {
+      "lr_auprc": 0.6032557030341822,
+      "ci95_tile": [
+        0.5395536287239184,
+        0.6873779007004011
+      ],
+      "delta": 0.04292155164876095,
+      "delta_ci95_tile": [
+        -0.0009408833870540292,
+        0.0793536803229096
+      ],
+      "datasets_above_baseline": 15,
+      "direction_accuracy": 0.8152305366591082
+    },
+    "v2 ensemble (submitted) | m2 alone": {
+      "lr_auprc": 0.5895211989622738,
+      "ci95_tile": [
+        0.5093652274987465,
+        0.678672965909751
+      ],
+      "delta": 0.02918704757685261,
+      "delta_ci95_tile": [
+        -0.02087111718311414,
+        0.07428909718271533
+      ],
+      "datasets_above_baseline": 14,
+      "direction_accuracy": 0.7831443688586546
+    },
+    "aug-both ensemble": {
+      "lr_auprc": 0.6103885050310142,
+      "ci95_tile": [
+        0.5437985429973305,
+        0.6987883582968724
+      ],
+      "delta": 0.05005435364559301,
+      "delta_ci95_tile": [
+        -0.0008100621022328681,
+        0.08906714385391595
+      ],
+      "datasets_above_baseline": 14,
+      "direction_accuracy": 0.8072373393801965
+    },
+    "aug-both ensemble | m1 alone": {
+      "lr_auprc": 0.6032557030341822,
+      "ci95_tile": [
+        0.5395536287239184,
+        0.6873779007004011
+      ],
+      "delta": 0.04292155164876095,
+      "delta_ci95_tile": [
+        -0.0009408833870540292,
+        0.0793536803229096
+      ],
+      "datasets_above_baseline": 15,
+      "direction_accuracy": 0.8152305366591082
+    },
+    "aug-both ensemble | m2 alone": {
+      "lr_auprc": 0.5993065715095562,
+      "ci95_tile": [
+        0.5343399820813448,
+        0.6745887972902225
+      ],
+      "delta": 0.038972420124135,
+      "delta_ci95_tile": [
+        -0.0035398910103321413,
+        0.06991479426383998
+      ],
+      "datasets_above_baseline": 13,
+      "direction_accuracy": 0.7854119425547997
+    }
+  },
+  "beta": {
+    "baseline": {
+      "0.5": 0.20724198763359197,
+      "1.0": 0.5104537039639341,
+      "2.0": 0.6420996998170911
+    },
+    "v2 ensemble (submitted)": {
+      "0.5": 0.3088565490222537,
+      "1.0": 0.6451203962615194,
+      "2.0": 0.6507556964849115
+    },
+    "aug-both ensemble": {
+      "0.5": 0.30886564179334386,
+      "1.0": 0.6430204703305602,
+      "2.0": 0.6654593160576933
+    }
+  },
+  "controls": {
+    "shuffle_receptor": {
+      "v2 ensemble (submitted)": {
+        "lr_auprc": 0.12024784659129359,
+        "lr_auprc_sd": 0.0101400366754308,
+        "direction_accuracy": 0.521386999244142
+      },
+      "aug-both ensemble": {
+        "lr_auprc": 0.11757409408414195,
+        "lr_auprc_sd": 0.008710634997977267,
+        "direction_accuracy": 0.5247165532879818
+      }
+    },
+    "shuffle_ligand": {
+      "v2 ensemble (submitted)": {
+        "lr_auprc": 0.11166383322921476,
+        "lr_auprc_sd": 0.01307347135460824,
+        "direction_accuracy": 0.48982615268329555
+      },
+      "aug-both ensemble": {
+        "lr_auprc": 0.111755690194559,
+        "lr_auprc_sd": 0.013583262293600245,
+        "direction_accuracy": 0.494848828420257
+      }
+    },
+    "zero_covariates": {
+      "v2 ensemble (submitted)": {
+        "lr_auprc": 0.5609227494564238,
+        "lr_auprc_sd": 0.0,
+        "direction_accuracy": 0.8074074074074072
+      },
+      "aug-both ensemble": {
+        "lr_auprc": 0.5645932723631208,
+        "lr_auprc_sd": 0.0,
+        "direction_accuracy": 0.78869992441421
+      }
+    },
+    "mask_off": {
+      "v2 ensemble (submitted)": {
+        "lr_auprc": 0.1438564754579239,
+        "lr_auprc_sd": 0.0,
+        "direction_accuracy": 0.6278344671201813
+      },
+      "aug-both ensemble": {
+        "lr_auprc": 0.1430982872327698,
+        "lr_auprc_sd": 0.0,
+        "direction_accuracy": 0.5921201814058957
+      }
+    }
+  }
+}

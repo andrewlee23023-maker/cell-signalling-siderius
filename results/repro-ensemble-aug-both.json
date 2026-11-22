@@ -1,0 +1,20 @@
+{
+  "submission": "/home/andre/work/cell-signalling/submissions/ensemble-aug-both",
+  "ok": true,
+  "train_seconds": 548.0,
+  "regenerated_vs_staged": {
+    "weights.pt": true,
+    "initial.pt": true
+  },
+  "inference": {
+    "n": 2214,
+    "seconds": 0.7311639785766602,
+    "finite_fraction": 1.0,
+    "unique_scores": 2214
+  },
+  "official_validation": {
+    "lr_auprc": 0.6103885050310142,
+    "direction_accuracy": 0.8072373393801965,
+    "lr_auroc": 0.9004170570826517
+  }
+}

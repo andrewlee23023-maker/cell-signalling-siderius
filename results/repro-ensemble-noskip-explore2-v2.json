@@ -1,0 +1,20 @@
+{
+  "submission": "/home/andre/work/cell-signalling/submissions/ensemble-noskip-explore2-v2",
+  "ok": true,
+  "train_seconds": 493.2,
+  "regenerated_vs_staged": {
+    "weights.pt": true,
+    "initial.pt": true
+  },
+  "inference": {
+    "n": 2214,
+    "seconds": 0.7481331825256348,
+    "finite_fraction": 1.0,
+    "unique_scores": 2214
+  },
+  "official_validation": {
+    "lr_auprc": 0.6065701642451993,
+    "direction_accuracy": 0.8176114890400605,
+    "lr_auroc": 0.9021571891086769
+  }
+}
